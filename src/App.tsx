@@ -14,12 +14,13 @@ import { MiniPlayer } from './components/MiniPlayer';
 import { SideMenu } from './components/Navigation';
 
 function AppContent() {
-  const { currentScreen, setCurrentScreen, recordSession } = useAppContext();
+  const { currentScreen, setCurrentScreen, recordSession, settings } = useAppContext();
 
   const player = useAudioPlayer(TRACKS);
 
   const timer = useSleepTimer(
     useCallback(() => player.pause(), [player.pause]),
+    settings.defaultTimerMinutes,
   );
 
   const mixer = useSoundMixer(TRACKS);
@@ -27,10 +28,11 @@ function AppContent() {
 
   // Sync timer with playback state
   const handleTogglePlay = useCallback(() => {
+    const willPlay = !player.isPlaying;
     player.togglePlay();
-    if (!player.isPlaying) {
+    if (willPlay) {
       timer.start();
-      recordSession();
+      recordSession(player.currentTrack.id);
     } else {
       timer.stop();
     }
@@ -43,7 +45,7 @@ function AppContent() {
       mixer.stopAll();
       setCurrentScreen('player');
       timer.start();
-      recordSession();
+      recordSession(track.id);
     },
     [player, mixer, setCurrentScreen, timer, recordSession],
   );
@@ -53,11 +55,12 @@ function AppContent() {
       mixer.loadPresetTracks(preset.tracks);
       if (!mixer.isMixPlaying) mixer.toggleMixPlay();
       setActiveMixName(preset.name);
-      // Use the first track of the mix as the display track in PlayerScreen
+      // Set first track as display track, but pause single player to avoid double audio
       const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);
       if (firstTrack) player.selectTrack(firstTrack);
+      player.pause();
       setCurrentScreen('player');
-      recordSession();
+      recordSession(firstTrack?.id);
     },
     [mixer, player, setCurrentScreen, recordSession],
   );
@@ -82,7 +85,6 @@ function AppContent() {
             onSetTimer={timer.selectTimer}
             onSkipNext={player.skipNext}
             onSkipPrev={player.skipPrev}
-            onSeek={player.seek}
             formatTimerDisplay={timer.formatDisplay}
             mixName={activeMixName}
             onOpenMixer={() => setCurrentScreen('mixer')}

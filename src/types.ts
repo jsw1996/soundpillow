@@ -38,6 +38,7 @@ export interface ListeningStats {
   sessionsCount: number;
   favoriteTrackId: string | null;
   lastPlayedAt: number | null;
+  trackPlayCounts: Record<string, number>;
 }
 
 export type Screen = 'home' | 'player' | 'mixer' | 'profile';

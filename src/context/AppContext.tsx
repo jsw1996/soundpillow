@@ -17,7 +17,7 @@ interface AppContextValue {
   updateSettings: (patch: Partial<UserSettings>) => void;
   stats: ListeningStats;
   addListeningTime: (minutes: number) => void;
-  recordSession: () => void;
+  recordSession: (trackId?: string) => void;
   resetStats: () => void;
   mixPresets: MixPreset[];
   saveMixPreset: (preset: MixPreset) => void;
@@ -39,6 +39,7 @@ const DEFAULT_STATS: ListeningStats = {
   sessionsCount: 0,
   favoriteTrackId: null,
   lastPlayedAt: null,
+  trackPlayCounts: {},
 };
 
 function loadFavorites(): Set<string> {
@@ -134,12 +135,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const recordSession = useCallback(() => {
-    setStats((prev) => ({
-      ...prev,
-      sessionsCount: prev.sessionsCount + 1,
-      lastPlayedAt: Date.now(),
-    }));
+  const recordSession = useCallback((trackId?: string) => {
+    setStats((prev) => {
+      const trackPlayCounts = { ...(prev.trackPlayCounts || {}) };
+      if (trackId) {
+        trackPlayCounts[trackId] = (trackPlayCounts[trackId] || 0) + 1;
+      }
+      let favoriteTrackId: string | null = null;
+      let maxCount = 0;
+      for (const [id, count] of Object.entries(trackPlayCounts)) {
+        if (count > maxCount) {
+          maxCount = count;
+          favoriteTrackId = id;
+        }
+      }
+      return {
+        ...prev,
+        sessionsCount: prev.sessionsCount + 1,
+        lastPlayedAt: Date.now(),
+        favoriteTrackId,
+        trackPlayCounts,
+      };
+    });
   }, []);
 
   const resetStats = useCallback(() => {

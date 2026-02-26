@@ -27,7 +27,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
 
   const filteredTracks = TRACKS.filter((track) => {
     // Category filter
-    if (activeCategory !== 'all' && track.category.toLowerCase() !== activeCategory.toLowerCase()) {
+    if (activeCategory !== 'all' && track.category.toLowerCase() !== activeCategory) {
       return false;
     }
     // Favorites filter

@@ -1,11 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-export function useSleepTimer(onTimerEnd: () => void) {
-  const [timerMinutes, setTimerMinutes] = useState<number | null>(30);
-  const [secondsRemaining, setSecondsRemaining] = useState(1800);
+export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | null = 30) {
+  const [timerMinutes, setTimerMinutes] = useState<number | null>(defaultMinutes);
+  const [secondsRemaining, setSecondsRemaining] = useState(
+    defaultMinutes != null ? defaultMinutes * 60 : 0,
+  );
   const [isActive, setIsActive] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onTimerEndRef = useRef(onTimerEnd);
 
+  // Keep callback ref current
+  useEffect(() => {
+    onTimerEndRef.current = onTimerEnd;
+  });
+
+  // Sync selected minutes to countdown
   useEffect(() => {
     if (timerMinutes !== null) {
       setSecondsRemaining(timerMinutes * 60);
@@ -14,27 +23,26 @@ export function useSleepTimer(onTimerEnd: () => void) {
     }
   }, [timerMinutes]);
 
+  // Run countdown — only restarts when isActive changes
   useEffect(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (!isActive) return;
 
-    if (secondsRemaining > 0 && isActive) {
-      intervalRef.current = setInterval(() => {
-        setSecondsRemaining((prev) => {
-          if (prev <= 1) {
-            setIsActive(false);
-            setTimerMinutes(null);
-            onTimerEnd();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    intervalRef.current = setInterval(() => {
+      setSecondsRemaining((prev) => {
+        if (prev <= 1) {
+          setIsActive(false);
+          setTimerMinutes(null);
+          onTimerEndRef.current();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [secondsRemaining, isActive, onTimerEnd]);
+  }, [isActive]);
 
   const selectTimer = useCallback((mins: number | null) => {
     setTimerMinutes(mins);

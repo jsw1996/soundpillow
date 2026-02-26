@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   ChevronDown,
   Play,
@@ -26,7 +26,6 @@ interface PlayerScreenProps {
   onSetTimer: (mins: number | null) => void;
   onSkipNext: () => void;
   onSkipPrev: () => void;
-  onSeek: (percent: number) => void;
   formatTimerDisplay: (seconds: number) => string;
   mixName?: string | null;
   onOpenMixer?: () => void;
@@ -79,21 +78,11 @@ export function PlayerScreen({
   onSetTimer,
   onSkipNext,
   onSkipPrev,
-  onSeek,
   formatTimerDisplay,
   mixName,
   onOpenMixer,
 }: PlayerScreenProps) {
   const { isFavorite, toggleFavorite } = useAppContext();
-
-  const handleProgressClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const percent = ((e.clientX - rect.left) / rect.width) * 100;
-      onSeek(Math.max(0, Math.min(100, percent)));
-    },
-    [onSeek],
-  );
 
   return (
     <motion.div

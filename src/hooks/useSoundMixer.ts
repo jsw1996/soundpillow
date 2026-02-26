@@ -4,21 +4,45 @@ import { MixerTrack } from '../types';
 
 const MAX_ACTIVE_TRACKS = 5;
 
+interface AudioNode {
+  element: HTMLAudioElement;
+  source: MediaElementAudioSourceNode;
+  gain: GainNode;
+}
+
 export function useSoundMixer(tracks: Track[]) {
   const [mixerTracks, setMixerTracks] = useState<MixerTrack[]>(
     tracks.map((t) => ({ trackId: t.id, volume: 70, isActive: false })),
   );
   const [isMixPlaying, setIsMixPlaying] = useState(false);
-  const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const audioNodes = useRef<Map<string, AudioNode>>(new Map());
+
+  // Get or create AudioContext, resuming if suspended (required for iOS)
+  const getAudioContext = useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    return audioCtxRef.current;
+  }, []);
 
   // Cleanup all audio on unmount
   useEffect(() => {
     return () => {
-      audioRefs.current.forEach((audio) => {
-        audio.pause();
-        audio.src = '';
+      audioNodes.current.forEach((node) => {
+        node.element.pause();
+        node.element.src = '';
+        node.source.disconnect();
+        node.gain.disconnect();
       });
-      audioRefs.current.clear();
+      audioNodes.current.clear();
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+        audioCtxRef.current = null;
+      }
     };
   }, []);
 
@@ -28,29 +52,39 @@ export function useSoundMixer(tracks: Track[]) {
       const track = tracks.find((t) => t.id === mt.trackId);
       if (!track) return;
 
-      let audio = audioRefs.current.get(mt.trackId);
+      let node = audioNodes.current.get(mt.trackId);
 
       if (mt.isActive) {
-        if (!audio) {
-          audio = new Audio(track.audioUrl);
-          audio.loop = true;
-          audioRefs.current.set(mt.trackId, audio);
+        if (!node) {
+          const ctx = getAudioContext();
+          const element = new Audio(track.audioUrl);
+          element.loop = true;
+          const source = ctx.createMediaElementSource(element);
+          const gain = ctx.createGain();
+          source.connect(gain);
+          gain.connect(ctx.destination);
+          node = { element, source, gain };
+          audioNodes.current.set(mt.trackId, node);
         }
-        audio.volume = mt.volume / 100;
+        // Use GainNode for volume control (works on iOS, unlike audio.volume)
+        node.gain.gain.value = mt.volume / 100;
         if (isMixPlaying) {
-          audio.play().catch(() => {});
+          getAudioContext(); // ensure context is resumed
+          node.element.play().catch(() => {});
         } else {
-          audio.pause();
+          node.element.pause();
         }
       } else {
-        if (audio) {
-          audio.pause();
-          audio.src = '';
-          audioRefs.current.delete(mt.trackId);
+        if (node) {
+          node.element.pause();
+          node.element.src = '';
+          node.source.disconnect();
+          node.gain.disconnect();
+          audioNodes.current.delete(mt.trackId);
         }
       }
     });
-  }, [mixerTracks, isMixPlaying, tracks]);
+  }, [mixerTracks, isMixPlaying, tracks, getAudioContext]);
 
   const toggleTrack = useCallback((trackId: string) => {
     setMixerTracks((prev) => {

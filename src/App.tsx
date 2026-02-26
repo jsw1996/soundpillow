@@ -43,11 +43,10 @@ function AppContent() {
       player.selectTrack(track);
       setActiveMixName(null);
       mixer.stopAll();
-      setCurrentScreen('player');
       timer.start();
       recordSession(track.id);
     },
-    [player, mixer, setCurrentScreen, timer, recordSession],
+    [player, mixer, timer, recordSession],
   );
 
   const handleMixSelect = useCallback(
@@ -59,10 +58,9 @@ function AppContent() {
       const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);
       if (firstTrack) player.selectTrack(firstTrack);
       player.pause();
-      setCurrentScreen('player');
       recordSession(firstTrack?.id);
     },
-    [mixer, player, setCurrentScreen, recordSession],
+    [mixer, player, recordSession],
   );
 
   const renderScreen = () => {
@@ -117,6 +115,7 @@ function AppContent() {
         isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}
         progress={timer.timerProgress}
         onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
+        mixName={activeMixName}
       />
       <SideMenu />
     </div>

@@ -123,17 +123,18 @@ export function MixerScreen({
                 <AnimatePresence>
                   {isActive && (
                     <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
+                      className="py-1"
                     >
                       <input
                         type="range"
                         min="0"
                         max="100"
                         value={volume}
+                        onInput={(e) => onSetVolume(track.id, Number((e.target as HTMLInputElement).value))}
                         onChange={(e) => onSetVolume(track.id, Number(e.target.value))}
                         className="volume-slider w-full"
                       />

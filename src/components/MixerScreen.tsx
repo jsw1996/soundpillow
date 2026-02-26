@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Menu,
   Sliders,
@@ -17,6 +17,41 @@ import { motion, AnimatePresence } from 'motion/react';
 import { TRACKS } from '../constants';
 import { MixerTrack } from '../types';
 import { useAppContext } from '../context/AppContext';
+
+function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const calcValue = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    onChange(Math.round(pct));
+  }, [onChange]);
+
+  return (
+    <div
+      className="relative h-8 flex items-center cursor-pointer select-none"
+      style={{ touchAction: 'none' }}
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        calcValue(e);
+      }}
+      onPointerMove={(e) => {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          calcValue(e);
+        }
+      }}
+    >
+      <div className="w-full h-1 rounded-full bg-primary/10 relative">
+        <div
+          className="h-full rounded-full bg-primary transition-none"
+          style={{ width: `${value}%` }}
+        />
+      </div>
+      <div
+        className="absolute w-5 h-5 rounded-full bg-primary border-2 border-white shadow-[0_0_6px_rgba(140,43,238,0.4)] pointer-events-none"
+        style={{ left: `${value}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+      />
+    </div>
+  );
+}
 
 const TRACK_ICONS: Record<string, React.ReactNode> = {
   '1': <CloudRain size={24} />,
@@ -127,18 +162,12 @@ export function MixerScreen({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="py-1"
                     >
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
+                      <VolumeSlider
                         value={volume}
-                        onInput={(e) => onSetVolume(track.id, Number((e.target as HTMLInputElement).value))}
-                        onChange={(e) => onSetVolume(track.id, Number(e.target.value))}
-                        className="volume-slider w-full"
+                        onChange={(v) => onSetVolume(track.id, v)}
                       />
-                      <p className="text-[10px] text-white/30 text-center mt-1">{volume}%</p>
+                      <p className="text-[10px] text-white/30 text-center">{volume}%</p>
                     </motion.div>
                   )}
                 </AnimatePresence>

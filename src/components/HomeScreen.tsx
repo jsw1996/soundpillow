@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Search,
   Menu,
   Moon,
   Play,
@@ -23,7 +22,7 @@ interface HomeScreenProps {
 
 export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
   const [activeCategory, setActiveCategory] = useState('all');
-  const { searchQuery, setSearchQuery, isFavorite, toggleFavorite, showFavoritesOnly, setMenuOpen, setCurrentScreen } = useAppContext();
+  const { isFavorite, toggleFavorite, showFavoritesOnly, setMenuOpen, setCurrentScreen } = useAppContext();
 
   const filteredTracks = TRACKS.filter((track) => {
     // Category filter
@@ -33,15 +32,6 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
     // Favorites filter
     if (showFavoritesOnly && !isFavorite(track.id)) {
       return false;
-    }
-    // Search filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return (
-        track.title.toLowerCase().includes(q) ||
-        track.artist.toLowerCase().includes(q) ||
-        (track.description?.toLowerCase().includes(q) ?? false)
-      );
     }
     return true;
   });
@@ -70,18 +60,6 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
           <Moon size={24} fill="currentColor" />
         </button>
       </header>
-
-      {/* Search */}
-      <div className="relative px-6">
-        <Search className="absolute left-10 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search sounds, stories, or music"
-          className="w-full bg-slate-800/50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary outline-none"
-        />
-      </div>
 
       {/* Categories — scrolls edge-to-edge */}
       <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-6">

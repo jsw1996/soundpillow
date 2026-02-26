@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   Menu,
   Sliders,
@@ -19,24 +19,38 @@ import { MixerTrack } from '../types';
 import { useAppContext } from '../context/AppContext';
 
 function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const calcValue = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  const calcFromX = useCallback((clientX: number) => {
+    const rect = trackRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const pct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
     onChange(Math.round(pct));
   }, [onChange]);
 
   return (
     <div
+      ref={trackRef}
       className="relative h-8 flex items-center cursor-pointer select-none"
       style={{ touchAction: 'none' }}
-      onPointerDown={(e) => {
-        e.currentTarget.setPointerCapture(e.pointerId);
-        calcValue(e);
+      onTouchStart={(e) => {
+        e.stopPropagation();
+        calcFromX(e.touches[0].clientX);
       }}
-      onPointerMove={(e) => {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          calcValue(e);
-        }
+      onTouchMove={(e) => {
+        e.stopPropagation();
+        calcFromX(e.touches[0].clientX);
+      }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        calcFromX(e.clientX);
+        const onMove = (ev: MouseEvent) => calcFromX(ev.clientX);
+        const onUp = () => {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
       }}
     >
       <div className="w-full h-1 rounded-full bg-primary/10 relative">

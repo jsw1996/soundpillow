@@ -2,8 +2,6 @@ import { useState } from 'react';
 import {
   Menu,
   Sliders,
-  Play,
-  Pause,
   Save,
   CloudRain,
   Trees,
@@ -33,26 +31,20 @@ const TRACK_ICONS: Record<string, React.ReactNode> = {
 
 interface MixerScreenProps {
   mixerTracks: MixerTrack[];
-  isMixPlaying: boolean;
   onToggleTrack: (trackId: string) => void;
   onSetVolume: (trackId: string, volume: number) => void;
-  onToggleMixPlay: () => void;
   onLoadPreset: (tracks: MixerTrack[]) => void;
 }
 
 export function MixerScreen({
   mixerTracks,
-  isMixPlaying,
   onToggleTrack,
   onSetVolume,
-  onToggleMixPlay,
   onLoadPreset,
 }: MixerScreenProps) {
   const { mixPresets, saveMixPreset, deleteMixPreset, setMenuOpen } = useAppContext();
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [presetName, setPresetName] = useState('');
-
-  const activeTracks = mixerTracks.filter((t) => t.isActive);
 
   const handleSavePreset = () => {
     if (!presetName.trim()) return;
@@ -89,19 +81,6 @@ export function MixerScreen({
         </div>
         <p className="text-xs text-white/40 font-medium">Layer up to 5 sounds together</p>
       </header>
-
-      {/* Play control */}
-      {activeTracks.length > 0 && (
-        <div className="px-6">
-          <button
-            onClick={onToggleMixPlay}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary/20 text-primary font-bold text-sm active:scale-[0.98] transition-transform"
-          >
-            {isMixPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
-            {isMixPlaying ? 'Pause Mix' : `Play Mix (${activeTracks.length} sounds)`}
-          </button>
-        </div>
-      )}
 
       {/* Track grid */}
       <section className="px-6">
@@ -169,7 +148,7 @@ export function MixerScreen({
       </section>
 
       {/* Save preset */}
-      {activeTracks.length > 0 && (
+      {mixerTracks.some((t) => t.isActive) && (
         <div className="px-6">
           {!showSaveDialog ? (
             <button

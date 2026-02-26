@@ -93,10 +93,8 @@ function AppContent() {
           <MixerScreen
             key="mixer"
             mixerTracks={mixer.mixerTracks}
-            isMixPlaying={mixer.isMixPlaying}
             onToggleTrack={mixer.toggleTrack}
             onSetVolume={mixer.setTrackVolume}
-            onToggleMixPlay={mixer.toggleMixPlay}
             onLoadPreset={mixer.loadPresetTracks}
           />
         );

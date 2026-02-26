@@ -63,9 +63,15 @@ export function useSoundMixer(tracks: Track[]) {
         if (activeCount >= MAX_ACTIVE_TRACKS) return prev;
       }
 
-      return prev.map((t) =>
+      const next = prev.map((t) =>
         t.trackId === trackId ? { ...t, isActive: !t.isActive } : t,
       );
+
+      // Auto-play when any track is active, auto-stop when none
+      const hasActive = next.some((t) => t.isActive);
+      setIsMixPlaying(hasActive);
+
+      return next;
     });
   }, []);
 
@@ -96,6 +102,8 @@ export function useSoundMixer(tracks: Track[]) {
         return { ...t, isActive: false };
       }),
     );
+    const hasActive = presetTracks.some((t) => t.isActive);
+    setIsMixPlaying(hasActive);
   }, []);
 
   const activeTracks = mixerTracks.filter((t) => t.isActive);

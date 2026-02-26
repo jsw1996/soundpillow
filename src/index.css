@@ -40,12 +40,13 @@
     border-radius: 9999px;
     background: rgba(140, 43, 238, 0.1);
     outline: none;
+    touch-action: none;
   }
   .volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: #8c2bee;
     border: 2px solid white;
@@ -53,8 +54,8 @@
     box-shadow: 0 0 6px rgba(140, 43, 238, 0.4);
   }
   .volume-slider::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: #8c2bee;
     border: 2px solid white;

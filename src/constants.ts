@@ -16,7 +16,7 @@ export const TRACKS: Track[] = [
     duration: '45 mins',
     category: 'Nature',
     imageUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80',
-    audioUrl: '/audio/rain_heavy_quiet_interior.ogg',
+    audioUrl: `${import.meta.env.BASE_URL}audio/rain_heavy_quiet_interior.ogg`,
     description: 'Gentle rain falling on tropical leaves.'
   },
   {
@@ -26,7 +26,7 @@ export const TRACKS: Track[] = [
     duration: '60 mins',
     category: 'Nature',
     imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    audioUrl: '/audio/forest_night.ogg',
+    audioUrl: `${import.meta.env.BASE_URL}audio/forest_night.ogg`,
     description: 'The peaceful sounds of a forest at night.'
   },
   {
@@ -36,7 +36,7 @@ export const TRACKS: Track[] = [
     duration: '30 mins',
     category: 'Nature',
     imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-    audioUrl: '/audio/waves_crashing_on_rock_beach.ogg',
+    audioUrl: `${import.meta.env.BASE_URL}audio/waves_crashing_on_rock_beach.ogg`,
     description: 'Rhythmic waves crashing on a sandy shore.'
   },
   {
@@ -46,7 +46,7 @@ export const TRACKS: Track[] = [
     duration: '20 mins',
     category: 'Animals',
     imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
-    audioUrl: '/audio/cat_purr.ogg',
+    audioUrl: `${import.meta.env.BASE_URL}audio/cat_purr.ogg`,
     description: 'The soothing vibration of a happy cat.'
   },
   {
@@ -56,7 +56,7 @@ export const TRACKS: Track[] = [
     duration: '40 mins',
     category: 'Nature',
     imageUrl: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
-    audioUrl: '/audio/morning_birds.ogg',
+    audioUrl: `${import.meta.env.BASE_URL}audio/morning_birds.ogg`,
     description: 'Ethereal sounds of a misty morning.'
   },
   {
@@ -66,7 +66,7 @@ export const TRACKS: Track[] = [
     duration: '50 mins',
     category: 'Nature',
     imageUrl: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=800&q=80',
-    audioUrl: '/audio/wind_howling.ogg',
+    audioUrl: `${import.meta.env.BASE_URL}audio/wind_howling.ogg`,
     description: 'The quiet hush of a snowy landscape.'
   },
   {
@@ -76,7 +76,7 @@ export const TRACKS: Track[] = [
     duration: '35 mins',
     category: 'Nature',
     imageUrl: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=800&q=80',
-    audioUrl: '/audio/daytime_forrest_bonfire.ogg',
+    audioUrl: `${import.meta.env.BASE_URL}audio/daytime_forrest_bonfire.ogg`,
     description: 'The comforting crackle of a campfire in the woods.'
   },
   {
@@ -86,7 +86,7 @@ export const TRACKS: Track[] = [
     duration: '40 mins',
     category: 'Nature',
     imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    audioUrl: '/audio/windy_forrest.ogg',
+    audioUrl: `${import.meta.env.BASE_URL}audio/windy_forrest.ogg`,
     description: 'The sound of wind blowing through the trees in a forest.'
   }
 ];

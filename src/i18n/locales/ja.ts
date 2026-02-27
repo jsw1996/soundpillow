@@ -1,0 +1,138 @@
+const ja: Record<string, string> = {
+  // General
+  appName: 'SoundPillow',
+  appVersion: 'SoundPillow v1.0',
+  cancel: 'キャンセル',
+  save: '保存',
+  reset: 'リセット',
+
+  // Navigation
+  navHome: 'ホーム',
+  navMixer: 'ミキサー',
+  navFavorites: 'お気に入り',
+  navProfile: 'プロフィール',
+
+  // Categories
+  catAll: 'すべて',
+  catNature: '自然',
+  catAnimals: '動物',
+  catWhiteNoise: 'ホワイトノイズ',
+  catMeditation: '瞑想',
+
+  // Home Screen
+  showingFavorites: 'お気に入りを表示中',
+  relaxingMix: 'リラックスミックス',
+  createMix: 'ミックスを作成',
+  nSounds: '{{n}} サウンド',
+  quickSleep: 'クイックスリープ',
+
+  // Player Screen
+  nowPlaying: '再生中',
+  playingMix: 'ミックス再生中',
+  mix: 'ミックス',
+  sleepTimer: 'スリープタイマー',
+
+  // Mixer Screen
+  soundMixer: 'サウンドミキサー',
+  mixerSubtitle: '最大5つの音を重ねられます',
+  saveAsPreset: 'プリセットとして保存',
+  presetNamePlaceholder: 'プリセット名...',
+  savedPresets: '保存済みプリセット',
+
+  // Profile Screen
+  profile: 'プロフィール',
+  yourSleepJourney: 'あなたの睡眠の記録',
+  sleepStreak: '連続睡眠記録',
+  nightSingular: '夜',
+  nightPlural: '夜',
+  inARow: '連続',
+  nightsInARow_one: '{{count}} 夜連続',
+  nightsInARow_other: '{{count}} 夜連続',
+  best: '最高',
+  totalNights: '合計夜数',
+  thisWeek: '今週',
+  listeningStats: 'リスニング統計',
+  totalTime: '合計時間',
+  sessions: 'セッション',
+  favorites: 'お気に入り',
+  mostPlayed: '最も再生：',
+  settings: '設定',
+  defaultSleepTimer: 'デフォルトスリープタイマー',
+  timerOff: 'オフ',
+  autoPlayOnSelect: '選択時に自動再生',
+  lastSession: '前回のセッション',
+  resetAllStats: 'すべての統計をリセット',
+  resetConfirm: 'すべてのリスニング統計をリセットしますか？',
+
+  // Mini Player
+  mixPlaying: 'ミックス再生中',
+
+  // Days of week
+  dayMon: '月',
+  dayTue: '火',
+  dayWed: '水',
+  dayThu: '木',
+  dayFri: '金',
+  daySat: '土',
+  daySun: '日',
+
+  // Language
+  language: '言語',
+
+  // Track titles
+  track_1_title: 'トロピカルレイン',
+  track_2_title: '真夜中の森',
+  track_3_title: '波の音',
+  track_4_title: '猫のゴロゴロ',
+  track_5_title: '朝もやの音',
+  track_6_title: '静かな雪景色',
+  track_7_title: '森の焚き火',
+  track_8_title: '風の森',
+  track_9_title: 'シンギングボウル',
+  track_10_title: '風鈴',
+  track_11_title: '穏やかな川',
+  track_12_title: '窓の雨音',
+  track_13_title: 'シータ波',
+  track_14_title: 'デルタ波',
+
+  // Track artists
+  track_1_artist: 'ネイチャーサウンド',
+  track_2_artist: 'ディープスリープ',
+  track_3_artist: '静寂のリズム',
+  track_4_artist: '深い安らぎ',
+  track_5_artist: '集中と静けさ',
+  track_6_artist: 'ピュアリラクゼーション',
+  track_7_artist: '暖かな光',
+  track_8_artist: 'ネイチャーサウンド',
+  track_9_artist: 'マインドフル瞑想',
+  track_10_artist: '禅ガーデン',
+  track_11_artist: '瞑想フロー',
+  track_12_artist: 'インナーピース',
+  track_13_artist: 'バイノーラルビート',
+  track_14_artist: 'ディープスリープバイノーラル',
+
+  // Track descriptions
+  track_1_desc: '熱帯の葉に降り注ぐ優しい雨の音。',
+  track_2_desc: '夜の森の穏やかな音。',
+  track_3_desc: '砂浜に打ち寄せるリズミカルな波の音。',
+  track_4_desc: '幸せな猫の心地よいゴロゴロ音。',
+  track_5_desc: '霧の立ち込める朝の幻想的な音。',
+  track_6_desc: '雪景色の静かな囁き。',
+  track_7_desc: '森の中の焚き火の心地よいパチパチ音。',
+  track_8_desc: '森の木々を吹き抜ける風の音。',
+  track_9_desc: 'チベタンシンギングボウルの深い共鳴音。',
+  track_10_desc: 'そよ風に揺れる繊細な風鈴の音。',
+  track_11_desc: '静かな谷を流れる穏やかな川の音。',
+  track_12_desc: '窓ガラスを叩く柔らかな雨の音。',
+  track_13_desc: '深いリラクゼーションと瞑想のためのシータバイノーラルビート。',
+  track_14_desc: '深い眠りへ導くデルタバイノーラルビート。',
+
+  // Default mix names
+  mix_default_1: '夏の焚き火の夜',
+  mix_default_2: '雨の森',
+  mix_default_3: '海のそよ風',
+  mix_default_4: '心地よい焚き火',
+  mix_default_5: '禅メディテーション',
+};
+
+export default ja;

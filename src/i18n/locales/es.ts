@@ -1,0 +1,138 @@
+const es: Record<string, string> = {
+  // General
+  appName: 'SoundPillow',
+  appVersion: 'SoundPillow v1.0',
+  cancel: 'Cancelar',
+  save: 'Guardar',
+  reset: 'Restablecer',
+
+  // Navigation
+  navHome: 'Inicio',
+  navMixer: 'Mezclador',
+  navFavorites: 'Favoritos',
+  navProfile: 'Perfil',
+
+  // Categories
+  catAll: 'Todos',
+  catNature: 'Naturaleza',
+  catAnimals: 'Animales',
+  catWhiteNoise: 'Ruido Blanco',
+  catMeditation: 'Meditación',
+
+  // Home Screen
+  showingFavorites: 'Mostrando favoritos',
+  relaxingMix: 'Mezcla relajante',
+  createMix: 'Crear mezcla',
+  nSounds: '{{n}} sonidos',
+  quickSleep: 'Dormir rápido',
+
+  // Player Screen
+  nowPlaying: 'Reproduciendo',
+  playingMix: 'Mezcla en reproducción',
+  mix: 'Mezcla',
+  sleepTimer: 'Temporizador de sueño',
+
+  // Mixer Screen
+  soundMixer: 'Mezclador de sonidos',
+  mixerSubtitle: 'Combina hasta 5 sonidos',
+  saveAsPreset: 'Guardar como preset',
+  presetNamePlaceholder: 'Nombre del preset...',
+  savedPresets: 'Presets guardados',
+
+  // Profile Screen
+  profile: 'Perfil',
+  yourSleepJourney: 'Tu viaje de sueño',
+  sleepStreak: 'Racha de sueño',
+  nightSingular: 'noche',
+  nightPlural: 'noches',
+  inARow: 'seguidas',
+  nightsInARow_one: '{{count}} noche seguida',
+  nightsInARow_other: '{{count}} noches seguidas',
+  best: 'Mejor',
+  totalNights: 'Total noches',
+  thisWeek: 'Esta semana',
+  listeningStats: 'Estadísticas',
+  totalTime: 'Tiempo total',
+  sessions: 'Sesiones',
+  favorites: 'Favoritos',
+  mostPlayed: 'Más reproducido:',
+  settings: 'Configuración',
+  defaultSleepTimer: 'Temporizador predeterminado',
+  timerOff: 'Apagado',
+  autoPlayOnSelect: 'Reproducir al seleccionar',
+  lastSession: 'Última sesión',
+  resetAllStats: 'Restablecer estadísticas',
+  resetConfirm: '¿Restablecer todas las estadísticas?',
+
+  // Mini Player
+  mixPlaying: 'Mezcla en reproducción',
+
+  // Days of week
+  dayMon: 'L',
+  dayTue: 'M',
+  dayWed: 'X',
+  dayThu: 'J',
+  dayFri: 'V',
+  daySat: 'S',
+  daySun: 'D',
+
+  // Language
+  language: 'Idioma',
+
+  // Track titles
+  track_1_title: 'Lluvia Tropical',
+  track_2_title: 'Bosque de Medianoche',
+  track_3_title: 'Olas del Mar',
+  track_4_title: 'Ronroneo de Gato',
+  track_5_title: 'Neblina Matutina',
+  track_6_title: 'Nieve Silenciosa',
+  track_7_title: 'Fogata en el Bosque',
+  track_8_title: 'Bosque Ventoso',
+  track_9_title: 'Cuenco Tibetano',
+  track_10_title: 'Campanillas de Viento',
+  track_11_title: 'Río Tranquilo',
+  track_12_title: 'Lluvia en la Ventana',
+  track_13_title: 'Ondas Theta',
+  track_14_title: 'Ondas Delta',
+
+  // Track artists
+  track_1_artist: 'Sonidos Naturales',
+  track_2_artist: 'Sueño Profundo',
+  track_3_artist: 'Ritmo Calmante',
+  track_4_artist: 'Confort Profundo',
+  track_5_artist: 'Enfoque y Calma',
+  track_6_artist: 'Relajación Pura',
+  track_7_artist: 'Resplandor Cálido',
+  track_8_artist: 'Sonidos Naturales',
+  track_9_artist: 'Meditación Consciente',
+  track_10_artist: 'Jardín Zen',
+  track_11_artist: 'Flujo Meditativo',
+  track_12_artist: 'Paz Interior',
+  track_13_artist: 'Ritmos Binaurales',
+  track_14_artist: 'Binaural Sueño Profundo',
+
+  // Track descriptions
+  track_1_desc: 'Lluvia suave cayendo sobre hojas tropicales.',
+  track_2_desc: 'Los sonidos pacíficos de un bosque por la noche.',
+  track_3_desc: 'Olas rítmicas rompiendo en la orilla arenosa.',
+  track_4_desc: 'La vibración reconfortante de un gato feliz.',
+  track_5_desc: 'Sonidos etéreos de una mañana brumosa.',
+  track_6_desc: 'El suave silencio de un paisaje nevado.',
+  track_7_desc: 'El reconfortante crepitar de una fogata en el bosque.',
+  track_8_desc: 'El sonido del viento soplando entre los árboles.',
+  track_9_desc: 'Tonos resonantes de un cuenco tibetano para meditación profunda.',
+  track_10_desc: 'Delicadas campanillas de viento mecidas por la brisa.',
+  track_11_desc: 'Un río tranquilo fluyendo por un valle pacífico.',
+  track_12_desc: 'Suave lluvia golpeando contra el cristal de la ventana.',
+  track_13_desc: 'Ritmos binaurales theta para relajación y meditación profunda.',
+  track_14_desc: 'Ritmos binaurales delta para guiarte al sueño profundo.',
+
+  // Default mix names
+  mix_default_1: 'Noche de Fogata de Verano',
+  mix_default_2: 'Bosque Lluvioso',
+  mix_default_3: 'Brisa Marina',
+  mix_default_4: 'Fogata Acogedora',
+  mix_default_5: 'Meditación Zen',
+};
+
+export default es;

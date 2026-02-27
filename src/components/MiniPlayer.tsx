@@ -2,6 +2,7 @@ import { Play, Pause, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Track } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation, useTrackTranslation } from '../i18n';
 
 interface MiniPlayerProps {
   track: Track;
@@ -13,6 +14,9 @@ interface MiniPlayerProps {
 
 export function MiniPlayer({ track, isPlaying, progress, onTogglePlay, mixName }: MiniPlayerProps) {
   const { currentScreen, setCurrentScreen } = useAppContext();
+  const { t } = useTranslation();
+  const tt = useTrackTranslation();
+  const translatedTrack = tt(track);
 
   const show = currentScreen !== 'player';
 
@@ -52,8 +56,8 @@ export function MiniPlayer({ track, isPlaying, progress, onTogglePlay, mixName }
 
               {/* Track info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate">{mixName || track.title}</p>
-                <p className="text-[10px] text-white/40 font-medium truncate">{mixName ? 'Mix Playing' : track.artist}</p>
+                <p className="text-sm font-bold truncate">{mixName || translatedTrack.title}</p>
+                <p className="text-[10px] text-white/40 font-medium truncate">{mixName ? t('mixPlaying') : translatedTrack.artist}</p>
               </div>
 
               {/* Controls */}

@@ -14,6 +14,7 @@ import { motion } from 'motion/react';
 import { TRACKS, CATEGORIES, DEFAULT_MIXES } from '../constants';
 import { Track, MixPreset } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation, useCategoryName, useTrackTranslation, useMixNameTranslation } from '../i18n';
 
 interface HomeScreenProps {
   onTrackSelect: (track: Track) => void;
@@ -23,6 +24,10 @@ interface HomeScreenProps {
 export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
   const [activeCategory, setActiveCategory] = useState('all');
   const { isFavorite, toggleFavorite, showFavoritesOnly, setMenuOpen, setCurrentScreen } = useAppContext();
+  const { t } = useTranslation();
+  const getCategoryName = useCategoryName();
+  const tt = useTrackTranslation();
+  const getMixName = useMixNameTranslation();
 
   const filteredTracks = TRACKS.filter((track) => {
     // Category filter
@@ -48,7 +53,8 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex-1 overflow-y-auto pt-8 pb-24 space-y-8 no-scrollbar"
+      className="flex-1 overflow-y-auto pb-24 space-y-8 no-scrollbar"
+      style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
       {/* Header */}
       <header className="flex items-center justify-between px-6">
@@ -74,7 +80,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
             }`}
           >
             {categoryIcons[cat.icon]}
-            <span className="text-sm font-semibold">{cat.name}</span>
+            <span className="text-sm font-semibold">{getCategoryName(cat.id)}</span>
           </button>
         ))}
       </div>
@@ -82,19 +88,19 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
       {showFavoritesOnly && (
         <div className="flex items-center gap-2 px-6">
           <Heart size={16} className="text-primary" fill="currentColor" />
-          <span className="text-sm font-semibold text-primary">Showing Favorites</span>
+          <span className="text-sm font-semibold text-primary">{t('showingFavorites')}</span>
         </div>
       )}
 
       {/* Relaxing Mix — pre-built mixes, scrolls edge-to-edge */}
       <section className="space-y-4">
         <div className="flex items-center justify-between px-6">
-          <h2 className="text-lg font-bold">Relaxing Mix</h2>
+          <h2 className="text-lg font-bold">{t('relaxingMix')}</h2>
           <button
             onClick={() => { setCurrentScreen('mixer'); }}
             className="text-primary text-sm font-semibold"
           >
-            Create Mix
+            {t('createMix')}
           </button>
         </div>
         <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar px-6">
@@ -103,6 +109,8 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
               .map((mt) => TRACKS.find((t) => t.id === mt.trackId))
               .filter(Boolean) as Track[];
             const coverTrack = mixTracks[0];
+            const translatedMixName = getMixName(mix.id, mix.name);
+            const translatedMixTracks = mixTracks.map(tt);
 
             return (
               <div
@@ -127,13 +135,13 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                 <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm flex items-center gap-1">
                   <Layers size={12} className="text-primary" />
-                  <span className="text-[10px] font-bold text-white/80">{mix.tracks.length} sounds</span>
+                  <span className="text-[10px] font-bold text-white/80">{t('nSounds', { n: mix.tracks.length })}</span>
                 </div>
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                   <div>
-                    <h3 className="font-bold text-lg">{mix.name}</h3>
+                    <h3 className="font-bold text-lg">{translatedMixName}</h3>
                     <p className="text-xs text-slate-300">
-                      {mixTracks.map((t) => t.title).join(' + ')}
+                      {translatedMixTracks.map((t) => t.title).join(' + ')}
                     </p>
                   </div>
                   <div className="bg-primary p-2 rounded-full shadow-lg">
@@ -149,7 +157,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
       {/* Quick Sleep */}
       {filteredTracks.length > 0 && (
         <section className="space-y-4 px-6">
-          <h2 className="text-lg font-bold">Quick Sleep</h2>
+          <h2 className="text-lg font-bold">{t('quickSleep')}</h2>
           <div className="grid grid-cols-2 gap-4">
             {filteredTracks.map((track) => (
               <div
@@ -179,8 +187,8 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
                   />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">{track.title}</h3>
-                  <p className="text-[10px] text-slate-400 font-medium">{track.artist}</p>
+                  <h3 className="font-bold text-sm">{tt(track).title}</h3>
+                  <p className="text-[10px] text-slate-400 font-medium">{tt(track).artist}</p>
                 </div>
               </div>
             ))}

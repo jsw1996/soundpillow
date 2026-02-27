@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import {
   Menu,
   Sliders,
@@ -17,53 +17,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import { TRACKS } from '../constants';
 import { MixerTrack } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation, useTrackTranslation } from '../i18n';
 
 function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  const calcFromX = useCallback((clientX: number) => {
-    const rect = trackRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const pct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-    onChange(Math.round(pct));
-  }, [onChange]);
-
   return (
-    <div
-      ref={trackRef}
-      className="relative h-8 flex items-center cursor-pointer select-none"
-      style={{ touchAction: 'none' }}
-      onTouchStart={(e) => {
-        e.stopPropagation();
-        calcFromX(e.touches[0].clientX);
-      }}
-      onTouchMove={(e) => {
-        e.stopPropagation();
-        calcFromX(e.touches[0].clientX);
-      }}
-      onMouseDown={(e) => {
-        e.preventDefault();
-        calcFromX(e.clientX);
-        const onMove = (ev: MouseEvent) => calcFromX(ev.clientX);
-        const onUp = () => {
-          document.removeEventListener('mousemove', onMove);
-          document.removeEventListener('mouseup', onUp);
-        };
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', onUp);
-      }}
-    >
-      <div className="w-full h-1 rounded-full bg-primary/10 relative">
-        <div
-          className="h-full rounded-full bg-primary transition-none"
-          style={{ width: `${value}%` }}
-        />
-      </div>
-      <div
-        className="absolute w-5 h-5 rounded-full bg-primary border-2 border-white shadow-[0_0_6px_rgba(155,126,216,0.4)] pointer-events-none"
-        style={{ left: `${value}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-      />
-    </div>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      onInput={(e) => onChange(Number((e.target as HTMLInputElement).value))}
+      className="volume-slider w-full"
+    />
   );
 }
 
@@ -92,6 +58,8 @@ export function MixerScreen({
   onLoadPreset,
 }: MixerScreenProps) {
   const { mixPresets, saveMixPreset, deleteMixPreset, setMenuOpen } = useAppContext();
+  const { t } = useTranslation();
+  const tt = useTrackTranslation();
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [presetName, setPresetName] = useState('');
 
@@ -115,7 +83,8 @@ export function MixerScreen({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex-1 overflow-y-auto pt-8 pb-24 space-y-6 no-scrollbar"
+      className="flex-1 overflow-y-auto pb-24 space-y-6 no-scrollbar"
+      style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
       {/* Header */}
       <header className="px-6 space-y-1">
@@ -126,9 +95,9 @@ export function MixerScreen({
           <div className="p-2 rounded-xl bg-primary/20">
             <Sliders size={20} className="text-primary" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight">Sound Mixer</h1>
+          <h1 className="text-xl font-bold tracking-tight">{t('soundMixer')}</h1>
         </div>
-        <p className="text-xs text-white/40 font-medium">Layer up to 5 sounds together</p>
+        <p className="text-xs text-white/40 font-medium">{t('mixerSubtitle')}</p>
       </header>
 
       {/* Track grid */}
@@ -162,9 +131,9 @@ export function MixerScreen({
                   </div>
                   <div className="text-left min-w-0">
                     <p className={`text-sm font-bold truncate ${isActive ? 'text-white' : 'text-white/60'}`}>
-                      {track.title}
+                      {tt(track).title}
                     </p>
-                    <p className="text-[10px] text-white/30 font-medium">{track.category}</p>
+                    <p className="text-[10px] text-white/30 font-medium">{tt(track).artist}</p>
                   </div>
                 </button>
 
@@ -200,7 +169,7 @@ export function MixerScreen({
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/5 text-white/60 font-semibold text-sm hover:bg-white/10 transition-colors"
             >
               <Save size={16} />
-              Save as Preset
+              {t('saveAsPreset')}
             </button>
           ) : (
             <motion.div
@@ -212,7 +181,7 @@ export function MixerScreen({
                 type="text"
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
-                placeholder="Preset name..."
+                placeholder={t('presetNamePlaceholder')}
                 maxLength={30}
                 className="w-full bg-white/5 border-none rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary outline-none"
               />
@@ -221,13 +190,13 @@ export function MixerScreen({
                   onClick={() => setShowSaveDialog(false)}
                   className="flex-1 py-2 rounded-xl bg-white/5 text-white/50 text-sm font-semibold"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   onClick={handleSavePreset}
                   className="flex-1 py-2 rounded-xl bg-primary text-white text-sm font-bold"
                 >
-                  Save
+                  {t('save')}
                 </button>
               </div>
             </motion.div>
@@ -238,7 +207,7 @@ export function MixerScreen({
       {/* Presets list */}
       {mixPresets.length > 0 && (
         <section className="px-6 space-y-3">
-          <h2 className="text-sm font-bold text-white/50 uppercase tracking-wider">Saved Presets</h2>
+          <h2 className="text-sm font-bold text-white/50 uppercase tracking-wider">{t('savedPresets')}</h2>
           {mixPresets.map((preset) => (
             <div
               key={preset.id}
@@ -250,7 +219,7 @@ export function MixerScreen({
               >
                 <p className="text-sm font-bold truncate">{preset.name}</p>
                 <p className="text-[10px] text-white/30 font-medium">
-                  {preset.tracks.length} sounds
+                  {t('nSounds', { n: preset.tracks.length })}
                 </p>
               </button>
               <button

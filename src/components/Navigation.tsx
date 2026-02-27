@@ -2,17 +2,20 @@ import { Home as HomeIcon, Sliders, Heart, User, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import { Screen } from '../types';
+import { useTranslation } from '../i18n';
+import type { TranslationKeys } from '../i18n/locales/en';
 
-const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; label: string; onClickOverride?: string }[] = [
-  { screen: 'home', icon: HomeIcon, label: 'Home' },
-  { screen: 'mixer', icon: Sliders, label: 'Mixer' },
-  { screen: 'home', icon: Heart, label: 'Favorites', onClickOverride: 'favorites' },
-  { screen: 'profile', icon: User, label: 'Profile' },
+const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationKeys; onClickOverride?: string }[] = [
+  { screen: 'home', icon: HomeIcon, labelKey: 'navHome' },
+  { screen: 'mixer', icon: Sliders, labelKey: 'navMixer' },
+  { screen: 'home', icon: Heart, labelKey: 'navFavorites', onClickOverride: 'favorites' },
+  { screen: 'profile', icon: User, labelKey: 'navProfile' },
 ];
 
 export function SideMenu() {
   const { currentScreen, setCurrentScreen, showFavoritesOnly, setShowFavoritesOnly, menuOpen, setMenuOpen } =
     useAppContext();
+  const { t } = useTranslation();
 
   const handleNavClick = (item: typeof NAV_ITEMS[number]) => {
     if (item.onClickOverride === 'favorites') {
@@ -59,7 +62,7 @@ export function SideMenu() {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-8 pb-6">
-              <h2 className="text-lg font-bold tracking-tight">SoundPillow</h2>
+              <h2 className="text-lg font-bold tracking-tight">{t('appName')}</h2>
               <button
                 onClick={() => setMenuOpen(false)}
                 className="p-2 rounded-full bg-white/5 active:scale-90 transition-transform"
@@ -75,7 +78,7 @@ export function SideMenu() {
                 const active = isActive(item);
                 return (
                   <button
-                    key={item.label}
+                    key={item.labelKey}
                     onClick={() => handleNavClick(item)}
                     className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
                       active
@@ -84,7 +87,7 @@ export function SideMenu() {
                     }`}
                   >
                     <Icon size={22} fill={active ? 'currentColor' : 'none'} />
-                    <span className="text-sm font-semibold">{item.label}</span>
+                    <span className="text-sm font-semibold">{t(item.labelKey)}</span>
                   </button>
                 );
               })}
@@ -92,7 +95,7 @@ export function SideMenu() {
 
             {/* Footer */}
             <div className="px-5 py-6 border-t border-white/5">
-              <p className="text-[10px] text-white/20 font-medium">SoundPillow v1.0</p>
+              <p className="text-[10px] text-white/20 font-medium">{t('appVersion')}</p>
             </div>
           </motion.div>
         </>

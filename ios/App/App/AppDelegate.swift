@@ -1,5 +1,14 @@
 import UIKit
 import Capacitor
+import WebKit
+
+// Custom UIScrollView that never cancels touches on input elements
+class NoStealScrollView: UIScrollView {
+    override func touchesShouldCancel(in view: UIView) -> Bool {
+        // Don't cancel touches - let the web content handle them
+        return false
+    }
+}
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -8,6 +17,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+
+        // Fix WKWebView scroll view stealing touch events from range inputs
+        DispatchQueue.main.async {
+            if let vc = self.window?.rootViewController as? CAPBridgeViewController,
+               let webView = vc.webView {
+                // Disable the native WKWebView scroll view entirely.
+                // All scrolling is handled by CSS overflow in the web layer.
+                webView.scrollView.isScrollEnabled = false
+                webView.scrollView.bounces = false
+            }
+        }
+
         return true
     }
 

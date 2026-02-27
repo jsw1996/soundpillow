@@ -14,17 +14,20 @@ import {
   Trophy,
   Calendar,
   BedDouble,
+  Globe,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation, SUPPORTED_LOCALES } from '../i18n';
 import { TRACKS } from '../constants';
 
 export function ProfileScreen() {
   const { settings, updateSettings, stats, resetStats, favorites, setMenuOpen, streakStats, getWeekEntries } = useAppContext();
+  const { t, locale, setLocale } = useTranslation();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const timerOptions = [
-    { label: 'Off', value: null },
+    { label: t('timerOff'), value: null },
     { label: '15m', value: 15 },
     { label: '30m', value: 30 },
     { label: '45m', value: 45 },
@@ -47,7 +50,8 @@ export function ProfileScreen() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex-1 overflow-y-auto pt-8 pb-24 space-y-6 no-scrollbar"
+      className="flex-1 overflow-y-auto pb-24 space-y-6 no-scrollbar"
+      style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
       {/* Header */}
       <header className="px-6 space-y-4">
@@ -59,8 +63,8 @@ export function ProfileScreen() {
             <User size={28} className="text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Profile</h1>
-            <p className="text-xs text-white/40 font-medium">Your sleep journey</p>
+            <h1 className="text-xl font-bold tracking-tight">{t('profile')}</h1>
+            <p className="text-xs text-white/40 font-medium">{t('yourSleepJourney')}</p>
           </div>
         </div>
       </header>
@@ -71,7 +75,7 @@ export function ProfileScreen() {
           <div className="flex items-center gap-2 mb-4">
             <Flame size={16} className="text-orange-400" />
             <span className="text-xs font-bold text-white/50 uppercase tracking-wider">
-              Sleep Streak
+              {t('sleepStreak')}
             </span>
           </div>
           <div className="text-center space-y-1 mb-4">
@@ -79,7 +83,9 @@ export function ProfileScreen() {
               {streakStats.currentStreak}
             </p>
             <p className="text-xs text-white/40 font-semibold">
-              {streakStats.currentStreak === 1 ? 'night' : 'nights'} in a row
+              {streakStats.currentStreak === 1
+                ? t('nightsInARow_one', { count: streakStats.currentStreak })
+                : t('nightsInARow_other', { count: streakStats.currentStreak })}
             </p>
           </div>
           <div className="flex justify-center gap-6 text-center">
@@ -88,14 +94,14 @@ export function ProfileScreen() {
                 <Trophy size={12} className="text-yellow-500/60" />
                 <span className="text-sm font-bold text-white/70">{streakStats.longestStreak}</span>
               </div>
-              <p className="text-[10px] text-white/30 font-medium">Best</p>
+              <p className="text-[10px] text-white/30 font-medium">{t('best')}</p>
             </div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-1 justify-center">
                 <Calendar size={12} className="text-primary/60" />
                 <span className="text-sm font-bold text-white/70">{streakStats.totalCheckIns}</span>
               </div>
-              <p className="text-[10px] text-white/30 font-medium">Total nights</p>
+              <p className="text-[10px] text-white/30 font-medium">{t('totalNights')}</p>
             </div>
           </div>
         </div>
@@ -107,11 +113,11 @@ export function ProfileScreen() {
           <div className="flex items-center gap-2 mb-4">
             <BedDouble size={16} className="text-primary/60" />
             <span className="text-xs font-bold text-white/50 uppercase tracking-wider">
-              This Week
+              {t('thisWeek')}
             </span>
           </div>
           <div className="grid grid-cols-7 gap-1">
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => {
+            {[t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'), t('dayFri'), t('daySat'), t('daySun')].map((day, i) => {
               const entry = getWeekEntries()[i];
               const isToday = i === ((new Date().getDay() + 6) % 7);
               return (
@@ -152,7 +158,7 @@ export function ProfileScreen() {
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 size={16} className="text-primary/60" />
             <span className="text-xs font-bold text-white/50 uppercase tracking-wider">
-              Listening Stats
+              {t('listeningStats')}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -160,22 +166,22 @@ export function ProfileScreen() {
               <p className="text-2xl font-extrabold text-primary">
                 {formatTotalTime(stats.totalMinutes)}
               </p>
-              <p className="text-[10px] text-white/40 font-semibold">Total Time</p>
+              <p className="text-[10px] text-white/40 font-semibold">{t('totalTime')}</p>
             </div>
             <div className="text-center space-y-1">
               <p className="text-2xl font-extrabold text-primary">{stats.sessionsCount}</p>
-              <p className="text-[10px] text-white/40 font-semibold">Sessions</p>
+              <p className="text-[10px] text-white/40 font-semibold">{t('sessions')}</p>
             </div>
             <div className="text-center space-y-1">
               <p className="text-2xl font-extrabold text-primary">{favorites.size}</p>
-              <p className="text-[10px] text-white/40 font-semibold">Favorites</p>
+              <p className="text-[10px] text-white/40 font-semibold">{t('favorites')}</p>
             </div>
           </div>
           {mostPlayedTrack && (
             <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-3">
               <Play size={12} className="text-primary/60" />
               <span className="text-[10px] text-white/30 font-medium">
-                Most played: <span className="text-white/60 font-bold">{mostPlayedTrack.title}</span>
+                {t('mostPlayed')} <span className="text-white/60 font-bold">{mostPlayedTrack.title}</span>
               </span>
             </div>
           )}
@@ -185,14 +191,14 @@ export function ProfileScreen() {
       {/* Settings */}
       <section className="px-6 space-y-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Settings</span>
+          <span className="text-xs font-bold text-white/50 uppercase tracking-wider">{t('settings')}</span>
         </div>
 
         {/* Default timer */}
         <div className="glass-panel rounded-2xl p-4 space-y-3">
           <div className="flex items-center gap-3">
             <Timer size={18} className="text-primary/60" />
-            <span className="text-sm font-semibold">Default Sleep Timer</span>
+            <span className="text-sm font-semibold">{t('defaultSleepTimer')}</span>
           </div>
           <div className="flex gap-2">
             {timerOptions.map((opt) => (
@@ -219,7 +225,7 @@ export function ProfileScreen() {
           >
             <div className="flex items-center gap-3">
               <Moon size={18} className="text-primary/60" />
-              <span className="text-sm font-semibold">Auto-play on select</span>
+              <span className="text-sm font-semibold">{t('autoPlayOnSelect')}</span>
             </div>
             <div
               className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${
@@ -240,7 +246,7 @@ export function ProfileScreen() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Heart size={18} className="text-primary/60" />
-              <span className="text-sm font-semibold">Favorites</span>
+              <span className="text-sm font-semibold">{t('favorites')}</span>
             </div>
             <div className="flex items-center gap-1 text-white/40">
               <span className="text-sm font-bold">{favorites.size}</span>
@@ -255,7 +261,7 @@ export function ProfileScreen() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Clock size={18} className="text-primary/60" />
-                <span className="text-sm font-semibold">Last session</span>
+                <span className="text-sm font-semibold">{t('lastSession')}</span>
               </div>
               <span className="text-xs text-white/40 font-medium">
                 {new Date(stats.lastPlayedAt).toLocaleDateString()}
@@ -263,6 +269,31 @@ export function ProfileScreen() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* Language Selector */}
+      <section className="px-6 space-y-3 pb-4">
+        <div className="glass-panel rounded-2xl p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <Globe size={18} className="text-primary/60" />
+            <span className="text-sm font-semibold">{t('language')}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {SUPPORTED_LOCALES.map((loc) => (
+              <button
+                key={loc.code}
+                onClick={() => setLocale(loc.code)}
+                className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                  locale === loc.code
+                    ? 'bg-primary text-white shadow-[0_0_12px_rgba(155,126,216,0.3)]'
+                    : 'bg-white/5 text-white/40 hover:bg-white/10'
+                }`}
+              >
+                {loc.nativeLabel}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Reset */}
@@ -273,7 +304,7 @@ export function ProfileScreen() {
             className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/5 text-white/40 font-semibold text-sm hover:bg-red-500/10 hover:text-red-400 transition-colors"
           >
             <RotateCcw size={14} />
-            Reset All Stats
+            {t('resetAllStats')}
           </button>
         ) : (
           <motion.div
@@ -281,13 +312,13 @@ export function ProfileScreen() {
             animate={{ opacity: 1, y: 0 }}
             className="glass-panel rounded-2xl p-4 space-y-3"
           >
-            <p className="text-sm text-white/60 text-center">Reset all listening stats?</p>
+            <p className="text-sm text-white/60 text-center">{t('resetConfirm')}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowResetConfirm(false)}
                 className="flex-1 py-2 rounded-xl bg-white/5 text-white/50 text-sm font-semibold"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={() => {
@@ -296,7 +327,7 @@ export function ProfileScreen() {
                 }}
                 className="flex-1 py-2 rounded-xl bg-red-500/20 text-red-400 text-sm font-bold"
               >
-                Reset
+                {t('reset')}
               </button>
             </div>
           </motion.div>

@@ -3,6 +3,7 @@ import { AnimatePresence } from 'motion/react';
 import { TRACKS } from './constants';
 import { MixPreset } from './types';
 import { AppProvider, useAppContext } from './context/AppContext';
+import { LanguageProvider, useMixNameTranslation } from './i18n';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { useSleepTimer } from './hooks/useSleepTimer';
 import { useSoundMixer } from './hooks/useSoundMixer';
@@ -24,7 +25,9 @@ function AppContent() {
   );
 
   const mixer = useSoundMixer(TRACKS);
-  const [activeMixName, setActiveMixName] = useState<string | null>(null);
+  const [activeMix, setActiveMix] = useState<{ id: string; name: string } | null>(null);
+  const getMixName = useMixNameTranslation();
+  const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
 
   // Sync timer with playback state
   const handleTogglePlay = useCallback(() => {
@@ -42,7 +45,7 @@ function AppContent() {
   const handleTrackSelect = useCallback(
     (track: typeof TRACKS[number]) => {
       player.selectTrack(track);
-      setActiveMixName(null);
+      setActiveMix(null);
       mixer.stopAll();
       timer.start();
       recordSession(track.id);
@@ -55,7 +58,7 @@ function AppContent() {
     (preset: MixPreset) => {
       mixer.loadPresetTracks(preset.tracks);
       if (!mixer.isMixPlaying) mixer.toggleMixPlay();
-      setActiveMixName(preset.name);
+      setActiveMix({ id: preset.id, name: preset.name });
       // Set first track as display track, but pause single player to avoid double audio
       const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);
       if (firstTrack) player.selectTrack(firstTrack);
@@ -109,7 +112,7 @@ function AppContent() {
   };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col relative overflow-hidden bg-bg-dark">
+    <div className="max-w-md mx-auto h-screen flex flex-col relative overflow-hidden bg-bg-dark">
       <div className="ambient-bg" />
       <AnimatePresence mode="wait">
         {renderScreen()}
@@ -128,8 +131,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <LanguageProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </LanguageProvider>
   );
 }

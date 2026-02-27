@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { Track } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation, useTrackTranslation } from '../i18n';
 
 interface PlayerScreenProps {
   track: Track;
@@ -83,6 +84,9 @@ export function PlayerScreen({
   onOpenMixer,
 }: PlayerScreenProps) {
   const { isFavorite, toggleFavorite } = useAppContext();
+  const { t } = useTranslation();
+  const tt = useTrackTranslation();
+  const translatedTrack = tt(track);
 
   return (
     <motion.div
@@ -108,7 +112,7 @@ export function PlayerScreen({
       <AmbientParticles />
 
       {/* ── Header ── */}
-      <header className="flex items-center justify-between px-5 pt-4 pb-2 shrink-0 relative z-10">
+      <header className="flex items-center justify-between px-5 pb-2 shrink-0 relative z-10" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
         <button
           onClick={onBack}
           className="p-2.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 active:scale-90 transition-transform"
@@ -123,7 +127,7 @@ export function PlayerScreen({
           className="text-center"
         >
           <p className="text-[9px] uppercase tracking-[0.25em] font-bold text-primary/70">
-            {mixName ? 'Playing Mix' : 'Now Playing'}
+            {mixName ? t('playingMix') : t('nowPlaying')}
           </p>
         </motion.div>
 
@@ -181,13 +185,13 @@ export function PlayerScreen({
           className="text-center space-y-1 max-w-xs"
         >
           <h1 className="text-xl [@media(min-height:750px)]:text-2xl font-extrabold tracking-tight leading-tight">
-            {mixName ?? track.title}
+            {mixName ?? translatedTrack.title}
           </h1>
           <p className="text-sm text-primary/80 font-semibold">
-            {mixName ? track.title : track.artist}
+            {mixName ? translatedTrack.title : translatedTrack.artist}
           </p>
           <p className="text-[11px] text-white/30 font-medium">
-            {mixName ? 'Mix' : track.category}
+            {mixName ? t('mix') : track.category}
           </p>
         </motion.div>
 
@@ -289,7 +293,7 @@ export function PlayerScreen({
             <div className="flex items-center gap-2">
               <Timer size={14} className="text-primary/60" />
               <span className="text-xs font-bold text-white/50 uppercase tracking-wider">
-                Sleep Timer
+                {t('sleepTimer')}
               </span>
             </div>
             <AnimatePresence>

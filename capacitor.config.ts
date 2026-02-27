@@ -8,6 +8,10 @@ const config: CapacitorConfig = {
     contentInset: 'automatic',
     backgroundColor: '#1e1c23',
     preferredContentMode: 'mobile',
+    allowsLinkPreview: false,
+  },
+  server: {
+    iosScheme: 'capacitor',
   },
   plugins: {
     StatusBar: {

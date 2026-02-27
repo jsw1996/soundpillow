@@ -163,7 +163,7 @@ export function PlayerScreen({
           {/* Secondary glow ring */}
           <div className="absolute -inset-2 [@media(min-height:750px)]:-inset-3 bg-primary/10 rounded-2xl blur-xl" />
 
-          <div className="relative w-40 h-40 [@media(min-height:750px)]:w-56 [@media(min-height:750px)]:h-56 rounded-3xl overflow-hidden shadow-[0_0_80px_-10px_rgba(140,43,238,0.5)] border-2 border-white/10">
+          <div className="relative w-40 h-40 [@media(min-height:750px)]:w-56 [@media(min-height:750px)]:h-56 rounded-3xl overflow-hidden shadow-[0_0_80px_-10px_rgba(155,126,216,0.5)] border-2 border-white/10">
             <img
               src={track.imageUrl}
               alt={track.title}
@@ -241,7 +241,7 @@ export function PlayerScreen({
           >
             {/* Glow behind button */}
             <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl" />
-            <div className="relative size-full bg-linear-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(140,43,238,0.5)]">
+            <div className="relative size-full bg-linear-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(155,126,216,0.5)]">
               <AnimatePresence mode="wait">
                 {isPlaying ? (
                   <motion.div
@@ -313,7 +313,7 @@ export function PlayerScreen({
                 onClick={() => onSetTimer(timerMinutes === mins ? null : mins)}
                 className={`relative px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
                   timerMinutes === mins
-                    ? 'bg-primary text-white shadow-[0_0_16px_rgba(140,43,238,0.4)]'
+                    ? 'bg-primary text-white shadow-[0_0_16px_rgba(155,126,216,0.4)]'
                     : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60'
                 }`}
               >

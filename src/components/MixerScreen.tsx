@@ -60,7 +60,7 @@ function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number
         />
       </div>
       <div
-        className="absolute w-5 h-5 rounded-full bg-primary border-2 border-white shadow-[0_0_6px_rgba(140,43,238,0.4)] pointer-events-none"
+        className="absolute w-5 h-5 rounded-full bg-primary border-2 border-white shadow-[0_0_6px_rgba(155,126,216,0.4)] pointer-events-none"
         style={{ left: `${value}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
       />
     </div>
@@ -144,7 +144,7 @@ export function MixerScreen({
                 key={track.id}
                 className={`glass-panel rounded-2xl p-4 space-y-3 transition-all duration-300 ${
                   isActive
-                    ? 'border-primary/30 bg-primary/8 shadow-[0_0_20px_-5px_rgba(140,43,238,0.3)]'
+                    ? 'border-primary/30 bg-primary/8 shadow-[0_0_20px_-5px_rgba(155,126,216,0.3)]'
                     : ''
                 }`}
               >

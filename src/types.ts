@@ -41,4 +41,18 @@ export interface ListeningStats {
   trackPlayCounts: Record<string, number>;
 }
 
+export interface SleepEntry {
+  id: string;              // date string "2026-02-27"
+  bedtime: number;         // timestamp of first play that day
+  tracksUsed: string[];    // track IDs played during session
+  listenedMinutes: number; // total listening time that day
+}
+
+export interface StreakStats {
+  currentStreak: number;
+  longestStreak: number;
+  totalCheckIns: number;
+  lastCheckInDate: string | null; // "2026-02-27"
+}
+
 export type Screen = 'home' | 'player' | 'mixer' | 'profile';

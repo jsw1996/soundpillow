@@ -10,13 +10,17 @@ import {
   RotateCcw,
   ChevronRight,
   Play,
+  Flame,
+  Trophy,
+  Calendar,
+  BedDouble,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import { TRACKS } from '../constants';
 
 export function ProfileScreen() {
-  const { settings, updateSettings, stats, resetStats, favorites, setMenuOpen } = useAppContext();
+  const { settings, updateSettings, stats, resetStats, favorites, setMenuOpen, streakStats, getWeekEntries } = useAppContext();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const timerOptions = [
@@ -60,6 +64,87 @@ export function ProfileScreen() {
           </div>
         </div>
       </header>
+
+      {/* Streak card */}
+      <section className="px-6">
+        <div className="glass-panel rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Flame size={16} className="text-orange-400" />
+            <span className="text-xs font-bold text-white/50 uppercase tracking-wider">
+              Sleep Streak
+            </span>
+          </div>
+          <div className="text-center space-y-1 mb-4">
+            <p className="text-4xl font-extrabold text-orange-400">
+              {streakStats.currentStreak}
+            </p>
+            <p className="text-xs text-white/40 font-semibold">
+              {streakStats.currentStreak === 1 ? 'night' : 'nights'} in a row
+            </p>
+          </div>
+          <div className="flex justify-center gap-6 text-center">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1 justify-center">
+                <Trophy size={12} className="text-yellow-500/60" />
+                <span className="text-sm font-bold text-white/70">{streakStats.longestStreak}</span>
+              </div>
+              <p className="text-[10px] text-white/30 font-medium">Best</p>
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1 justify-center">
+                <Calendar size={12} className="text-primary/60" />
+                <span className="text-sm font-bold text-white/70">{streakStats.totalCheckIns}</span>
+              </div>
+              <p className="text-[10px] text-white/30 font-medium">Total nights</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* This week */}
+      <section className="px-6">
+        <div className="glass-panel rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <BedDouble size={16} className="text-primary/60" />
+            <span className="text-xs font-bold text-white/50 uppercase tracking-wider">
+              This Week
+            </span>
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => {
+              const entry = getWeekEntries()[i];
+              const isToday = i === ((new Date().getDay() + 6) % 7);
+              return (
+                <div key={i} className="text-center space-y-2">
+                  <p className={`text-[10px] font-bold ${isToday ? 'text-primary' : 'text-white/30'}`}>
+                    {day}
+                  </p>
+                  <div
+                    className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                      entry
+                        ? 'bg-primary/20 text-primary shadow-[0_0_8px_rgba(155,126,216,0.2)]'
+                        : isToday
+                          ? 'border border-dashed border-primary/30 text-white/20'
+                          : 'bg-white/5 text-white/15'
+                    }`}
+                  >
+                    {entry ? (
+                      <Moon size={14} fill="currentColor" />
+                    ) : (
+                      <span className="text-[10px]">--</span>
+                    )}
+                  </div>
+                  {entry && (
+                    <p className="text-[9px] text-white/30 font-medium">
+                      {new Date(entry.bedtime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* Stats grid */}
       <section className="px-6">
@@ -116,7 +201,7 @@ export function ProfileScreen() {
                 onClick={() => updateSettings({ defaultTimerMinutes: opt.value })}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
                   settings.defaultTimerMinutes === opt.value
-                    ? 'bg-primary text-white shadow-[0_0_12px_rgba(140,43,238,0.3)]'
+                    ? 'bg-primary text-white shadow-[0_0_12px_rgba(155,126,216,0.3)]'
                     : 'bg-white/5 text-white/40 hover:bg-white/10'
                 }`}
               >

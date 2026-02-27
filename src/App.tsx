@@ -14,7 +14,7 @@ import { MiniPlayer } from './components/MiniPlayer';
 import { SideMenu } from './components/Navigation';
 
 function AppContent() {
-  const { currentScreen, setCurrentScreen, recordSession, settings } = useAppContext();
+  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn } = useAppContext();
 
   const player = useAudioPlayer(TRACKS);
 
@@ -33,10 +33,11 @@ function AppContent() {
     if (willPlay) {
       timer.start();
       recordSession(player.currentTrack.id);
+      checkIn(player.currentTrack.id);
     } else {
       timer.stop();
     }
-  }, [player, timer, recordSession]);
+  }, [player, timer, recordSession, checkIn]);
 
   const handleTrackSelect = useCallback(
     (track: typeof TRACKS[number]) => {
@@ -45,8 +46,9 @@ function AppContent() {
       mixer.stopAll();
       timer.start();
       recordSession(track.id);
+      checkIn(track.id);
     },
-    [player, mixer, timer, recordSession],
+    [player, mixer, timer, recordSession, checkIn],
   );
 
   const handleMixSelect = useCallback(
@@ -58,9 +60,12 @@ function AppContent() {
       const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);
       if (firstTrack) player.selectTrack(firstTrack);
       player.pause();
-      recordSession(firstTrack?.id);
+      if (firstTrack) {
+        recordSession(firstTrack.id);
+        checkIn(firstTrack.id);
+      }
     },
-    [mixer, player, recordSession],
+    [mixer, player, recordSession, checkIn],
   );
 
   const renderScreen = () => {
@@ -105,6 +110,7 @@ function AppContent() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col relative overflow-hidden bg-bg-dark">
+      <div className="ambient-bg" />
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>

@@ -4,10 +4,10 @@
 @theme {
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   
-  --color-primary: #8c2bee;
-  --color-bg-dark: #191022;
-  --color-surface: rgba(140, 43, 238, 0.05);
-  --color-surface-border: rgba(140, 43, 238, 0.1);
+  --color-primary: #9B7ED8;
+  --color-bg-dark: #1e1c23;
+  --color-surface: rgba(155, 126, 216, 0.05);
+  --color-surface-border: rgba(155, 126, 216, 0.1);
 }
 
 @layer base {
@@ -22,7 +22,7 @@
   }
   
   .soft-glow {
-    @apply shadow-[0_0_60px_-15px_rgba(140,43,238,0.4)];
+    @apply shadow-[0_0_60px_-15px_rgba(148,132,190,0.4)];
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -38,7 +38,7 @@
     appearance: none;
     height: 4px;
     border-radius: 9999px;
-    background: rgba(140, 43, 238, 0.1);
+    background: rgba(155, 126, 216, 0.1);
     outline: none;
     touch-action: none;
   }
@@ -48,37 +48,37 @@
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #8c2bee;
+    background: #9B7ED8;
     border: 2px solid white;
     cursor: pointer;
-    box-shadow: 0 0 6px rgba(140, 43, 238, 0.4);
+    box-shadow: 0 0 6px rgba(155, 126, 216, 0.4);
   }
   .volume-slider::-moz-range-thumb {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #8c2bee;
+    background: #9B7ED8;
     border: 2px solid white;
     cursor: pointer;
-    box-shadow: 0 0 6px rgba(140, 43, 238, 0.4);
+    box-shadow: 0 0 6px rgba(155, 126, 216, 0.4);
   }
   .volume-slider::-moz-range-track {
     height: 4px;
     border-radius: 9999px;
-    background: rgba(140, 43, 238, 0.1);
+    background: rgba(155, 126, 216, 0.1);
   }
 
   /* Immersive Player Styles */
   .ambient-particle {
     position: absolute;
     border-radius: 50%;
-    background: rgba(140, 43, 238, 0.3);
+    background: rgba(155, 126, 216, 0.3);
     pointer-events: none;
     animation: particle-float linear infinite;
   }
 
   .progress-thumb {
-    @apply w-3.5 h-3.5 rounded-full bg-primary border-2 border-white absolute top-1/2 -translate-y-1/2 -translate-x-1/2 shadow-[0_0_10px_rgba(140,43,238,0.6)] opacity-0 transition-opacity duration-200;
+    @apply w-3.5 h-3.5 rounded-full bg-primary border-2 border-white absolute top-1/2 -translate-y-1/2 -translate-x-1/2 shadow-[0_0_10px_rgba(155,126,216,0.6)] opacity-0 transition-opacity duration-200;
   }
   .progress-container:hover .progress-thumb {
     opacity: 1;
@@ -86,6 +86,39 @@
 
   .breathing-glow {
     animation: breathe 4s ease-in-out infinite;
+  }
+
+  .ambient-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .ambient-bg::before,
+  .ambient-bg::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: aurora 12s ease-in-out infinite alternate;
+  }
+  .ambient-bg::before {
+    width: 60%;
+    height: 50%;
+    top: -10%;
+    right: -20%;
+    background: radial-gradient(circle, #9B7ED8 0%, transparent 70%);
+  }
+  .ambient-bg::after {
+    width: 50%;
+    height: 40%;
+    bottom: 10%;
+    left: -15%;
+    background: radial-gradient(circle, #6B5B95 0%, transparent 70%);
+    animation-delay: -6s;
+    animation-duration: 15s;
   }
 }
 
@@ -99,4 +132,10 @@
 @keyframes breathe {
   0%, 100% { opacity: 0.3; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(1.15); }
+}
+
+@keyframes aurora {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(5%, 8%) scale(1.1); }
+  100% { transform: translate(-3%, -5%) scale(0.95); }
 }

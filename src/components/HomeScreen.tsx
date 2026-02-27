@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Menu,
-  Moon,
+  User,
   Play,
   Layers,
   Trees,
@@ -56,8 +56,8 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
           <Menu size={24} />
         </button>
         <h1 className="text-xl font-bold tracking-tight">SoundPillow</h1>
-        <button className="text-primary">
-          <Moon size={24} fill="currentColor" />
+        <button onClick={() => setCurrentScreen('profile')} className="text-primary">
+          <User size={24} />
         </button>
       </header>
 
@@ -70,7 +70,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl whitespace-nowrap transition-colors ${
               activeCategory === cat.id
                 ? 'bg-primary text-white'
-                : 'bg-slate-800/50 text-slate-300'
+                : 'bg-white/5 text-white/50'
             }`}
           >
             {categoryIcons[cat.icon]}

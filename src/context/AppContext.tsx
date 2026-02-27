@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { Screen, UserSettings, ListeningStats, MixPreset } from '../types';
+import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats } from '../types';
 
 interface AppContextValue {
   currentScreen: Screen;
@@ -22,12 +22,19 @@ interface AppContextValue {
   mixPresets: MixPreset[];
   saveMixPreset: (preset: MixPreset) => void;
   deleteMixPreset: (id: string) => void;
+  journal: SleepEntry[];
+  streakStats: StreakStats;
+  checkIn: (trackId: string) => void;
+  getTodayEntry: () => SleepEntry | undefined;
+  getWeekEntries: () => (SleepEntry | null)[];
 }
 
 const STORAGE_KEY = 'sleepyhub-favorites';
 const SETTINGS_KEY = 'sleepyhub-settings';
 const STATS_KEY = 'sleepyhub-stats';
 const PRESETS_KEY = 'sleepyhub-mix-presets';
+const JOURNAL_KEY = 'sleepyhub-journal';
+const STREAK_KEY = 'sleepyhub-streak';
 
 const DEFAULT_SETTINGS: UserSettings = {
   defaultTimerMinutes: 30,
@@ -41,6 +48,23 @@ const DEFAULT_STATS: ListeningStats = {
   lastPlayedAt: null,
   trackPlayCounts: {},
 };
+
+const DEFAULT_STREAK: StreakStats = {
+  currentStreak: 0,
+  longestStreak: 0,
+  totalCheckIns: 0,
+  lastCheckInDate: null,
+};
+
+function getDateString(date: Date = new Date()): string {
+  return date.toISOString().split('T')[0];
+}
+
+function getYesterday(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return getDateString(d);
+}
 
 function loadFavorites(): Set<string> {
   try {
@@ -78,6 +102,22 @@ function loadPresets(): MixPreset[] {
   return [];
 }
 
+function loadJournal(): SleepEntry[] {
+  try {
+    const stored = localStorage.getItem(JOURNAL_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch { /* ignore */ }
+  return [];
+}
+
+function loadStreak(): StreakStats {
+  try {
+    const stored = localStorage.getItem(STREAK_KEY);
+    if (stored) return { ...DEFAULT_STREAK, ...JSON.parse(stored) };
+  } catch { /* ignore */ }
+  return DEFAULT_STREAK;
+}
+
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -89,6 +129,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<UserSettings>(loadSettings);
   const [stats, setStats] = useState<ListeningStats>(loadStats);
   const [mixPresets, setMixPresets] = useState<MixPreset[]>(loadPresets);
+  const [journal, setJournal] = useState<SleepEntry[]>(loadJournal);
+  const [streakStats, setStreakStats] = useState<StreakStats>(loadStreak);
 
   useEffect(() => {
     saveFavorites(favorites);
@@ -105,6 +147,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem(PRESETS_KEY, JSON.stringify(mixPresets));
   }, [mixPresets]);
+
+  useEffect(() => {
+    localStorage.setItem(JOURNAL_KEY, JSON.stringify(journal));
+  }, [journal]);
+
+  useEffect(() => {
+    localStorage.setItem(STREAK_KEY, JSON.stringify(streakStats));
+  }, [streakStats]);
 
   const toggleFavorite = useCallback((trackId: string) => {
     setFavorites((prev) => {
@@ -179,6 +229,64 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setMixPresets((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
+  const getTodayEntry = useCallback((): SleepEntry | undefined => {
+    const today = getDateString();
+    return journal.find((e) => e.id === today);
+  }, [journal]);
+
+  const getWeekEntries = useCallback((): (SleepEntry | null)[] => {
+    const result: (SleepEntry | null)[] = [];
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const dateStr = getDateString(d);
+      result.push(journal.find((e) => e.id === dateStr) ?? null);
+    }
+    return result;
+  }, [journal]);
+
+  const checkIn = useCallback((trackId: string) => {
+    const today = getDateString();
+
+    setJournal((prev) => {
+      const existing = prev.find((e) => e.id === today);
+      if (existing) {
+        // Already checked in today — just add track if new
+        if (existing.tracksUsed.includes(trackId)) return prev;
+        return prev.map((e) =>
+          e.id === today
+            ? { ...e, tracksUsed: [...e.tracksUsed, trackId] }
+            : e,
+        );
+      }
+      // New check-in for today
+      const entry: SleepEntry = {
+        id: today,
+        bedtime: Date.now(),
+        tracksUsed: [trackId],
+        listenedMinutes: 0,
+      };
+      return [entry, ...prev];
+    });
+
+    // Update streak only on first check-in of the day
+    setStreakStats((prev) => {
+      if (prev.lastCheckInDate === today) return prev; // already counted
+      const isConsecutive = prev.lastCheckInDate === getYesterday();
+      const newStreak = isConsecutive ? prev.currentStreak + 1 : 1;
+      return {
+        currentStreak: newStreak,
+        longestStreak: Math.max(newStreak, prev.longestStreak),
+        totalCheckIns: prev.totalCheckIns + 1,
+        lastCheckInDate: today,
+      };
+    });
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -202,6 +310,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         mixPresets,
         saveMixPreset,
         deleteMixPreset,
+        journal,
+        streakStats,
+        checkIn,
+        getTodayEntry,
+        getWeekEntries,
       }}
     >
       {children}

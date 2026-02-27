@@ -6,3 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# iOS / Capacitor
+ios/App/Pods/
+ios/App/App/public/
+ios/App/output/

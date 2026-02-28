@@ -29,6 +29,7 @@ function AppContent() {
 
   const mixer = useSoundMixer(TRACKS);
   const [activeMix, setActiveMix] = useState<{ id: string; name: string } | null>(null);
+  const [hasEverPlayed, setHasEverPlayed] = useState(false);
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
 
@@ -62,6 +63,7 @@ function AppContent() {
     const willPlay = !player.isPlaying;
     player.togglePlay();
     if (willPlay) {
+      setHasEverPlayed(true);
       timer.start();
       recordSession(player.currentTrack.id);
       checkIn(player.currentTrack.id);
@@ -72,6 +74,7 @@ function AppContent() {
 
   const handleTrackSelect = useCallback(
     (track: typeof TRACKS[number]) => {
+      setHasEverPlayed(true);
       player.selectTrack(track);
       setActiveMix(null);
       mixer.stopAll();
@@ -84,6 +87,7 @@ function AppContent() {
 
   const handleMixSelect = useCallback(
     (preset: MixPreset) => {
+      setHasEverPlayed(true);
       mixer.loadPresetTracks(preset.tracks);
       if (!mixer.isMixPlaying) mixer.toggleMixPlay();
       setActiveMix({ id: preset.id, name: preset.name });
@@ -141,17 +145,19 @@ function AppContent() {
 
   return (
     <div className="max-w-md mx-auto h-screen flex flex-col relative overflow-hidden bg-bg-dark">
-      <div className="ambient-bg" />
+      {currentScreen !== 'home' && <div className="ambient-bg" />}
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>
-      <MiniPlayer
-        track={player.currentTrack}
-        isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}
-        progress={timer.timerProgress}
-        onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
-        mixName={activeMixName}
-      />
+      {hasEverPlayed && (
+        <MiniPlayer
+          track={player.currentTrack}
+          isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}
+          progress={timer.timerProgress}
+          onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
+          mixName={activeMixName}
+        />
+      )}
       <BottomNav />
       <ToastContainer />
     </div>

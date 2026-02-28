@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import {
   Play,
   Layers,
@@ -29,6 +29,20 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
   const getCategoryName = useCategoryName();
   const tt = useTrackTranslation();
   const getMixName = useMixNameTranslation();
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const pillRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const scrollPillToCenter = useCallback((id: string) => {
+    const container = scrollContainerRef.current;
+    const pill = pillRefs.current.get(id);
+    if (!container || !pill) return;
+    const containerRect = container.getBoundingClientRect();
+    const pillRect = pill.getBoundingClientRect();
+    const scrollLeft =
+      pill.offsetLeft - container.offsetLeft - containerRect.width / 2 + pillRect.width / 2;
+    container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+  }, []);
 
   const handleShareMix = async (e: React.MouseEvent, mix: MixPreset) => {
     e.stopPropagation();
@@ -63,31 +77,38 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex-1 overflow-y-auto pb-24 space-y-8 no-scrollbar"
-      style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
+      className="flex-1 overflow-y-auto pb-44 no-scrollbar"
+      style={{ WebkitOverflowScrolling: 'touch' }}
     >
-      {/* Categories — scrolls edge-to-edge */}
-      <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-6">
+      {/* Categories — sticky at top */}
+      <div className="sticky top-0 z-10 pb-3" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+        <div ref={scrollContainerRef} className="flex gap-3 overflow-x-auto no-scrollbar px-6">
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-2xl whitespace-nowrap transition-colors ${
+            ref={(el) => { if (el) pillRefs.current.set(cat.id, el); }}
+            onClick={() => {
+              const next = activeCategory === cat.id ? null : cat.id;
+              setActiveCategory(next);
+              if (next) scrollPillToCenter(next);
+            }}
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl whitespace-nowrap transition-colors backdrop-blur-xl border ${
               activeCategory === cat.id
-                ? 'bg-primary text-white'
-                : 'bg-white/5 text-white/50'
+                ? 'bg-primary/70 text-white border-primary/40 shadow-[0_0_20px_-5px_rgba(140,43,238,0.4)]'
+                : 'bg-surface text-white/70 border-white/10'
             }`}
           >
             {categoryIcons[cat.icon]}
             <span className="text-sm font-semibold">{getCategoryName(cat.id)}</span>
           </button>
         ))}
+        </div>
       </div>
 
 
 
       {/* Relaxing Mix — pre-built mixes, scrolls edge-to-edge */}
-      <section className="space-y-4">
+      <section className="space-y-4 mt-6">
         <div className="flex items-center justify-between px-6">
           <h2 className="text-lg font-bold">{t('relaxingMix')}</h2>
           <button
@@ -158,7 +179,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
 
       {/* Quick Sleep */}
       {filteredTracks.length > 0 && (
-        <section className="space-y-4 px-6">
+        <section className="space-y-4 px-6 mt-6">
           <h2 className="text-lg font-bold">{t('quickSleep')}</h2>
           <div className="grid grid-cols-2 gap-4">
             {filteredTracks.map((track) => (

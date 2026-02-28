@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import {
-  Menu,
-  User,
   BarChart3,
   Clock,
   Heart,
@@ -22,7 +20,7 @@ import { useTranslation, SUPPORTED_LOCALES } from '../i18n';
 import { TRACKS } from '../constants';
 
 export function ProfileScreen() {
-  const { settings, updateSettings, stats, resetStats, favorites, setMenuOpen, streakStats, getWeekEntries } = useAppContext();
+  const { settings, updateSettings, stats, resetStats, favorites, streakStats, getWeekEntries } = useAppContext();
   const { t, locale, setLocale } = useTranslation();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -53,22 +51,6 @@ export function ProfileScreen() {
       className="flex-1 overflow-y-auto pb-24 space-y-6 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
-      {/* Header */}
-      <header className="px-6 space-y-4">
-        <button onClick={() => setMenuOpen(true)} className="text-slate-100">
-          <Menu size={24} />
-        </button>
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
-            <User size={28} className="text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">{t('profile')}</h1>
-            <p className="text-xs text-white/40 font-medium">{t('yourSleepJourney')}</p>
-          </div>
-        </div>
-      </header>
-
       {/* Streak card */}
       <section className="px-6">
         <div className="glass-panel rounded-2xl p-5">

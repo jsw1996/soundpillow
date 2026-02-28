@@ -1,7 +1,7 @@
 import { Track, Category, MixPreset } from './types';
 
 export const CATEGORIES: Category[] = [
-  { id: 'all', name: 'All', icon: 'Sparkles' },
+  { id: 'favorites', name: 'Favorites', icon: 'Heart' },
   { id: 'nature', name: 'Nature', icon: 'Trees' },
   { id: 'animals', name: 'Animals', icon: 'PawPrint' },
   { id: 'white-noise', name: 'White Noise', icon: 'Wind' },

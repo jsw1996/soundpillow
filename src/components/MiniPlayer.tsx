@@ -29,7 +29,8 @@ export function MiniPlayer({ track, isPlaying, progress, onTogglePlay, mixName }
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-          className="fixed bottom-0 left-0 right-0 max-w-md mx-auto px-3 pb-3 z-40"
+          className="fixed left-0 right-0 max-w-md mx-auto px-3 pb-2 z-40"
+          style={{ bottom: 'calc(3.2rem + env(safe-area-inset-bottom) * 0.4)' }}
         >
           <div
             onClick={() => setCurrentScreen('player')}

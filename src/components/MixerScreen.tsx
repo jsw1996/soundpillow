@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Menu,
   Sliders,
   Save,
   CloudRain,
@@ -57,7 +56,7 @@ export function MixerScreen({
   onSetVolume,
   onLoadPreset,
 }: MixerScreenProps) {
-  const { mixPresets, saveMixPreset, deleteMixPreset, setMenuOpen } = useAppContext();
+  const { mixPresets, saveMixPreset, deleteMixPreset } = useAppContext();
   const { t } = useTranslation();
   const tt = useTrackTranslation();
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -86,20 +85,6 @@ export function MixerScreen({
       className="flex-1 overflow-y-auto pb-24 space-y-6 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
-      {/* Header */}
-      <header className="px-6 space-y-1">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setMenuOpen(true)} className="text-slate-100">
-            <Menu size={24} />
-          </button>
-          <div className="p-2 rounded-xl bg-primary/20">
-            <Sliders size={20} className="text-primary" />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight">{t('soundMixer')}</h1>
-        </div>
-        <p className="text-xs text-white/40 font-medium">{t('mixerSubtitle')}</p>
-      </header>
-
       {/* Track grid */}
       <section className="px-6">
         <div className="grid grid-cols-2 gap-3">

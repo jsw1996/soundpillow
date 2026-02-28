@@ -89,7 +89,7 @@ export function useTranslation() {
 export function useCategoryName() {
   const { t } = useTranslation();
   const categoryMap: Record<string, TranslationKeys> = {
-    all: 'catAll',
+    favorites: 'catFavorites',
     nature: 'catNature',
     animals: 'catAnimals',
     'white-noise': 'catWhiteNoise',

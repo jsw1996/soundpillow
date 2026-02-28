@@ -1,105 +1,54 @@
-import { Home as HomeIcon, Sliders, Heart, User, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Home as HomeIcon, Sliders, User } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { Screen } from '../types';
 import { useTranslation } from '../i18n';
 import type { TranslationKeys } from '../i18n/locales/en';
 
-const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationKeys; onClickOverride?: string }[] = [
+const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationKeys }[] = [
   { screen: 'home', icon: HomeIcon, labelKey: 'navHome' },
   { screen: 'mixer', icon: Sliders, labelKey: 'navMixer' },
-  { screen: 'home', icon: Heart, labelKey: 'navFavorites', onClickOverride: 'favorites' },
   { screen: 'profile', icon: User, labelKey: 'navProfile' },
 ];
 
-export function SideMenu() {
-  const { currentScreen, setCurrentScreen, showFavoritesOnly, setShowFavoritesOnly, menuOpen, setMenuOpen } =
+export function BottomNav() {
+  const { currentScreen, setCurrentScreen } =
     useAppContext();
   const { t } = useTranslation();
 
   const handleNavClick = (item: typeof NAV_ITEMS[number]) => {
-    if (item.onClickOverride === 'favorites') {
-      setShowFavoritesOnly(true);
-      setCurrentScreen('home');
-    } else {
-      setShowFavoritesOnly(false);
-      setCurrentScreen(item.screen);
-    }
-    setMenuOpen(false);
+    setCurrentScreen(item.screen);
   };
 
   const isActive = (item: typeof NAV_ITEMS[number]) => {
-    if (item.onClickOverride === 'favorites') {
-      return currentScreen === 'home' && showFavoritesOnly;
-    }
-    if (item.screen === 'home') {
-      return currentScreen === 'home' && !showFavoritesOnly;
-    }
     return currentScreen === item.screen;
   };
 
+  // Hide bottom nav on player screen
+  if (currentScreen === 'player') return null;
+
   return (
-    <AnimatePresence>
-      {menuOpen && (
-        <>
-          {/* Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-            onClick={() => setMenuOpen(false)}
-          />
-
-          {/* Drawer */}
-          <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', bounce: 0.1, duration: 0.4 }}
-            className="fixed top-0 left-0 bottom-0 w-64 bg-bg-dark border-r border-white/5 z-[101] flex flex-col"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 pt-8 pb-6">
-              <h2 className="text-lg font-bold tracking-tight">{t('appName')}</h2>
-              <button
-                onClick={() => setMenuOpen(false)}
-                className="p-2 rounded-full bg-white/5 active:scale-90 transition-transform"
-              >
-                <X size={18} className="text-white/60" />
-              </button>
-            </div>
-
-            {/* Nav items */}
-            <nav className="flex-1 px-3 space-y-1">
-              {NAV_ITEMS.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item);
-                return (
-                  <button
-                    key={item.labelKey}
-                    onClick={() => handleNavClick(item)}
-                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
-                      active
-                        ? 'bg-primary/15 text-primary'
-                        : 'text-white/50 hover:bg-white/5 hover:text-white/70'
-                    }`}
-                  >
-                    <Icon size={22} fill={active ? 'currentColor' : 'none'} />
-                    <span className="text-sm font-semibold">{t(item.labelKey)}</span>
-                  </button>
-                );
-              })}
-            </nav>
-
-            {/* Footer */}
-            <div className="px-5 py-6 border-t border-white/5">
-              <p className="text-[10px] text-white/20 font-medium">{t('appVersion')}</p>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    <nav 
+      className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-bg-dark/90 backdrop-blur-xl border-t border-white/5 pt-2"
+      style={{ paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom) * 0.4)' }}
+    >
+      <div className="flex items-center justify-around px-2">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item);
+          return (
+            <button
+              key={item.labelKey}
+              onClick={() => handleNavClick(item)}
+              className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all ${
+                active ? 'text-primary' : 'text-white/40'
+              }`}
+            >
+              <Icon size={22} fill={active ? 'currentColor' : 'none'} />
+              <span className="text-[10px] font-semibold tracking-wide">{t(item.labelKey)}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }

@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Menu,
-  User,
   Play,
   Layers,
   Trees,
@@ -22,26 +20,27 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
-  const [activeCategory, setActiveCategory] = useState('all');
-  const { isFavorite, toggleFavorite, showFavoritesOnly, setMenuOpen, setCurrentScreen } = useAppContext();
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const { isFavorite, toggleFavorite } = useAppContext();
   const { t } = useTranslation();
   const getCategoryName = useCategoryName();
   const tt = useTrackTranslation();
   const getMixName = useMixNameTranslation();
 
   const filteredTracks = TRACKS.filter((track) => {
-    // Category filter
-    if (activeCategory !== 'all' && track.category.toLowerCase() !== activeCategory) {
-      return false;
-    }
     // Favorites filter
-    if (showFavoritesOnly && !isFavorite(track.id)) {
+    if (activeCategory === 'favorites') {
+      return isFavorite(track.id);
+    }
+    // Category filter
+    if (activeCategory && track.category.toLowerCase() !== activeCategory) {
       return false;
     }
     return true;
   });
 
   const categoryIcons: Record<string, React.ReactNode> = {
+    Heart: <Heart size={18} />,
     Trees: <Trees size={18} />,
     PawPrint: <PawPrint size={18} />,
     Wind: <Wind size={18} />,
@@ -56,23 +55,12 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
       className="flex-1 overflow-y-auto pb-24 space-y-8 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
-      {/* Header */}
-      <header className="flex items-center justify-between px-6">
-        <button onClick={() => setMenuOpen(true)} className="text-slate-100">
-          <Menu size={24} />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">SoundPillow</h1>
-        <button onClick={() => setCurrentScreen('profile')} className="text-primary">
-          <User size={24} />
-        </button>
-      </header>
-
       {/* Categories — scrolls edge-to-edge */}
       <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-6">
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
+            onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl whitespace-nowrap transition-colors ${
               activeCategory === cat.id
                 ? 'bg-primary text-white'
@@ -85,12 +73,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
         ))}
       </div>
 
-      {showFavoritesOnly && (
-        <div className="flex items-center gap-2 px-6">
-          <Heart size={16} className="text-primary" fill="currentColor" />
-          <span className="text-sm font-semibold text-primary">{t('showingFavorites')}</span>
-        </div>
-      )}
+
 
       {/* Relaxing Mix — pre-built mixes, scrolls edge-to-edge */}
       <section className="space-y-4">

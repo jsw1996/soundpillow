@@ -13,7 +13,7 @@ const zh: Record<string, string> = {
   navProfile: '个人',
 
   // Categories
-  catAll: '全部',
+  catFavorites: '收藏',
   catNature: '自然',
   catAnimals: '动物',
   catWhiteNoise: '白噪音',

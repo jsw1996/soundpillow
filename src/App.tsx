@@ -12,7 +12,7 @@ import { PlayerScreen } from './components/PlayerScreen';
 import { MixerScreen } from './components/MixerScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { MiniPlayer } from './components/MiniPlayer';
-import { SideMenu } from './components/Navigation';
+import { BottomNav } from './components/Navigation';
 
 function AppContent() {
   const { currentScreen, setCurrentScreen, recordSession, settings, checkIn } = useAppContext();
@@ -124,7 +124,7 @@ function AppContent() {
         onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
         mixName={activeMixName}
       />
-      <SideMenu />
+      <BottomNav />
     </div>
   );
 }

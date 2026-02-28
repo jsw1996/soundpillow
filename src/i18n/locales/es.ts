@@ -13,7 +13,7 @@ const es: Record<string, string> = {
   navProfile: 'Perfil',
 
   // Categories
-  catAll: 'Todos',
+  catFavorites: 'Favoritos',
   catNature: 'Naturaleza',
   catAnimals: 'Animales',
   catWhiteNoise: 'Ruido Blanco',

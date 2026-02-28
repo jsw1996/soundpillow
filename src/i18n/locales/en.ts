@@ -13,7 +13,7 @@ const en = {
   navProfile: 'Profile',
 
   // Categories
-  catAll: 'All',
+  catFavorites: 'Favorites',
   catNature: 'Nature',
   catAnimals: 'Animals',
   catWhiteNoise: 'White Noise',

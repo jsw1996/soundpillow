@@ -143,6 +143,29 @@ const ja: Record<string, string> = {
   mix_default_3: '海のそよ風',
   mix_default_4: '心地よい焚き火',
   mix_default_5: '禅メディテーション',
+
+  // Navigation
+  navSleepcast: 'ストーリー',
+
+  // Sleepcast
+  sleepcast: 'スリープキャスト',
+  sleepcastTitle: 'スリープキャスト',
+  sleepcastSubtitle: 'AI が生成する環境音付きおやすみストーリー',
+  sleepcastGenerating: 'ストーリーを作成中...',
+  sleepcastGeneratingDesc: 'AI があなただけの特別なおやすみストーリーを書いています',
+  sleepcastParagraphs: '段落',
+  sleepcastError: 'エラーが発生しました。もう一度お試しください。',
+  sleepcastTryAgain: 'ストーリーに戻る',
+  sleepcastNoApiKey: 'APIキーが必要です',
+  sleepcastNoApiKeyDesc: '.env ファイルに VITE_OPENROUTER_API_KEY を設定してAIストーリーを有効にしてください',
+  sleepcastAiPowered: 'Arcee AI 搭載',
+  sleepcastTapToGenerate: 'タップして生成',
+  'sleepcastTheme_cabin-rain': '雨のキャビン',
+  'sleepcastTheme_ocean-voyage': '海の航海',
+  'sleepcastTheme_enchanted-forest': '魔法の森',
+  'sleepcastTheme_zen-garden': '禅の庭',
+  'sleepcastTheme_stargazing': '星空観察',
+  'sleepcastTheme_snow-lodge': '雪のロッジ',
 };
 
 export default ja;

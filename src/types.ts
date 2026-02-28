@@ -55,4 +55,24 @@ export interface StreakStats {
   lastCheckInDate: string | null; // "2026-02-27"
 }
 
-export type Screen = 'home' | 'player' | 'mixer' | 'profile';
+export type Screen = 'home' | 'player' | 'mixer' | 'profile' | 'sleepcast';
+
+export interface SleepcastTheme {
+  id: string;
+  name: string;
+  icon: string;
+  prompt: string;
+  imageUrl: string;
+  bgTrackIds: string[];  // ambient tracks to layer underneath narration
+}
+
+export interface GeneratedSleepcast {
+  id: string;
+  themeId: string;
+  title: string;
+  story: string;        // the full generated story text
+  paragraphs: string[]; // story split into paragraphs for progressive display
+  createdAt: number;
+}
+
+export type SleepcastStatus = 'idle' | 'generating' | 'ready' | 'playing' | 'paused' | 'error';

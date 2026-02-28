@@ -1,4 +1,4 @@
-import { Home as HomeIcon, Sliders, User } from 'lucide-react';
+import { Home as HomeIcon, Sliders, User, BookOpen } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { Screen } from '../types';
 import { useTranslation } from '../i18n';
@@ -6,11 +6,12 @@ import type { TranslationKeys } from '../i18n/locales/en';
 
 const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationKeys }[] = [
   { screen: 'home', icon: HomeIcon, labelKey: 'navHome' },
+  { screen: 'sleepcast', icon: BookOpen, labelKey: 'navSleepcast' },
   { screen: 'mixer', icon: Sliders, labelKey: 'navMixer' },
   { screen: 'profile', icon: User, labelKey: 'navProfile' },
 ];
 
-export function BottomNav() {
+export function BottomNav({ sleepcastActive = false }: { sleepcastActive?: boolean }) {
   const { currentScreen, setCurrentScreen } =
     useAppContext();
   const { t } = useTranslation();
@@ -23,8 +24,8 @@ export function BottomNav() {
     return currentScreen === item.screen;
   };
 
-  // Hide bottom nav on player screen
-  if (currentScreen === 'player') return null;
+  // Hide bottom nav on player screen and during active sleepcast
+  if (currentScreen === 'player' || sleepcastActive) return null;
 
   return (
     <nav 

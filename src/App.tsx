@@ -7,10 +7,12 @@ import { LanguageProvider, useMixNameTranslation, useTranslation } from './i18n'
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { useSleepTimer } from './hooks/useSleepTimer';
 import { useSoundMixer } from './hooks/useSoundMixer';
+import { useSleepcast } from './hooks/useSleepcast';
 import { HomeScreen } from './components/HomeScreen';
 import { PlayerScreen } from './components/PlayerScreen';
 import { MixerScreen } from './components/MixerScreen';
 import { ProfileScreen } from './components/ProfileScreen';
+import { SleepcastScreen } from './components/SleepcastScreen';
 import { MiniPlayer } from './components/MiniPlayer';
 import { BottomNav } from './components/Navigation';
 import { ToastContainer, showToast } from './components/Toast';
@@ -18,9 +20,10 @@ import { getMixFromUrl, clearMixFromUrl, sharedMixToPreset } from './utils/mixSh
 
 function AppContent() {
   const { currentScreen, setCurrentScreen, recordSession, settings, checkIn } = useAppContext();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const player = useAudioPlayer(TRACKS);
+  const sleepcast = useSleepcast();
 
   const timer = useSleepTimer(
     useCallback(() => player.pause(), [player.pause]),
@@ -140,6 +143,22 @@ function AppContent() {
         );
       case 'profile':
         return <ProfileScreen key="profile" />;
+      case 'sleepcast':
+        return (
+          <SleepcastScreen
+            key="sleepcast"
+            status={sleepcast.status}
+            currentCast={sleepcast.currentCast}
+            currentTheme={sleepcast.currentTheme}
+            activeParagraph={sleepcast.activeParagraph}
+            error={sleepcast.error}
+            isConfigured={sleepcast.isConfigured}
+            streamingText={sleepcast.streamingText}
+            onStartSleepcast={(theme) => sleepcast.startSleepcast(theme, locale)}
+            onTogglePlay={() => sleepcast.togglePlay(locale)}
+            onStop={sleepcast.stop}
+          />
+        );
     }
   };
 
@@ -158,7 +177,7 @@ function AppContent() {
           mixName={activeMixName}
         />
       )}
-      <BottomNav />
+      <BottomNav sleepcastActive={sleepcast.status !== 'idle' && currentScreen === 'sleepcast'} />
       <ToastContainer />
     </div>
   );

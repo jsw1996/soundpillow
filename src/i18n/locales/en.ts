@@ -143,6 +143,29 @@ const en = {
   mix_default_3: 'Ocean Breeze',
   mix_default_4: 'Cozy Campfire',
   mix_default_5: 'Zen Meditation',
+
+  // Navigation
+  navSleepcast: 'Stories',
+
+  // Sleepcast
+  sleepcast: 'Sleepcast',
+  sleepcastTitle: 'Sleepcast',
+  sleepcastSubtitle: 'AI-generated bedtime stories with ambient sounds',
+  sleepcastGenerating: 'Crafting your story...',
+  sleepcastGeneratingDesc: 'Our AI is writing a unique bedtime story just for you',
+  sleepcastParagraphs: 'paragraphs',
+  sleepcastError: 'Something went wrong. Please try again.',
+  sleepcastTryAgain: 'Back to Stories',
+  sleepcastNoApiKey: 'API Key Required',
+  sleepcastNoApiKeyDesc: 'Set VITE_OPENROUTER_API_KEY in your .env file to enable AI stories',
+  sleepcastAiPowered: 'Powered by Arcee AI',
+  sleepcastTapToGenerate: 'Tap to generate',
+  'sleepcastTheme_cabin-rain': 'Rainy Cabin',
+  'sleepcastTheme_ocean-voyage': 'Ocean Voyage',
+  'sleepcastTheme_enchanted-forest': 'Enchanted Forest',
+  'sleepcastTheme_zen-garden': 'Zen Garden',
+  'sleepcastTheme_stargazing': 'Stargazing',
+  'sleepcastTheme_snow-lodge': 'Snow Lodge',
 };
 
 export default en;

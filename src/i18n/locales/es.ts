@@ -143,6 +143,29 @@ const es: Record<string, string> = {
   mix_default_3: 'Brisa Marina',
   mix_default_4: 'Fogata Acogedora',
   mix_default_5: 'Meditación Zen',
+
+  // Navigation
+  navSleepcast: 'Historias',
+
+  // Sleepcast
+  sleepcast: 'Sleepcast',
+  sleepcastTitle: 'Sleepcast',
+  sleepcastSubtitle: 'Historias para dormir generadas por IA con sonidos ambientales',
+  sleepcastGenerating: 'Creando tu historia...',
+  sleepcastGeneratingDesc: 'Nuestra IA está escribiendo una historia única para ti',
+  sleepcastParagraphs: 'párrafos',
+  sleepcastError: 'Algo salió mal. Por favor, inténtalo de nuevo.',
+  sleepcastTryAgain: 'Volver a Historias',
+  sleepcastNoApiKey: 'Se requiere clave API',
+  sleepcastNoApiKeyDesc: 'Configura VITE_OPENROUTER_API_KEY en tu archivo .env para habilitar las historias con IA',
+  sleepcastAiPowered: 'Impulsado por Arcee AI',
+  sleepcastTapToGenerate: 'Toca para generar',
+  'sleepcastTheme_cabin-rain': 'Cabaña Lluviosa',
+  'sleepcastTheme_ocean-voyage': 'Viaje por el Océano',
+  'sleepcastTheme_enchanted-forest': 'Bosque Encantado',
+  'sleepcastTheme_zen-garden': 'Jardín Zen',
+  'sleepcastTheme_stargazing': 'Contemplar Estrellas',
+  'sleepcastTheme_snow-lodge': 'Cabaña de Nieve',
 };
 
 export default es;

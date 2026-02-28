@@ -143,6 +143,29 @@ const zh: Record<string, string> = {
   mix_default_3: '海风轻拂',
   mix_default_4: '温馨营火',
   mix_default_5: '禅意冥想',
+
+  // Navigation
+  navSleepcast: '故事',
+
+  // Sleepcast
+  sleepcast: '睡前故事',
+  sleepcastTitle: '睡前故事',
+  sleepcastSubtitle: 'AI 生成的睡前故事，配以环境音效',
+  sleepcastGenerating: '正在创作你的故事...',
+  sleepcastGeneratingDesc: 'AI 正在为你编写独一无二的睡前故事',
+  sleepcastParagraphs: '段落',
+  sleepcastError: '出了点问题，请重试。',
+  sleepcastTryAgain: '返回故事',
+  sleepcastNoApiKey: '需要 API 密钥',
+  sleepcastNoApiKeyDesc: '请在 .env 文件中设置 VITE_OPENROUTER_API_KEY 以启用 AI 故事',
+  sleepcastAiPowered: 'Arcee AI 驱动',
+  sleepcastTapToGenerate: '点击生成',
+  'sleepcastTheme_cabin-rain': '雨中木屋',
+  'sleepcastTheme_ocean-voyage': '海上之旅',
+  'sleepcastTheme_enchanted-forest': '魔法森林',
+  'sleepcastTheme_zen-garden': '禅意花园',
+  'sleepcastTheme_stargazing': '星空观赏',
+  'sleepcastTheme_snow-lodge': '雪中小屋',
 };
 
 export default zh;

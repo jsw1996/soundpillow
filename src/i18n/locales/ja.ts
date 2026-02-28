@@ -127,6 +127,16 @@ const ja: Record<string, string> = {
   track_13_desc: '深いリラクゼーションと瞑想のためのシータバイノーラルビート。',
   track_14_desc: '深い眠りへ導くデルタバイノーラルビート。',
 
+  // Share
+  shareMix: 'ミックスを共有',
+  linkCopied: 'リンクをクリップボードにコピーしました！',
+  mixShared: 'ミックスを共有しました！',
+  shareFailed: 'ミックスを共有できませんでした',
+  sharedMixLoaded: '共有ミックスを読み込みました！',
+  sharedMixInvalid: '無効なミックスリンク',
+  shareCurrentMix: '現在のミックスを共有',
+  listenTo: 'SoundPillowで「{{name}}」を聴く',
+
   // Default mix names
   mix_default_1: '夏の焚き火の夜',
   mix_default_2: '雨の森',

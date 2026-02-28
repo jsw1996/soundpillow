@@ -127,6 +127,16 @@ const zh: Record<string, string> = {
   track_13_desc: 'Theta 双耳节拍，用于深度放松和冥想。',
   track_14_desc: 'Delta 双耳节拍，引导你进入深度睡眠。',
 
+  // Share
+  shareMix: '分享混音',
+  linkCopied: '链接已复制到剪贴板！',
+  mixShared: '混音已分享！',
+  shareFailed: '无法分享混音',
+  sharedMixLoaded: '已加载分享的混音！',
+  sharedMixInvalid: '无效的混音链接',
+  shareCurrentMix: '分享当前混音',
+  listenTo: '在 SoundPillow 上收听「{{name}}」',
+
   // Default mix names
   mix_default_1: '夏夜篝火',
   mix_default_2: '雨中森林',

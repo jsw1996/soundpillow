@@ -96,23 +96,27 @@ export function PlayerScreen({
       transition={{ type: 'spring', bounce: 0.15, duration: 0.6 }}
       className="absolute inset-0 flex flex-col overflow-hidden"
     >
-      {/* ── Blurred background artwork ── */}
-      <div className="absolute inset-0 -z-10">
+      {/* ── Full-width artwork hero ── */}
+      <div className="relative w-full shrink-0" style={{ height: '45%' }}>
         <img
           src={track.imageUrl}
-          alt=""
-          aria-hidden
+          alt={track.title}
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover scale-110 blur-[60px] opacity-30"
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-linear-to-b from-bg-dark/60 via-bg-dark/80 to-bg-dark" />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/30" />
+        {/* Bottom gradient fade */}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-bg-dark via-bg-dark/80 to-transparent" />
+        {/* Top gradient for header readability */}
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
+
+        {/* ── Ambient particles ── */}
+        <AmbientParticles />
       </div>
 
-      {/* ── Ambient particles ── */}
-      <AmbientParticles />
-
-      {/* ── Header ── */}
-      <header className="flex items-center justify-between px-5 pb-2 shrink-0 relative z-10" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+      {/* ── Header (overlaid on artwork) ── */}
+      <header className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pb-2 z-20" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
         <button
           onClick={onBack}
           className="p-2.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 active:scale-90 transition-transform"
@@ -154,29 +158,7 @@ export function PlayerScreen({
       </header>
 
       {/* ── Main content ── */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 [@media(min-height:750px)]:gap-6 px-6 min-h-0 relative z-10 overflow-hidden">
-        {/* Artwork */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', bounce: 0.2, duration: 0.8, delay: 0.1 }}
-          className="relative"
-        >
-          {/* Outer breathing glow */}
-          <div className="absolute -inset-4 [@media(min-height:750px)]:-inset-6 bg-primary/15 rounded-3xl breathing-glow blur-3xl" />
-          {/* Secondary glow ring */}
-          <div className="absolute -inset-2 [@media(min-height:750px)]:-inset-3 bg-primary/10 rounded-2xl blur-xl" />
-
-          <div className="relative w-40 h-40 [@media(min-height:750px)]:w-56 [@media(min-height:750px)]:h-56 rounded-3xl overflow-hidden shadow-[0_0_80px_-10px_rgba(155,126,216,0.5)] border-2 border-white/10">
-            <img
-              src={track.imageUrl}
-              alt={track.title}
-              referrerPolicy="no-referrer"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </motion.div>
-
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 min-h-0 relative z-10 overflow-hidden -mt-6">
         {/* Track info */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -184,7 +166,7 @@ export function PlayerScreen({
           transition={{ delay: 0.25 }}
           className="text-center space-y-1 max-w-xs"
         >
-          <h1 className="text-xl [@media(min-height:750px)]:text-2xl font-extrabold tracking-tight leading-tight">
+          <h1 className="text-2xl font-extrabold tracking-tight leading-tight">
             {mixName ?? translatedTrack.title}
           </h1>
           <p className="text-sm text-primary/80 font-semibold">
@@ -230,7 +212,7 @@ export function PlayerScreen({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="flex items-center justify-center gap-8 [@media(min-height:750px)]:gap-10 w-full"
+          className="flex items-center justify-center gap-8 w-full"
         >
           <button
             onClick={onSkipPrev}
@@ -241,7 +223,7 @@ export function PlayerScreen({
 
           <button
             onClick={onTogglePlay}
-            className="relative size-14 [@media(min-height:750px)]:size-18 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+            className="relative size-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
           >
             {/* Glow behind button */}
             <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl" />
@@ -286,7 +268,7 @@ export function PlayerScreen({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="shrink-0 px-5 pb-6 [@media(min-height:750px)]:pb-20 pt-2 relative z-10"
+        className="shrink-0 px-5 pb-6 pt-2 relative z-10"
       >
         <div className="bg-white/3 backdrop-blur-2xl border border-white/6 p-4 rounded-2xl space-y-3">
           <div className="flex items-center justify-between">

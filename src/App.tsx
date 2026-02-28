@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { TRACKS } from './constants';
 import { MixPreset } from './types';
 import { AppProvider, useAppContext } from './context/AppContext';
-import { LanguageProvider, useMixNameTranslation } from './i18n';
+import { LanguageProvider, useMixNameTranslation, useTranslation } from './i18n';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { useSleepTimer } from './hooks/useSleepTimer';
 import { useSoundMixer } from './hooks/useSoundMixer';
@@ -13,9 +13,12 @@ import { MixerScreen } from './components/MixerScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { MiniPlayer } from './components/MiniPlayer';
 import { BottomNav } from './components/Navigation';
+import { ToastContainer, showToast } from './components/Toast';
+import { getMixFromUrl, clearMixFromUrl, sharedMixToPreset } from './utils/mixShare';
 
 function AppContent() {
   const { currentScreen, setCurrentScreen, recordSession, settings, checkIn } = useAppContext();
+  const { t } = useTranslation();
 
   const player = useAudioPlayer(TRACKS);
 
@@ -28,6 +31,31 @@ function AppContent() {
   const [activeMix, setActiveMix] = useState<{ id: string; name: string } | null>(null);
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
+
+  // Check for shared mix in URL on mount
+  useEffect(() => {
+    const shared = getMixFromUrl();
+    if (shared) {
+      clearMixFromUrl();
+      // Validate that all track IDs exist
+      const validTracks = shared.tracks.filter((st) =>
+        TRACKS.some((t) => t.id === st.trackId),
+      );
+      if (validTracks.length > 0) {
+        const preset = sharedMixToPreset({ ...shared, tracks: validTracks });
+        mixer.loadPresetTracks(validTracks);
+        setActiveMix({ id: preset.id, name: preset.name });
+        const firstTrack = TRACKS.find((t) => t.id === validTracks[0]?.trackId);
+        if (firstTrack) player.selectTrack(firstTrack);
+        player.pause();
+        setCurrentScreen('mixer');
+        // Delay toast to ensure UI is ready
+        setTimeout(() => showToast(t('sharedMixLoaded'), 'info'), 500);
+      } else {
+        setTimeout(() => showToast(t('sharedMixInvalid'), 'error'), 500);
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync timer with playback state
   const handleTogglePlay = useCallback(() => {
@@ -125,6 +153,7 @@ function AppContent() {
         mixName={activeMixName}
       />
       <BottomNav />
+      <ToastContainer />
     </div>
   );
 }

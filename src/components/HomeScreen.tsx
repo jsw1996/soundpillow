@@ -7,12 +7,15 @@ import {
   Wind,
   Sparkles,
   Heart,
+  Share2,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { TRACKS, CATEGORIES, DEFAULT_MIXES } from '../constants';
 import { Track, MixPreset } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useCategoryName, useTrackTranslation, useMixNameTranslation } from '../i18n';
+import { shareMix } from '../utils/mixShare';
+import { showToast } from './Toast';
 
 interface HomeScreenProps {
   onTrackSelect: (track: Track) => void;
@@ -21,11 +24,19 @@ interface HomeScreenProps {
 
 export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const { isFavorite, toggleFavorite } = useAppContext();
+  const { isFavorite, toggleFavorite, setCurrentScreen } = useAppContext();
   const { t } = useTranslation();
   const getCategoryName = useCategoryName();
   const tt = useTrackTranslation();
   const getMixName = useMixNameTranslation();
+
+  const handleShareMix = async (e: React.MouseEvent, mix: MixPreset) => {
+    e.stopPropagation();
+    const name = getMixName(mix.id, mix.name);
+    const result = await shareMix(name, mix.tracks, t('listenTo', { name }));
+    if (result === 'copied') showToast(t('linkCopied'));
+    else if (result === 'shared') showToast(t('mixShared'));
+  };
 
   const filteredTracks = TRACKS.filter((track) => {
     // Favorites filter
@@ -116,9 +127,17 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
                   ))}
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm flex items-center gap-1">
-                  <Layers size={12} className="text-primary" />
-                  <span className="text-[10px] font-bold text-white/80">{t('nSounds', { n: mix.tracks.length })}</span>
+                <div className="absolute top-3 right-3 flex items-center gap-2">
+                  <button
+                    onClick={(e) => handleShareMix(e, mix)}
+                    className="p-2 rounded-full bg-black/40 backdrop-blur-sm text-white/70 hover:text-primary transition-colors active:scale-90"
+                  >
+                    <Share2 size={14} />
+                  </button>
+                  <div className="px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm flex items-center gap-1">
+                    <Layers size={12} className="text-primary" />
+                    <span className="text-[10px] font-bold text-white/80">{t('nSounds', { n: mix.tracks.length })}</span>
+                  </div>
                 </div>
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                   <div>

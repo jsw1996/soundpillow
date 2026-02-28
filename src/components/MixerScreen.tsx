@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Sliders,
   Save,
+  Share2,
   CloudRain,
   Trees,
   Waves,
@@ -17,6 +18,8 @@ import { TRACKS } from '../constants';
 import { MixerTrack } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useTrackTranslation } from '../i18n';
+import { shareMix } from '../utils/mixShare';
+import { showToast } from './Toast';
 
 function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
@@ -77,12 +80,31 @@ export function MixerScreen({
     setShowSaveDialog(false);
   };
 
+  const handleShareActive = async () => {
+    const activeMixerTracks = mixerTracks.filter((t) => t.isActive);
+    if (activeMixerTracks.length === 0) return;
+    const trackNames = activeMixerTracks
+      .map((mt) => { const tr = TRACKS.find((t) => t.id === mt.trackId); return tr ? tt(tr).title : ''; })
+      .filter(Boolean)
+      .join(' + ');
+    const name = trackNames || t('mix');
+    const result = await shareMix(name, activeMixerTracks, t('listenTo', { name }));
+    if (result === 'copied') showToast(t('linkCopied'));
+    else if (result === 'shared') showToast(t('mixShared'));
+  };
+
+  const handleSharePreset = async (presetName: string, tracks: MixerTrack[]) => {
+    const result = await shareMix(presetName, tracks, t('listenTo', { name: presetName }));
+    if (result === 'copied') showToast(t('linkCopied'));
+    else if (result === 'shared') showToast(t('mixShared'));
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex-1 overflow-y-auto pb-24 space-y-6 no-scrollbar"
+      className="flex-1 overflow-y-auto pb-40 space-y-6 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
       {/* Track grid */}
@@ -145,17 +167,26 @@ export function MixerScreen({
         </div>
       </section>
 
-      {/* Save preset */}
+      {/* Save & Share buttons for active mix */}
       {mixerTracks.some((t) => t.isActive) && (
-        <div className="px-6">
+        <div className="px-6 space-y-2">
           {!showSaveDialog ? (
-            <button
-              onClick={() => setShowSaveDialog(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/5 text-white/60 font-semibold text-sm hover:bg-white/10 transition-colors"
-            >
-              <Save size={16} />
-              {t('saveAsPreset')}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowSaveDialog(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/5 text-white/60 font-semibold text-sm hover:bg-white/10 transition-colors"
+              >
+                <Save size={16} />
+                {t('saveAsPreset')}
+              </button>
+              <button
+                onClick={handleShareActive}
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-primary/15 text-primary font-semibold text-sm hover:bg-primary/25 transition-colors"
+              >
+                <Share2 size={16} />
+                {t('shareMix')}
+              </button>
+            </div>
           ) : (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
@@ -207,12 +238,20 @@ export function MixerScreen({
                   {t('nSounds', { n: preset.tracks.length })}
                 </p>
               </button>
-              <button
-                onClick={() => deleteMixPreset(preset.id)}
-                className="p-2 text-white/30 hover:text-red-400 transition-colors"
-              >
-                <Trash2 size={14} />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleSharePreset(preset.name, preset.tracks)}
+                  className="p-2 text-white/30 hover:text-primary transition-colors"
+                >
+                  <Share2 size={14} />
+                </button>
+                <button
+                  onClick={() => deleteMixPreset(preset.id)}
+                  className="p-2 text-white/30 hover:text-red-400 transition-colors"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           ))}
         </section>

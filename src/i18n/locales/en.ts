@@ -127,6 +127,16 @@ const en = {
   track_13_desc: 'Theta binaural beats for deep relaxation and meditation.',
   track_14_desc: 'Delta binaural beats to guide you into deep sleep.',
 
+  // Share
+  shareMix: 'Share Mix',
+  linkCopied: 'Link copied to clipboard!',
+  mixShared: 'Mix shared!',
+  shareFailed: 'Could not share mix',
+  sharedMixLoaded: 'Shared mix loaded!',
+  sharedMixInvalid: 'Invalid mix link',
+  shareCurrentMix: 'Share Current Mix',
+  listenTo: 'Listen to "{{name}}" on SoundPillow',
+
   // Default mix names
   mix_default_1: 'Summer Bonfire Night',
   mix_default_2: 'Rainy Forest',

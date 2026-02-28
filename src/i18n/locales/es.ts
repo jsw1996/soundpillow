@@ -127,6 +127,16 @@ const es: Record<string, string> = {
   track_13_desc: 'Ritmos binaurales theta para relajación y meditación profunda.',
   track_14_desc: 'Ritmos binaurales delta para guiarte al sueño profundo.',
 
+  // Share
+  shareMix: 'Compartir Mezcla',
+  linkCopied: '¡Enlace copiado al portapapeles!',
+  mixShared: '¡Mezcla compartida!',
+  shareFailed: 'No se pudo compartir la mezcla',
+  sharedMixLoaded: '¡Mezcla compartida cargada!',
+  sharedMixInvalid: 'Enlace de mezcla inválido',
+  shareCurrentMix: 'Compartir Mezcla Actual',
+  listenTo: 'Escucha "{{name}}" en SoundPillow',
+
   // Default mix names
   mix_default_1: 'Noche de Fogata de Verano',
   mix_default_2: 'Bosque Lluvioso',

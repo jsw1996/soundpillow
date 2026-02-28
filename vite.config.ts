@@ -4,8 +4,9 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(({mode}) => {
+  const isGHPages = process.env.GITHUB_PAGES === 'true';
   return {
-    base: '/soundpillow/',
+    base: isGHPages ? '/soundpillow/' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

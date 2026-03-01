@@ -7,6 +7,9 @@ coverage/
 .env*
 !.env.example
 
+# Server generated data
+server/data/
+
 # iOS / Capacitor
 ios/App/Pods/
 ios/App/App/public/

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import {
   CloudRain, Trees, Star, Snowflake, Flower2, Ship,
   Play, Pause, Square, Loader2, BookOpen, AlertCircle,
-  Sparkles,
+  Sparkles, WifiOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SLEEPCAST_THEMES } from '../data/sleepcastThemes';
@@ -25,7 +25,8 @@ interface SleepcastScreenProps {
   activeParagraph: number;
   error: string | null;
   isConfigured: boolean;
-  streamingText: string;
+  dailyStories: GeneratedSleepcast[];
+  storiesLoading: boolean;
   onStartSleepcast: (theme: SleepcastTheme) => void;
   onTogglePlay: () => void;
   onStop: () => void;
@@ -61,10 +62,9 @@ function AmbientParticles() {
   );
 }
 
-/** Streaming view shown while AI generates the story — displays text as it arrives */
-function GeneratingView({ theme, streamingText }: { theme: SleepcastTheme; streamingText: string }) {
+/** Loading view shown while fetching story from server */
+function LoadingView({ theme }: { theme: SleepcastTheme }) {
   const { t } = useTranslation();
-  const hasText = streamingText.length > 0;
 
   return (
     <motion.div
@@ -73,7 +73,7 @@ function GeneratingView({ theme, streamingText }: { theme: SleepcastTheme; strea
       className="flex-1 flex flex-col min-h-0"
     >
       {/* Header with theme image */}
-      <div className="relative shrink-0" style={{ height: hasText ? '22%' : '30%' }}>
+      <div className="relative shrink-0" style={{ height: '30%' }}>
         <img
           src={theme.imageUrl}
           alt={theme.name}
@@ -94,38 +94,18 @@ function GeneratingView({ theme, streamingText }: { theme: SleepcastTheme; strea
         </div>
       </div>
 
-      {/* Streaming text */}
-      {hasText ? (
-        <div className="flex-1 overflow-y-auto px-5 pb-24 no-scrollbar">
-          <div className="py-4">
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <div className="flex gap-1">
+          {[0, 1, 2].map((i) => (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm leading-relaxed text-white/70 whitespace-pre-wrap"
-            >
-              {streamingText}
-              <motion.span
-                animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-                className="inline-block w-0.5 h-4 bg-primary/60 ml-0.5 align-text-bottom"
-              />
-            </motion.div>
-          </div>
+              key={i}
+              className="w-2 h-2 rounded-full bg-primary/60"
+              animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+            />
+          ))}
         </div>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <div className="flex gap-1">
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="w-2 h-2 rounded-full bg-primary/60"
-                animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
     </motion.div>
   );
 }
@@ -136,7 +116,6 @@ function PlaybackView({
   theme,
   activeParagraph,
   status,
-  isStreaming,
   onTogglePlay,
   onStop,
 }: {
@@ -144,7 +123,6 @@ function PlaybackView({
   theme: SleepcastTheme;
   activeParagraph: number;
   status: SleepcastStatus;
-  isStreaming: boolean;
   onTogglePlay: () => void;
   onStop: () => void;
 }) {
@@ -175,12 +153,6 @@ function PlaybackView({
             <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/70">
               {t('sleepcast')}
             </p>
-            {isStreaming && (
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/15">
-                <Loader2 size={10} className="text-primary animate-spin" />
-                <span className="text-[9px] font-bold text-primary/70">{t('sleepcastGenerating')}</span>
-              </div>
-            )}
           </div>
           <h1 className="text-xl font-extrabold leading-tight">{cast.title}</h1>
         </div>
@@ -208,18 +180,6 @@ function PlaybackView({
               {para}
             </motion.p>
           ))}
-          {isStreaming && (
-            <div className="flex items-center gap-1 pt-2">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-primary/40"
-                  animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.8, 0.3] }}
-                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
-                />
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
@@ -279,11 +239,19 @@ function PlaybackView({
 function ThemeGrid({
   onSelect,
   isConfigured,
+  dailyStories,
+  storiesLoading,
 }: {
   onSelect: (theme: SleepcastTheme) => void;
   isConfigured: boolean;
+  dailyStories: GeneratedSleepcast[];
+  storiesLoading: boolean;
 }) {
   const { t } = useTranslation();
+
+  // Check which themes have stories ready
+  const hasStory = (themeId: string) => dailyStories.some((s) => s.themeId === themeId);
+  const storiesReady = dailyStories.length > 0;
 
   return (
     <motion.div
@@ -302,13 +270,13 @@ function ThemeGrid({
         <p className="text-sm text-white/40">{t('sleepcastSubtitle')}</p>
       </div>
 
-      {/* API key warning */}
+      {/* Server unavailable warning */}
       {!isConfigured && (
         <div className="mx-6 mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
-          <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+          <WifiOff size={18} className="text-amber-400 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-amber-300">{t('sleepcastNoApiKey')}</p>
-            <p className="text-xs text-amber-300/60 mt-1">{t('sleepcastNoApiKeyDesc')}</p>
+            <p className="text-xs text-amber-300/60 mt-1">Stories server is not reachable. Please try again later.</p>
           </div>
         </div>
       )}
@@ -319,46 +287,66 @@ function ThemeGrid({
           <Sparkles size={12} className="text-primary" />
           <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{t('sleepcastAiPowered')}</span>
         </div>
+        {storiesLoading && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5">
+            <Loader2 size={12} className="text-white/40 animate-spin" />
+            <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Loading</span>
+          </div>
+        )}
       </div>
 
       {/* Theme cards */}
       <div className="px-6 grid grid-cols-2 gap-3">
-        {SLEEPCAST_THEMES.map((theme, i) => (
-          <motion.button
-            key={theme.id}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06 }}
-            onClick={() => isConfigured && onSelect(theme)}
-            disabled={!isConfigured}
-            className={`relative rounded-2xl overflow-hidden text-left group ${
-              !isConfigured ? 'opacity-50' : 'active:scale-[0.96]'
-            } transition-transform`}
-          >
-            <div className="aspect-[4/3]">
-              <img
-                src={theme.imageUrl}
-                alt={theme.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
-                  {THEME_ICONS[theme.icon] ? (
-                    <div className="[&>svg]:w-3.5 [&>svg]:h-3.5">{THEME_ICONS[theme.icon]}</div>
-                  ) : (
-                    <BookOpen size={14} />
+        {SLEEPCAST_THEMES.map((theme, i) => {
+          const ready = hasStory(theme.id);
+          const canSelect = isConfigured && (ready || !storiesReady);
+
+          return (
+            <motion.button
+              key={theme.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              onClick={() => canSelect && onSelect(theme)}
+              disabled={!canSelect}
+              className={`relative rounded-2xl overflow-hidden text-left group ${
+                !canSelect ? 'opacity-50' : 'active:scale-[0.96]'
+              } transition-transform`}
+            >
+              <div className="aspect-[4/3]">
+                <img
+                  src={theme.imageUrl}
+                  alt={theme.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
+                    {THEME_ICONS[theme.icon] ? (
+                      <div className="[&>svg]:w-3.5 [&>svg]:h-3.5">{THEME_ICONS[theme.icon]}</div>
+                    ) : (
+                      <BookOpen size={14} />
+                    )}
+                  </div>
+                  {storiesReady && ready && (
+                    <div className="px-1.5 py-0.5 rounded-full bg-emerald-500/20">
+                      <span className="text-[8px] font-bold text-emerald-400 uppercase">Ready</span>
+                    </div>
                   )}
                 </div>
+                <p className="text-sm font-bold leading-tight">{t(`sleepcastTheme_${theme.id}` as any) || theme.name}</p>
+                <p className="text-[10px] text-white/40 mt-0.5">
+                  {ready
+                    ? dailyStories.find((s) => s.themeId === theme.id)?.title
+                    : t('sleepcastTapToGenerate')}
+                </p>
               </div>
-              <p className="text-sm font-bold leading-tight">{t(`sleepcastTheme_${theme.id}` as any) || theme.name}</p>
-              <p className="text-[10px] text-white/40 mt-0.5">{t('sleepcastTapToGenerate')}</p>
-            </div>
-          </motion.button>
-        ))}
+            </motion.button>
+          );
+        })}
       </div>
     </motion.div>
   );
@@ -371,7 +359,8 @@ export function SleepcastScreen({
   activeParagraph,
   error,
   isConfigured,
-  streamingText,
+  dailyStories,
+  storiesLoading,
   onStartSleepcast,
   onTogglePlay,
   onStop,
@@ -384,16 +373,15 @@ export function SleepcastScreen({
         <motion.div key="gen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="flex-1 flex flex-col">
-          <GeneratingView theme={currentTheme} streamingText={streamingText} />
+          <LoadingView theme={currentTheme} />
         </motion.div>
       )}
 
-      {(status === 'playing' || status === 'paused' || (status === 'generating' && currentCast)) && currentCast && currentTheme && (
+      {(status === 'playing' || status === 'paused') && currentCast && currentTheme && (
         <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
           className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PlaybackView
-            isStreaming={streamingText.length > 0}
             cast={currentCast}
             theme={currentTheme}
             activeParagraph={activeParagraph}
@@ -425,6 +413,8 @@ export function SleepcastScreen({
           key="grid"
           onSelect={onStartSleepcast}
           isConfigured={isConfigured}
+          dailyStories={dailyStories}
+          storiesLoading={storiesLoading}
         />
       )}
     </AnimatePresence>

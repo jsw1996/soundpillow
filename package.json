@@ -3,16 +3,22 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": ["server"],
   "scripts": {
+    "server:dev": "npm run dev --workspace=server",
+    "server:build": "npm run build --workspace=server",
+    "server:generate": "npm run generate --workspace=server",
+    "server:tts": "npm run regenerate-tts --workspace=server --",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "build:ghpages": "GITHUB_PAGES=true vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:sync": "VITE_SERVER_URL=https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
-    "ios:run": "npm run build && npx cap sync ios && npx cap run ios"
+    "ios:run": "VITE_SERVER_URL=https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net npm run build && npx cap sync ios && npx cap run ios",
+    "deploy": "npm run server:build && bash scripts/deploy.sh"
   },
   "dependencies": {
     "@capacitor/cli": "^8.1.0",

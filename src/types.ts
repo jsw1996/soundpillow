@@ -72,6 +72,7 @@ export interface GeneratedSleepcast {
   title: string;
   story: string;        // the full generated story text
   paragraphs: string[]; // story split into paragraphs for progressive display
+  audioUrls?: string[]; // pre-generated TTS audio URLs per paragraph
   createdAt: number;
 }
 

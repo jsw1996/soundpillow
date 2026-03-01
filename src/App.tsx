@@ -25,6 +25,11 @@ function AppContent() {
   const player = useAudioPlayer(TRACKS);
   const sleepcast = useSleepcast();
 
+  // Load daily stories from server on mount and when locale changes
+  useEffect(() => {
+    sleepcast.loadDailyStories(locale);
+  }, [locale]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const timer = useSleepTimer(
     useCallback(() => player.pause(), [player.pause]),
     settings.defaultTimerMinutes,
@@ -153,8 +158,15 @@ function AppContent() {
             activeParagraph={sleepcast.activeParagraph}
             error={sleepcast.error}
             isConfigured={sleepcast.isConfigured}
-            streamingText={sleepcast.streamingText}
-            onStartSleepcast={(theme) => sleepcast.startSleepcast(theme, locale)}
+            dailyStories={sleepcast.dailyStories}
+            storiesLoading={sleepcast.storiesLoading}
+            onStartSleepcast={(theme) => {
+              // Stop any playing audio/mixer before starting sleepcast
+              player.pause();
+              mixer.stopAll();
+              timer.stop();
+              sleepcast.startSleepcast(theme, locale);
+            }}
             onTogglePlay={() => sleepcast.togglePlay(locale)}
             onStop={sleepcast.stop}
           />
@@ -168,7 +180,7 @@ function AppContent() {
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>
-      {hasEverPlayed && (
+      {hasEverPlayed && sleepcast.status === 'idle' && (
         <MiniPlayer
           track={player.currentTrack}
           isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}

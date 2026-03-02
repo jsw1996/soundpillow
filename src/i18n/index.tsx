@@ -53,10 +53,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-  }, [locale]);
-
   const t = useCallback(
     (key: TranslationKeys, params?: Record<string, string | number>): string => {
       let text = translations[locale]?.[key] ?? translations.en[key] ?? key;
@@ -86,19 +82,20 @@ export function useTranslation() {
 /**
  * Helper to translate category names via category ID.
  */
+const CATEGORY_MAP: Record<string, TranslationKeys> = {
+  favorites: 'catFavorites',
+  nature: 'catNature',
+  animals: 'catAnimals',
+  'white-noise': 'catWhiteNoise',
+  meditation: 'catMeditation',
+};
+
 export function useCategoryName() {
   const { t } = useTranslation();
-  const categoryMap: Record<string, TranslationKeys> = {
-    favorites: 'catFavorites',
-    nature: 'catNature',
-    animals: 'catAnimals',
-    'white-noise': 'catWhiteNoise',
-    meditation: 'catMeditation',
-  };
 
   return useCallback(
     (categoryId: string): string => {
-      const key = categoryMap[categoryId.toLowerCase()];
+      const key = CATEGORY_MAP[categoryId.toLowerCase()];
       return key ? t(key) : categoryId;
     },
     [t],

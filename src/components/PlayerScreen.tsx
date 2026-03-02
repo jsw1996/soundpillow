@@ -1,8 +1,5 @@
-import { useMemo } from 'react';
 import {
   ChevronDown,
-  Play,
-  Pause,
   SkipBack,
   SkipForward,
   Timer,
@@ -10,9 +7,11 @@ import {
   Sliders,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { PlayPauseButton } from './PlayPauseButton';
 import { Track } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useTrackTranslation } from '../i18n';
+import { AmbientParticles } from './AmbientParticles';
 
 interface PlayerScreenProps {
   track: Track;
@@ -30,40 +29,6 @@ interface PlayerScreenProps {
   formatTimerDisplay: (seconds: number) => string;
   mixName?: string | null;
   onOpenMixer?: () => void;
-}
-
-/* Ambient floating particles behind artwork */
-function AmbientParticles() {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 6 }, (_, i) => ({
-        id: i,
-        left: `${12 + Math.random() * 76}%`,
-        size: 4 + Math.random() * 6,
-        duration: 6 + Math.random() * 8,
-        delay: Math.random() * 6,
-      })),
-    [],
-  );
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-      {particles.map((p) => (
-        <span
-          key={p.id}
-          className="ambient-particle"
-          style={{
-            left: p.left,
-            bottom: '-10px',
-            width: p.size,
-            height: p.size,
-            animationDuration: `${p.duration}s`,
-            animationDelay: `${p.delay}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
 }
 
 export function PlayerScreen({
@@ -221,38 +186,7 @@ export function PlayerScreen({
             <SkipBack size={26} fill="currentColor" />
           </button>
 
-          <button
-            onClick={onTogglePlay}
-            className="relative size-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
-          >
-            {/* Glow behind button */}
-            <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl" />
-            <div className="relative size-full bg-linear-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(155,126,216,0.5)]">
-              <AnimatePresence mode="wait">
-                {isPlaying ? (
-                  <motion.div
-                    key="pause"
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <Pause size={30} fill="white" className="text-white" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="play"
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <Play size={30} fill="white" className="text-white ml-1" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </button>
+          <PlayPauseButton isPlaying={isPlaying} onToggle={onTogglePlay} />
 
           <button
             onClick={onSkipNext}

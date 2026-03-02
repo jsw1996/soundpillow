@@ -14,11 +14,12 @@ import {
   Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { screenTransition } from '../utils/animations';
 import { TRACKS } from '../constants';
 import { MixerTrack } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useTrackTranslation } from '../i18n';
-import { shareMix } from '../utils/mixShare';
+import { shareAndNotify } from '../utils/mixShare';
 import { showToast } from './Toast';
 
 function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -29,7 +30,6 @@ function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number
       max={100}
       value={value}
       onChange={(e) => onChange(Number(e.target.value))}
-      onInput={(e) => onChange(Number((e.target as HTMLInputElement).value))}
       className="volume-slider w-full"
     />
   );
@@ -88,22 +88,16 @@ export function MixerScreen({
       .filter(Boolean)
       .join(' + ');
     const name = trackNames || t('mix');
-    const result = await shareMix(name, activeMixerTracks, t('listenTo', { name }));
-    if (result === 'copied') showToast(t('linkCopied'));
-    else if (result === 'shared') showToast(t('mixShared'));
+    await shareAndNotify(name, activeMixerTracks, t('listenTo', { name }), t('linkCopied'), t('mixShared'), showToast);
   };
 
   const handleSharePreset = async (presetName: string, tracks: MixerTrack[]) => {
-    const result = await shareMix(presetName, tracks, t('listenTo', { name: presetName }));
-    if (result === 'copied') showToast(t('linkCopied'));
-    else if (result === 'shared') showToast(t('mixShared'));
+    await shareAndNotify(presetName, tracks, t('listenTo', { name: presetName }), t('linkCopied'), t('mixShared'), showToast);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      {...screenTransition}
       className="flex-1 overflow-y-auto pb-40 space-y-6 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >

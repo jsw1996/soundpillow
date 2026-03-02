@@ -77,3 +77,9 @@ export interface GeneratedSleepcast {
 }
 
 export type SleepcastStatus = 'idle' | 'generating' | 'ready' | 'playing' | 'paused' | 'error';
+
+export interface WebAudioNode {
+  element: HTMLAudioElement;
+  source: MediaElementAudioSourceNode;
+  gain: GainNode;
+}

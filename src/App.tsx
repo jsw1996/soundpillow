@@ -97,7 +97,6 @@ function AppContent() {
     (preset: MixPreset) => {
       setHasEverPlayed(true);
       mixer.loadPresetTracks(preset.tracks);
-      if (!mixer.isMixPlaying) mixer.toggleMixPlay();
       setActiveMix({ id: preset.id, name: preset.name });
       // Set first track as display track, but pause single player to avoid double audio
       const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);

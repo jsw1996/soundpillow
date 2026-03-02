@@ -1,12 +1,14 @@
-import { useMemo } from 'react';
 import {
-  Play, Pause, Square, Loader2, BookOpen, AlertCircle,
+  Square, Loader2, BookOpen, AlertCircle,
   Sparkles, WifiOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { screenTransition } from '../utils/animations';
 import { SLEEPCAST_THEMES } from '../data/sleepcastThemes';
 import type { SleepcastTheme, SleepcastStatus, GeneratedSleepcast } from '../types';
 import { useTranslation } from '../i18n';
+import { AmbientParticles } from './AmbientParticles';
+import { PlayPauseButton } from './PlayPauseButton';
 
 interface SleepcastScreenProps {
   status: SleepcastStatus;
@@ -20,36 +22,6 @@ interface SleepcastScreenProps {
   onStartSleepcast: (theme: SleepcastTheme) => void;
   onTogglePlay: () => void;
   onStop: () => void;
-}
-
-function AmbientParticles() {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 5 }, (_, i) => ({
-        id: i,
-        left: `${15 + Math.random() * 70}%`,
-        size: 3 + Math.random() * 5,
-        duration: 8 + Math.random() * 10,
-        delay: Math.random() * 8,
-      })),
-    [],
-  );
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-      {particles.map((p) => (
-        <span
-          key={p.id}
-          className="ambient-particle"
-          style={{
-            left: p.left, bottom: '-10px',
-            width: p.size, height: p.size,
-            animationDuration: `${p.duration}s`,
-            animationDelay: `${p.delay}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
 }
 
 /** Loading view shown while fetching story from server */
@@ -72,7 +44,7 @@ function LoadingView({ theme }: { theme: SleepcastTheme }) {
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-bg-dark via-bg-dark/80 to-transparent" />
-        <AmbientParticles />
+        <AmbientParticles count={5} minLeft={15} maxLeft={85} minSize={3} maxSize={8} minDuration={8} maxDuration={18} maxDelay={8} />
         <div className="absolute bottom-4 left-5 right-5">
           <div className="flex items-center gap-2 mb-1">
             <Loader2 size={14} className="text-primary animate-spin" />
@@ -137,7 +109,7 @@ function PlaybackView({
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-bg-dark via-bg-dark/80 to-transparent" />
-        <AmbientParticles />
+        <AmbientParticles count={5} minLeft={15} maxLeft={85} minSize={3} maxSize={8} minDuration={8} maxDuration={18} maxDelay={8} />
         <div className="absolute bottom-4 left-5 right-5">
           <div className="flex items-center gap-2 mb-1">
             <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary/70">
@@ -197,27 +169,7 @@ function PlaybackView({
           >
             <Square size={20} fill="currentColor" />
           </button>
-          <button
-            onClick={onTogglePlay}
-            className="relative size-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
-          >
-            <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl" />
-            <div className="relative size-full bg-linear-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(155,126,216,0.5)]">
-              <AnimatePresence mode="wait">
-                {status === 'playing' ? (
-                  <motion.div key="pause" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <Pause size={28} fill="white" className="text-white" />
-                  </motion.div>
-                ) : (
-                  <motion.div key="play" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <Play size={28} fill="white" className="text-white ml-1" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </button>
+          <PlayPauseButton isPlaying={status === 'playing'} onToggle={onTogglePlay} iconSize={28} />
           <div className="w-11" /> {/* spacer for centering */}
         </div>
       </div>
@@ -245,9 +197,7 @@ function ThemeGrid({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      {...screenTransition}
       className="flex-1 overflow-y-auto pb-40 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >

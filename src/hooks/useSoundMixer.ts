@@ -1,14 +1,8 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Track } from '../types';
-import { MixerTrack } from '../types';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { Track, MixerTrack, WebAudioNode } from '../types';
+import { cleanupAudioNode, cleanupAudioNodes } from '../utils/audio';
 
 const MAX_ACTIVE_TRACKS = 5;
-
-interface AudioNode {
-  element: HTMLAudioElement;
-  source: MediaElementAudioSourceNode;
-  gain: GainNode;
-}
 
 export function useSoundMixer(tracks: Track[]) {
   const [mixerTracks, setMixerTracks] = useState<MixerTrack[]>(
@@ -16,7 +10,7 @@ export function useSoundMixer(tracks: Track[]) {
   );
   const [isMixPlaying, setIsMixPlaying] = useState(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const audioNodes = useRef<Map<string, AudioNode>>(new Map());
+  const audioNodes = useRef<Map<string, WebAudioNode>>(new Map());
 
   // Get or create AudioContext, resuming if suspended (required for iOS)
   const getAudioContext = useCallback(() => {
@@ -32,13 +26,7 @@ export function useSoundMixer(tracks: Track[]) {
   // Cleanup all audio on unmount
   useEffect(() => {
     return () => {
-      audioNodes.current.forEach((node) => {
-        node.element.pause();
-        node.element.src = '';
-        node.source.disconnect();
-        node.gain.disconnect();
-      });
-      audioNodes.current.clear();
+      cleanupAudioNodes(audioNodes.current);
       if (audioCtxRef.current) {
         audioCtxRef.current.close();
         audioCtxRef.current = null;
@@ -76,10 +64,7 @@ export function useSoundMixer(tracks: Track[]) {
         }
       } else {
         if (node) {
-          node.element.pause();
-          node.element.src = '';
-          node.source.disconnect();
-          node.gain.disconnect();
+          cleanupAudioNode(node);
           audioNodes.current.delete(mt.trackId);
         }
       }
@@ -140,7 +125,7 @@ export function useSoundMixer(tracks: Track[]) {
     setIsMixPlaying(hasActive);
   }, []);
 
-  const activeTracks = mixerTracks.filter((t) => t.isActive);
+  const activeTracks = useMemo(() => mixerTracks.filter((t) => t.isActive), [mixerTracks]);
 
   return {
     mixerTracks,

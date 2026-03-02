@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats } from '../types';
 
 interface AppContextValue {
@@ -287,36 +287,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const value = useMemo<AppContextValue>(() => ({
+    currentScreen,
+    setCurrentScreen,
+    searchQuery,
+    setSearchQuery,
+    favorites,
+    toggleFavorite,
+    isFavorite,
+    showFavoritesOnly,
+    setShowFavoritesOnly,
+    menuOpen,
+    setMenuOpen,
+    settings,
+    updateSettings,
+    stats,
+    addListeningTime,
+    recordSession,
+    resetStats,
+    mixPresets,
+    saveMixPreset,
+    deleteMixPreset,
+    journal,
+    streakStats,
+    checkIn,
+    getTodayEntry,
+    getWeekEntries,
+  }), [
+    currentScreen, searchQuery, favorites, showFavoritesOnly, menuOpen,
+    settings, stats, mixPresets, journal, streakStats,
+    setCurrentScreen, setSearchQuery, toggleFavorite, isFavorite,
+    setShowFavoritesOnly, setMenuOpen, updateSettings, addListeningTime,
+    recordSession, resetStats, saveMixPreset, deleteMixPreset,
+    checkIn, getTodayEntry, getWeekEntries,
+  ]);
+
   return (
-    <AppContext.Provider
-      value={{
-        currentScreen,
-        setCurrentScreen,
-        searchQuery,
-        setSearchQuery,
-        favorites,
-        toggleFavorite,
-        isFavorite,
-        showFavoritesOnly,
-        setShowFavoritesOnly,
-        menuOpen,
-        setMenuOpen,
-        settings,
-        updateSettings,
-        stats,
-        addListeningTime,
-        recordSession,
-        resetStats,
-        mixPresets,
-        saveMixPreset,
-        deleteMixPreset,
-        journal,
-        streakStats,
-        checkIn,
-        getTodayEntry,
-        getWeekEntries,
-      }}
-    >
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );

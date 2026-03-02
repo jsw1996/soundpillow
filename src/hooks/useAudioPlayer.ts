@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Track } from '../types';
+import { formatTime } from '../utils/time';
 
 export function useAudioPlayer(tracks: Track[]) {
   const [currentTrack, setCurrentTrack] = useState<Track>(tracks[0]);
@@ -103,12 +104,6 @@ export function useAudioPlayer(tracks: Track[]) {
       setProgress(percent);
     }
   }, []);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
 
   const currentTime = audioRef.current ? formatTime(audioRef.current.currentTime) : '0:00';
   const duration =

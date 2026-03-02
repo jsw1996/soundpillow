@@ -43,39 +43,6 @@
     @apply shadow-[0_0_60px_-15px_rgba(148,132,190,0.4)];
   }
 
-  /* Native range input styled to match app design */
-  .volume-range-input {
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent;
-    height: 32px;
-    touch-action: none;
-  }
-  .volume-range-input::-webkit-slider-runnable-track {
-    height: 4px;
-    border-radius: 9999px;
-    background: rgba(155, 126, 216, 0.1);
-  }
-  .volume-range-input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #9B7ED8;
-    border: 2px solid white;
-    box-shadow: 0 0 6px rgba(155, 126, 216, 0.4);
-    margin-top: -8px;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
   .volume-slider {
     -webkit-appearance: none;
     appearance: none;

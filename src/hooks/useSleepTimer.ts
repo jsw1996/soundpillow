@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { formatTime } from '../utils/time';
 
 export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | null = 30) {
   const [timerMinutes, setTimerMinutes] = useState<number | null>(defaultMinutes);
@@ -51,11 +52,7 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
   const start = useCallback(() => setIsActive(true), []);
   const stop = useCallback(() => setIsActive(false), []);
 
-  const formatDisplay = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
+  const formatDisplay = formatTime;
 
   const totalSeconds = timerMinutes !== null ? timerMinutes * 60 : 0;
   const timerProgress = totalSeconds > 0 ? ((totalSeconds - secondsRemaining) / totalSeconds) * 100 : 0;

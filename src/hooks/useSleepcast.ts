@@ -1,13 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { TRACKS } from '../constants';
-import type { SleepcastTheme, GeneratedSleepcast, SleepcastStatus } from '../types';
+import type { SleepcastTheme, GeneratedSleepcast, SleepcastStatus, WebAudioNode } from '../types';
 import { fetchTodayStories, checkServerHealth, fetchTts, resolveAudioUrl } from '../services/api';
-
-interface AudioNode {
-  element: HTMLAudioElement;
-  source: MediaElementAudioSourceNode;
-  gain: GainNode;
-}
+import { cleanupAudioNode, cleanupAudioNodes } from '../utils/audio';
 
 /**
  * Hook that manages sleepcast lifecycle:
@@ -29,10 +24,9 @@ export function useSleepcast() {
 
   const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const bgNodesRef = useRef<Map<string, AudioNode>>(new Map());
+  const bgNodesRef = useRef<Map<string, WebAudioNode>>(new Map());
   const paragraphIndexRef = useRef(0);
   const pausedRef = useRef(false);
-  const abortRef = useRef<AbortController | null>(null);
 
   // Get or create AudioContext
   const getAudioContext = useCallback(() => {
@@ -63,13 +57,7 @@ export function useSleepcast() {
 
   // Stop background audio
   const stopBgAudio = useCallback(() => {
-    bgNodesRef.current.forEach((node) => {
-      node.element.pause();
-      node.element.src = '';
-      node.source.disconnect();
-      node.gain.disconnect();
-    });
-    bgNodesRef.current.clear();
+    cleanupAudioNodes(bgNodesRef.current);
   }, []);
 
   // Pause background audio
@@ -110,36 +98,35 @@ export function useSleepcast() {
   }, []);
 
   // Speak a single paragraph using on-demand server TTS (fallback)
-  const speakParagraphFallback = useCallback((text: string, locale: string): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        if (pausedRef.current) { resolve(); return; }
+  const speakParagraphFallback = useCallback(async (text: string, locale: string): Promise<void> => {
+    if (pausedRef.current) return;
 
-        const blob = await fetchTts(text, locale);
-        if (pausedRef.current) { resolve(); return; }
+    const blob = await fetchTts(text, locale);
+    if (pausedRef.current) return;
 
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        narrationAudioRef.current = audio;
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    narrationAudioRef.current = audio;
 
-        audio.onended = () => {
-          URL.revokeObjectURL(url);
-          narrationAudioRef.current = null;
-          resolve();
-        };
-        audio.onerror = () => {
-          URL.revokeObjectURL(url);
-          narrationAudioRef.current = null;
-          if (pausedRef.current) resolve();
-          else reject(new Error('Audio playback failed'));
-        };
+    return new Promise<void>((resolve, reject) => {
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        narrationAudioRef.current = null;
+        resolve();
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        narrationAudioRef.current = null;
+        if (pausedRef.current) resolve();
+        else reject(new Error('Audio playback failed'));
+      };
 
-        await audio.play();
-      } catch (err) {
+      audio.play().catch((err) => {
+        URL.revokeObjectURL(url);
         narrationAudioRef.current = null;
         if (pausedRef.current) resolve();
         else reject(err);
-      }
+      });
     });
   }, []);
 
@@ -298,13 +285,7 @@ export function useSleepcast() {
         narrationAudioRef.current.src = '';
         narrationAudioRef.current = null;
       }
-      bgNodesRef.current.forEach((node) => {
-        node.element.pause();
-        node.element.src = '';
-        node.source.disconnect();
-        node.gain.disconnect();
-      });
-      bgNodesRef.current.clear();
+      cleanupAudioNodes(bgNodesRef.current);
       if (audioCtxRef.current) {
         audioCtxRef.current.close();
         audioCtxRef.current = null;

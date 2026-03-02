@@ -147,6 +147,22 @@ export async function shareMix(
 }
 
 /**
+ * Share a mix and show the appropriate toast notification.
+ */
+export async function shareAndNotify(
+  name: string,
+  tracks: MixerTrack[],
+  shareText: string,
+  toastCopied: string,
+  toastShared: string,
+  showToastFn: (msg: string) => void,
+): Promise<void> {
+  const result = await shareMix(name, tracks, shareText);
+  if (result === 'copied') showToastFn(toastCopied);
+  else if (result === 'shared') showToastFn(toastShared);
+}
+
+/**
  * Converts a decoded shared mix into a MixPreset object.
  */
 export function sharedMixToPreset(decoded: { name: string; tracks: MixerTrack[] }): MixPreset {

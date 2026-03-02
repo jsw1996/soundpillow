@@ -10,12 +10,21 @@ import {
   Share2,
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { screenTransition } from '../utils/animations';
 import { TRACKS, CATEGORIES, DEFAULT_MIXES } from '../constants';
 import { Track, MixPreset } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useCategoryName, useTrackTranslation, useMixNameTranslation } from '../i18n';
-import { shareMix } from '../utils/mixShare';
+import { shareAndNotify } from '../utils/mixShare';
 import { showToast } from './Toast';
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  Heart: <Heart size={18} />,
+  Trees: <Trees size={18} />,
+  PawPrint: <PawPrint size={18} />,
+  Wind: <Wind size={18} />,
+  Sparkles: <Sparkles size={18} />,
+};
 
 interface HomeScreenProps {
   onTrackSelect: (track: Track) => void;
@@ -47,9 +56,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
   const handleShareMix = async (e: React.MouseEvent, mix: MixPreset) => {
     e.stopPropagation();
     const name = getMixName(mix.id, mix.name);
-    const result = await shareMix(name, mix.tracks, t('listenTo', { name }));
-    if (result === 'copied') showToast(t('linkCopied'));
-    else if (result === 'shared') showToast(t('mixShared'));
+    await shareAndNotify(name, mix.tracks, t('listenTo', { name }), t('linkCopied'), t('mixShared'), showToast);
   };
 
   const filteredTracks = TRACKS.filter((track) => {
@@ -64,19 +71,9 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
     return true;
   });
 
-  const categoryIcons: Record<string, React.ReactNode> = {
-    Heart: <Heart size={18} />,
-    Trees: <Trees size={18} />,
-    PawPrint: <PawPrint size={18} />,
-    Wind: <Wind size={18} />,
-    Sparkles: <Sparkles size={18} />,
-  };
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      {...screenTransition}
       className="flex-1 overflow-y-auto pb-44 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
@@ -98,7 +95,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
                 : 'bg-surface text-white/70 border-white/10'
             }`}
           >
-            {categoryIcons[cat.icon]}
+            {CATEGORY_ICONS[cat.icon]}
             <span className="text-sm font-semibold">{getCategoryName(cat.id)}</span>
           </button>
         ))}

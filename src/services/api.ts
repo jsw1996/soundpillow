@@ -30,20 +30,6 @@ export async function fetchTodayStories(locale: string = 'en'): Promise<DailySto
 }
 
 /**
- * Fetch stories for a specific date.
- */
-export async function fetchStoriesByDate(date: string, locale: string = 'en'): Promise<DailyStoriesResponse> {
-  const res = await fetch(`${SERVER_URL}/api/stories/${date}?locale=${locale}`);
-  if (!res.ok) {
-    if (res.status === 404) {
-      return { date, locale, stories: [] };
-    }
-    throw new Error(`Server error: ${res.status}`);
-  }
-  return res.json();
-}
-
-/**
  * Check if the server is reachable.
  */
 export async function checkServerHealth(): Promise<boolean> {

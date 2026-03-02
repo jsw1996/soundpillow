@@ -15,9 +15,11 @@ import {
   Globe,
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { screenTransition } from '../utils/animations';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, SUPPORTED_LOCALES } from '../i18n';
 import { TRACKS } from '../constants';
+import { formatTotalTime } from '../utils/time';
 
 export function ProfileScreen() {
   const { settings, updateSettings, stats, resetStats, favorites, streakStats, getWeekEntries } = useAppContext();
@@ -32,22 +34,15 @@ export function ProfileScreen() {
     { label: '60m', value: 60 },
   ];
 
-  const formatTotalTime = (minutes: number) => {
-    if (minutes < 60) return `${minutes}m`;
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}h ${m}m` : `${h}h`;
-  };
-
   const mostPlayedTrack = stats.favoriteTrackId
     ? TRACKS.find((t) => t.id === stats.favoriteTrackId)
     : null;
 
+  const weekEntries = getWeekEntries();
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      {...screenTransition}
       className="flex-1 overflow-y-auto pb-24 space-y-6 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
@@ -100,7 +95,7 @@ export function ProfileScreen() {
           </div>
           <div className="grid grid-cols-7 gap-1">
             {[t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'), t('dayFri'), t('daySat'), t('daySun')].map((day, i) => {
-              const entry = getWeekEntries()[i];
+              const entry = weekEntries[i];
               const isToday = i === ((new Date().getDay() + 6) % 7);
               return (
                 <div key={i} className="text-center space-y-2">

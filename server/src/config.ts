@@ -10,7 +10,7 @@ export const config = {
   /** Comma-separated locales to pre-generate */
   locales: (process.env.LOCALES || 'en,zh,ja,es').split(','),
   /** Allowed CORS origins */
-  corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:3000').split(','),
+  corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:3000,https://jsw1996.github.io,capacitor://localhost,http://localhost').split(','),
   /** Azure Speech Services */
   azureSpeechKey: process.env.AZURE_SPEECH_KEY || '',
   azureSpeechRegion: process.env.AZURE_SPEECH_REGION || 'southeastasia',

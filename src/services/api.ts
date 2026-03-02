@@ -1,6 +1,7 @@
 import type { GeneratedSleepcast } from '../types';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+const useLocalServer = new URLSearchParams(window.location.search).get('testLocal') === 'true';
+const SERVER_URL = useLocalServer ? 'http://localhost:3001' : (import.meta.env.VITE_SERVER_URL || '');
 
 /** Resolve a relative audio URL (e.g. /api/audio/...) to the full server URL */
 export function resolveAudioUrl(relativeUrl: string): string {

@@ -11,7 +11,7 @@
     "server:tts": "npm run regenerate-tts --workspace=server --",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
-    "build:ghpages": "GITHUB_PAGES=true vite build",
+    "build:ghpages": "GITHUB_PAGES=true VITE_SERVER_URL=https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",

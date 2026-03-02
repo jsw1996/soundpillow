@@ -29,7 +29,7 @@ export function BottomNav({ sleepcastActive = false }: { sleepcastActive?: boole
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-bg-dark/90 backdrop-blur-xl border-t border-white/5 pt-2"
+      className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-bg-dark/90 backdrop-blur-xl border-t border-foreground/5 pt-2"
       style={{ paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom) * 0.4)' }}
     >
       <div className="flex items-center justify-around px-2">
@@ -41,7 +41,7 @@ export function BottomNav({ sleepcastActive = false }: { sleepcastActive?: boole
               key={item.labelKey}
               onClick={() => handleNavClick(item)}
               className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all ${
-                active ? 'text-primary' : 'text-white/40'
+                active ? 'text-primary' : 'text-foreground/40'
               }`}
             >
               <Icon size={22} fill={active ? 'currentColor' : 'none'} />

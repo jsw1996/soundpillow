@@ -137,7 +137,7 @@ export function PlayerScreen({
           <p className="text-sm text-primary/80 font-semibold">
             {mixName ? translatedTrack.title : translatedTrack.artist}
           </p>
-          <p className="text-[11px] text-white/30 font-medium">
+          <p className="text-[11px] text-foreground/30 font-medium">
             {mixName ? t('mix') : track.category}
           </p>
         </motion.div>
@@ -150,7 +150,7 @@ export function PlayerScreen({
           className="w-full max-w-xs space-y-1.5"
         >
           <div
-            className="progress-container relative h-1.5 w-full bg-white/8 rounded-full overflow-visible group"
+            className="progress-container relative h-1.5 w-full bg-foreground/8 rounded-full overflow-visible group"
           >
             <motion.div
               initial={{ width: '0%' }}
@@ -166,7 +166,7 @@ export function PlayerScreen({
             {/* Thumb */}
             <div className="progress-thumb" style={{ left: `${progress}%` }} />
           </div>
-          <div className="flex justify-between text-[10px] font-bold text-white/30">
+          <div className="flex justify-between text-[10px] font-bold text-foreground/30">
             <span>{currentTime}</span>
             <span>{duration}</span>
           </div>
@@ -181,7 +181,7 @@ export function PlayerScreen({
         >
           <button
             onClick={onSkipPrev}
-            className="text-white/40 hover:text-white/80 active:scale-90 transition-all"
+            className="text-foreground/40 hover:text-foreground/80 active:scale-90 transition-all"
           >
             <SkipBack size={26} fill="currentColor" />
           </button>
@@ -190,7 +190,7 @@ export function PlayerScreen({
 
           <button
             onClick={onSkipNext}
-            className="text-white/40 hover:text-white/80 active:scale-90 transition-all"
+            className="text-foreground/40 hover:text-foreground/80 active:scale-90 transition-all"
           >
             <SkipForward size={26} fill="currentColor" />
           </button>
@@ -204,11 +204,11 @@ export function PlayerScreen({
         transition={{ delay: 0.5 }}
         className="shrink-0 px-5 pb-6 pt-2 relative z-10"
       >
-        <div className="bg-white/3 backdrop-blur-2xl border border-white/6 p-4 rounded-2xl space-y-3">
+        <div className="bg-foreground/3 backdrop-blur-2xl border border-foreground/6 p-4 rounded-2xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Timer size={14} className="text-primary/60" />
-              <span className="text-xs font-bold text-white/50 uppercase tracking-wider">
+              <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">
                 {t('sleepTimer')}
               </span>
             </div>
@@ -233,8 +233,8 @@ export function PlayerScreen({
                 onClick={() => onSetTimer(timerMinutes === mins ? null : mins)}
                 className={`relative px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
                   timerMinutes === mins
-                    ? 'bg-primary text-white shadow-[0_0_16px_rgba(155,126,216,0.4)]'
-                    : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60'
+                    ? 'bg-primary text-white shadow-[0_0_16px_var(--glow-4)]'
+                    : 'bg-foreground/5 text-foreground/40 hover:bg-foreground/10 hover:text-foreground/60'
                 }`}
               >
                 {mins}m

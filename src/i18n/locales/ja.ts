@@ -78,6 +78,9 @@ const ja: Record<string, string> = {
 
   // Language
   language: '言語',
+  theme: 'テーマ',
+  themeDark: 'ダーク',
+  themeLight: 'ライト',
 
   // Track titles
   track_1_title: 'トロピカルレイン',

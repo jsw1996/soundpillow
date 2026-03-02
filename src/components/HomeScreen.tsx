@@ -91,8 +91,8 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
             }}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl whitespace-nowrap transition-colors backdrop-blur-xl border ${
               activeCategory === cat.id
-                ? 'bg-primary/70 text-white border-primary/40 shadow-[0_0_20px_-5px_rgba(140,43,238,0.4)]'
-                : 'bg-surface text-white/70 border-white/10'
+                ? 'bg-primary/70 text-white border-primary/40 shadow-[0_0_20px_-5px_var(--glow-4)]'
+                : 'bg-surface text-foreground/70 border-foreground/10'
             }`}
           >
             {CATEGORY_ICONS[cat.icon]}
@@ -159,8 +159,8 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
                 </div>
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                   <div>
-                    <h3 className="font-bold text-lg">{translatedMixName}</h3>
-                    <p className="text-xs text-slate-300">
+                    <h3 className="font-bold text-lg text-white">{translatedMixName}</h3>
+                    <p className="text-xs text-white/60">
                       {translatedMixTracks.map((t) => t.title).join(' + ')}
                     </p>
                   </div>
@@ -208,7 +208,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
                 </div>
                 <div>
                   <h3 className="font-bold text-sm">{tt(track).title}</h3>
-                  <p className="text-[10px] text-slate-400 font-medium">{tt(track).artist}</p>
+                  <p className="text-[10px] text-foreground/40 font-medium">{tt(track).artist}</p>
                 </div>
               </div>
             ))}

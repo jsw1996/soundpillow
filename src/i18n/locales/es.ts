@@ -78,6 +78,9 @@ const es: Record<string, string> = {
 
   // Language
   language: 'Idioma',
+  theme: 'Tema',
+  themeDark: 'Oscuro',
+  themeLight: 'Claro',
 
   // Track titles
   track_1_title: 'Lluvia Tropical',

@@ -14,7 +14,7 @@ export function PlayPauseButton({ isPlaying, onToggle, iconSize = 30 }: PlayPaus
       className="relative size-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
     >
       <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl" />
-      <div className="relative size-full bg-linear-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(155,126,216,0.5)]">
+      <div className="relative size-full bg-linear-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-[0_8px_32px_var(--glow-5)]">
         <AnimatePresence mode="wait">
           {isPlaying ? (
             <motion.div

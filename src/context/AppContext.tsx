@@ -39,6 +39,7 @@ const STREAK_KEY = 'sleepyhub-streak';
 const DEFAULT_SETTINGS: UserSettings = {
   defaultTimerMinutes: 30,
   autoPlay: true,
+  theme: 'dark',
 };
 
 const DEFAULT_STATS: ListeningStats = {
@@ -139,6 +140,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }, [settings]);
+
+  // Sync theme to document root
+  useEffect(() => {
+    document.documentElement.dataset.theme = settings.theme;
+  }, [settings.theme]);
 
   useEffect(() => {
     localStorage.setItem(STATS_KEY, JSON.stringify(stats));

@@ -116,7 +116,7 @@ function PlaybackView({
               {t('sleepcast')}
             </p>
           </div>
-          <h1 className="text-xl font-extrabold leading-tight">{cast.title}</h1>
+          <h1 className="text-xl font-extrabold leading-tight text-white">{cast.title}</h1>
         </div>
       </div>
 
@@ -135,8 +135,8 @@ function PlaybackView({
                 i === activeParagraph
                   ? 'text-white font-medium'
                   : i < activeParagraph
-                  ? 'text-white/50'
-                  : 'text-white/25'
+                  ? 'text-foreground/50'
+                  : 'text-foreground/25'
               }`}
             >
               {para}
@@ -149,14 +149,14 @@ function PlaybackView({
       <div className="shrink-0 px-5 pt-2" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
         {/* Progress */}
         <div className="mb-4 space-y-1.5">
-          <div className="h-1 w-full bg-white/8 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-foreground/8 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-primary/70 rounded-full"
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5 }}
             />
           </div>
-          <div className="flex justify-between text-[10px] text-white/30 font-bold">
+          <div className="flex justify-between text-[10px] text-foreground/30 font-bold">
             <span>{activeParagraph + 1} / {cast.paragraphs.length}</span>
             <span>{t('sleepcastParagraphs')}</span>
           </div>
@@ -165,7 +165,7 @@ function PlaybackView({
         <div className="flex items-center justify-center gap-6">
           <button
             onClick={onStop}
-            className="p-3 rounded-full bg-white/5 text-white/40 active:scale-90 transition-all hover:bg-white/10"
+            className="p-3 rounded-full bg-foreground/5 text-foreground/40 active:scale-90 transition-all hover:bg-foreground/10"
           >
             <Square size={20} fill="currentColor" />
           </button>
@@ -207,7 +207,7 @@ function ThemeGrid({
           <BookOpen size={20} className="text-primary" />
           <h1 className="text-xl font-extrabold">{t('sleepcastTitle')}</h1>
         </div>
-        <p className="text-sm text-white/40">{t('sleepcastSubtitle')}</p>
+        <p className="text-sm text-foreground/40">{t('sleepcastSubtitle')}</p>
       </div>
 
       {/* Server unavailable warning */}
@@ -228,9 +228,9 @@ function ThemeGrid({
           <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{t('sleepcastAiPowered')}</span>
         </div>
         {storiesLoading && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5">
-            <Loader2 size={12} className="text-white/40 animate-spin" />
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Loading</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground/5">
+            <Loader2 size={12} className="text-foreground/40 animate-spin" />
+            <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Loading</span>
           </div>
         )}
       </div>
@@ -263,7 +263,7 @@ function ThemeGrid({
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-3">
-                <p className="text-sm font-bold leading-tight">{t(`sleepcastTheme_${theme.id}` as any) || theme.name}</p>
+                <p className="text-sm font-bold leading-tight text-white">{t(`sleepcastTheme_${theme.id}` as any) || theme.name}</p>
                 <p className="text-[10px] text-white/40 mt-0.5">
                   {ready
                     ? dailyStories.find((s) => s.themeId === theme.id)?.title
@@ -324,10 +324,10 @@ export function SleepcastScreen({
           <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
             <AlertCircle size={24} className="text-red-400" />
           </div>
-          <p className="text-sm text-center text-white/60">{error || t('sleepcastError')}</p>
+          <p className="text-sm text-center text-foreground/60">{error || t('sleepcastError')}</p>
           <button
             onClick={onStop}
-            className="px-6 py-2.5 rounded-2xl bg-white/5 text-white/60 text-sm font-semibold"
+            className="px-6 py-2.5 rounded-2xl bg-foreground/5 text-foreground/60 text-sm font-semibold"
           >
             {t('sleepcastTryAgain')}
           </button>

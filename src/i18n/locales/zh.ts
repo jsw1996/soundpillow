@@ -78,6 +78,9 @@ const zh: Record<string, string> = {
 
   // Language
   language: '语言',
+  theme: '主题',
+  themeDark: '深色',
+  themeLight: '浅色',
 
   // Track titles
   track_1_title: '热带雨声',

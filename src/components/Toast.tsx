@@ -55,7 +55,7 @@ export function ToastContainer() {
                 ? 'bg-primary/90 text-white'
                 : toast.type === 'error'
                 ? 'bg-red-500/90 text-white'
-                : 'bg-white/15 text-white'
+                : 'bg-foreground/15 text-white'
             }`}
           >
             {toast.message}

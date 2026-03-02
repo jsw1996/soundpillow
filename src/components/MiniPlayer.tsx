@@ -58,7 +58,7 @@ export function MiniPlayer({ track, isPlaying, progress, onTogglePlay, mixName }
               {/* Track info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{mixName || translatedTrack.title}</p>
-                <p className="text-[10px] text-white/40 font-medium truncate">{mixName ? t('mixPlaying') : translatedTrack.artist}</p>
+                <p className="text-[10px] text-foreground/40 font-medium truncate">{mixName ? t('mixPlaying') : translatedTrack.artist}</p>
               </div>
 
               {/* Controls */}
@@ -72,7 +72,7 @@ export function MiniPlayer({ track, isPlaying, progress, onTogglePlay, mixName }
                 {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
               </button>
 
-              <ChevronUp size={16} className="text-white/30" />
+              <ChevronUp size={16} className="text-foreground/30" />
             </div>
           </div>
         </motion.div>

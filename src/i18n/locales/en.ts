@@ -78,6 +78,9 @@ const en = {
 
   // Language
   language: 'Language',
+  theme: 'Theme',
+  themeDark: 'Dark',
+  themeLight: 'Light',
 
   // Track titles
   track_1_title: 'Tropical Rain',

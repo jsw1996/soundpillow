@@ -114,7 +114,7 @@ export function MixerScreen({
                 key={track.id}
                 className={`glass-panel rounded-2xl p-4 space-y-3 transition-all duration-300 ${
                   isActive
-                    ? 'border-primary/30 bg-primary/8 shadow-[0_0_20px_-5px_rgba(155,126,216,0.3)]'
+                    ? 'border-primary/30 bg-primary/8 shadow-[0_0_20px_-5px_var(--glow-3)]'
                     : ''
                 }`}
               >
@@ -125,16 +125,16 @@ export function MixerScreen({
                 >
                   <div
                     className={`p-2.5 rounded-xl transition-colors ${
-                      isActive ? 'bg-primary/20 text-primary' : 'bg-white/5 text-white/40'
+                      isActive ? 'bg-primary/20 text-primary' : 'bg-foreground/5 text-foreground/40'
                     }`}
                   >
                     {TRACK_ICONS[track.id] ?? <Wind size={24} />}
                   </div>
                   <div className="text-left min-w-0">
-                    <p className={`text-sm font-bold truncate ${isActive ? 'text-white' : 'text-white/60'}`}>
+                    <p className={`text-sm font-bold truncate ${isActive ? 'text-foreground' : 'text-foreground/60'}`}>
                       {tt(track).title}
                     </p>
-                    <p className="text-[10px] text-white/30 font-medium">{tt(track).artist}</p>
+                    <p className="text-[10px] text-foreground/30 font-medium">{tt(track).artist}</p>
                   </div>
                 </button>
 
@@ -151,7 +151,7 @@ export function MixerScreen({
                         value={volume}
                         onChange={(v) => onSetVolume(track.id, v)}
                       />
-                      <p className="text-[10px] text-white/30 text-center">{volume}%</p>
+                      <p className="text-[10px] text-foreground/30 text-center">{volume}%</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -168,7 +168,7 @@ export function MixerScreen({
             <div className="flex gap-2">
               <button
                 onClick={() => setShowSaveDialog(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/5 text-white/60 font-semibold text-sm hover:bg-white/10 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-foreground/5 text-foreground/60 font-semibold text-sm hover:bg-foreground/10 transition-colors"
               >
                 <Save size={16} />
                 {t('saveAsPreset')}
@@ -193,12 +193,12 @@ export function MixerScreen({
                 onChange={(e) => setPresetName(e.target.value)}
                 placeholder={t('presetNamePlaceholder')}
                 maxLength={30}
-                className="w-full bg-white/5 border-none rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary outline-none"
+                className="w-full bg-foreground/5 border-none rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary outline-none"
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowSaveDialog(false)}
-                  className="flex-1 py-2 rounded-xl bg-white/5 text-white/50 text-sm font-semibold"
+                  className="flex-1 py-2 rounded-xl bg-foreground/5 text-foreground/50 text-sm font-semibold"
                 >
                   {t('cancel')}
                 </button>
@@ -217,7 +217,7 @@ export function MixerScreen({
       {/* Presets list */}
       {mixPresets.length > 0 && (
         <section className="px-6 space-y-3">
-          <h2 className="text-sm font-bold text-white/50 uppercase tracking-wider">{t('savedPresets')}</h2>
+          <h2 className="text-sm font-bold text-foreground/50 uppercase tracking-wider">{t('savedPresets')}</h2>
           {mixPresets.map((preset) => (
             <div
               key={preset.id}
@@ -228,20 +228,20 @@ export function MixerScreen({
                 className="flex-1 text-left min-w-0"
               >
                 <p className="text-sm font-bold truncate">{preset.name}</p>
-                <p className="text-[10px] text-white/30 font-medium">
+                <p className="text-[10px] text-foreground/30 font-medium">
                   {t('nSounds', { n: preset.tracks.length })}
                 </p>
               </button>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleSharePreset(preset.name, preset.tracks)}
-                  className="p-2 text-white/30 hover:text-primary transition-colors"
+                  className="p-2 text-foreground/30 hover:text-primary transition-colors"
                 >
                   <Share2 size={14} />
                 </button>
                 <button
                   onClick={() => deleteMixPreset(preset.id)}
-                  className="p-2 text-white/30 hover:text-red-400 transition-colors"
+                  className="p-2 text-foreground/30 hover:text-red-400 transition-colors"
                 >
                   <Trash2 size={14} />
                 </button>

@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import {
-  CloudRain, Trees, Star, Snowflake, Flower2, Ship,
   Play, Pause, Square, Loader2, BookOpen, AlertCircle,
   Sparkles, WifiOff,
 } from 'lucide-react';
@@ -8,15 +7,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SLEEPCAST_THEMES } from '../data/sleepcastThemes';
 import type { SleepcastTheme, SleepcastStatus, GeneratedSleepcast } from '../types';
 import { useTranslation } from '../i18n';
-
-const THEME_ICONS: Record<string, React.ReactNode> = {
-  CloudRain: <CloudRain size={28} />,
-  Trees: <Trees size={28} />,
-  Star: <Star size={28} />,
-  Snowflake: <Snowflake size={28} />,
-  Flower2: <Flower2 size={28} />,
-  Ship: <Ship size={28} />,
-};
 
 interface SleepcastScreenProps {
   status: SleepcastStatus;
@@ -323,20 +313,6 @@ function ThemeGrid({
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
-                    {THEME_ICONS[theme.icon] ? (
-                      <div className="[&>svg]:w-3.5 [&>svg]:h-3.5">{THEME_ICONS[theme.icon]}</div>
-                    ) : (
-                      <BookOpen size={14} />
-                    )}
-                  </div>
-                  {storiesReady && ready && (
-                    <div className="px-1.5 py-0.5 rounded-full bg-emerald-500/20">
-                      <span className="text-[8px] font-bold text-emerald-400 uppercase">Ready</span>
-                    </div>
-                  )}
-                </div>
                 <p className="text-sm font-bold leading-tight">{t(`sleepcastTheme_${theme.id}` as any) || theme.name}</p>
                 <p className="text-[10px] text-white/40 mt-0.5">
                   {ready

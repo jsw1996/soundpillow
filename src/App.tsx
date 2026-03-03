@@ -30,6 +30,17 @@ function AppContent() {
     sleepcast.loadDailyStories(locale);
   }, [locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Retry loading stories when the app comes back to foreground (e.g. iOS resume)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !sleepcast.serverAvailable) {
+        sleepcast.loadDailyStories(locale);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [sleepcast.serverAvailable, locale]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const timer = useSleepTimer(
     useCallback(() => player.pause(), [player.pause]),
     settings.defaultTimerMinutes,
@@ -168,6 +179,7 @@ function AppContent() {
             }}
             onTogglePlay={() => sleepcast.togglePlay(locale)}
             onStop={sleepcast.stop}
+            onRetry={() => sleepcast.loadDailyStories(locale)}
           />
         );
     }

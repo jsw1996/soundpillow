@@ -30,15 +30,23 @@ export async function fetchTodayStories(locale: string = 'en'): Promise<DailySto
 }
 
 /**
- * Check if the server is reachable.
+ * Check if the server is reachable, with retries.
+ * Retries up to `retries` times with increasing delays (1s, 2s, ...).
+ * Timeout per attempt is 5s to account for iOS cold-start network latency.
  */
-export async function checkServerHealth(): Promise<boolean> {
-  try {
-    const res = await fetch(`${SERVER_URL}/api/health`, { signal: AbortSignal.timeout(3000) });
-    return res.ok;
-  } catch {
-    return false;
+export async function checkServerHealth(retries = 3): Promise<boolean> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/health`, { signal: AbortSignal.timeout(5000) });
+      if (res.ok) return true;
+    } catch {
+      // network error or timeout — will retry
+    }
+    if (i < retries - 1) {
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1))); // 1s, 2s
+    }
   }
+  return false;
 }
 
 /**

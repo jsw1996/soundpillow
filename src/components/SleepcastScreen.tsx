@@ -1,6 +1,6 @@
 import {
   Square, Loader2, BookOpen, AlertCircle,
-  Sparkles, WifiOff,
+  Sparkles, WifiOff, RefreshCw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { screenTransition } from '../utils/animations';
@@ -22,6 +22,7 @@ interface SleepcastScreenProps {
   onStartSleepcast: (theme: SleepcastTheme) => void;
   onTogglePlay: () => void;
   onStop: () => void;
+  onRetry?: () => void;
 }
 
 /** Loading view shown while fetching story from server */
@@ -183,11 +184,13 @@ function ThemeGrid({
   isConfigured,
   dailyStories,
   storiesLoading,
+  onRetry,
 }: {
   onSelect: (theme: SleepcastTheme) => void;
   isConfigured: boolean;
   dailyStories: GeneratedSleepcast[];
   storiesLoading: boolean;
+  onRetry?: () => void;
 }) {
   const { t } = useTranslation();
 
@@ -214,10 +217,20 @@ function ThemeGrid({
       {!isConfigured && (
         <div className="mx-6 mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
           <WifiOff size={18} className="text-amber-400 shrink-0 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-semibold text-amber-300">{t('sleepcastNoApiKey')}</p>
             <p className="text-xs text-amber-300/60 mt-1">Stories server is not reachable. Please try again later.</p>
           </div>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              disabled={storiesLoading}
+              className="shrink-0 p-1.5 rounded-lg text-amber-400 hover:bg-amber-400/10 active:scale-90 transition-all disabled:opacity-40"
+              aria-label="Retry"
+            >
+              <RefreshCw size={16} className={storiesLoading ? 'animate-spin' : ''} />
+            </button>
+          )}
         </div>
       )}
 
@@ -290,6 +303,7 @@ export function SleepcastScreen({
   onStartSleepcast,
   onTogglePlay,
   onStop,
+  onRetry,
 }: SleepcastScreenProps) {
   const { t } = useTranslation();
 
@@ -341,6 +355,7 @@ export function SleepcastScreen({
           isConfigured={isConfigured}
           dailyStories={dailyStories}
           storiesLoading={storiesLoading}
+          onRetry={onRetry}
         />
       )}
     </AnimatePresence>

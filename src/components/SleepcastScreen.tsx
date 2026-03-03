@@ -43,8 +43,7 @@ function LoadingView({ theme }: { theme: SleepcastTheme }) {
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-bg-dark via-bg-dark/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-bg-dark via-bg-dark/70 to-transparent" />
         <AmbientParticles count={5} minLeft={15} maxLeft={85} minSize={3} maxSize={8} minDuration={8} maxDuration={18} maxDelay={8} />
         <div className="absolute bottom-4 left-5 right-5">
           <div className="flex items-center gap-2 mb-1">
@@ -53,7 +52,7 @@ function LoadingView({ theme }: { theme: SleepcastTheme }) {
               {t('sleepcastGenerating')}
             </p>
           </div>
-          <p className="text-xs text-white/40">{t('sleepcastGeneratingDesc')}</p>
+          <p className="text-xs text-foreground/40">{t('sleepcastGeneratingDesc')}</p>
         </div>
       </div>
 
@@ -108,8 +107,7 @@ function PlaybackView({
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-bg-dark via-bg-dark/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-bg-dark via-bg-dark/70 to-transparent" />
         <AmbientParticles count={5} minLeft={15} maxLeft={85} minSize={3} maxSize={8} minDuration={8} maxDuration={18} maxDelay={8} />
         <div className="absolute bottom-4 left-5 right-5">
           <div className="flex items-center gap-2 mb-1">
@@ -117,7 +115,7 @@ function PlaybackView({
               {t('sleepcast')}
             </p>
           </div>
-          <h1 className="text-xl font-extrabold leading-tight text-white">{cast.title}</h1>
+          <h1 className="text-xl font-extrabold leading-tight text-foreground">{cast.title}</h1>
         </div>
       </div>
 
@@ -134,7 +132,7 @@ function PlaybackView({
               transition={{ duration: 0.8 }}
               className={`text-sm leading-relaxed transition-all duration-700 ${
                 i === activeParagraph
-                  ? 'text-white font-medium'
+                  ? 'text-foreground font-medium'
                   : i < activeParagraph
                   ? 'text-foreground/50'
                   : 'text-foreground/25'

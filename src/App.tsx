@@ -17,6 +17,8 @@ import { MiniPlayer } from './components/MiniPlayer';
 import { BottomNav } from './components/Navigation';
 import { ToastContainer, showToast } from './components/Toast';
 import { getMixFromUrl, clearMixFromUrl, sharedMixToPreset } from './utils/mixShare';
+import { MoodCheckIn } from './components/MoodCheckIn';
+import { useMoodCard } from './hooks/useMoodCard';
 
 function AppContent() {
   const { currentScreen, setCurrentScreen, recordSession, settings, checkIn } = useAppContext();
@@ -24,6 +26,7 @@ function AppContent() {
 
   const player = useAudioPlayer(TRACKS);
   const sleepcast = useSleepcast();
+  const moodCard = useMoodCard();
 
   // Load daily stories from server on mount and when locale changes
   useEffect(() => {
@@ -201,6 +204,14 @@ function AppContent() {
         />
       )}
       <BottomNav sleepcastActive={sleepcast.status !== 'idle' && currentScreen === 'sleepcast'} />
+      <AnimatePresence>
+        {moodCard.shouldShow && (
+          <MoodCheckIn
+            onComplete={(entry) => moodCard.saveMood(entry.mood, locale)}
+            onDismiss={moodCard.dismiss}
+          />
+        )}
+      </AnimatePresence>
       <ToastContainer />
     </div>
   );

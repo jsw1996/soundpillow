@@ -1,7 +1,9 @@
 import type { GeneratedSleepcast } from '../types';
 
-const useLocalServer = new URLSearchParams(window.location.search).get('testLocal') === 'true';
-const SERVER_URL = useLocalServer ? 'http://localhost:3001' : (import.meta.env.VITE_SERVER_URL || '');
+// dev → local server; prod build (iOS + GitHub Pages) → online server
+const SERVER_URL = import.meta.env.DEV
+  ? 'http://localhost:3001'
+  : (import.meta.env.VITE_SERVER_URL || 'https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net');
 
 /** Resolve a relative audio URL (e.g. /api/audio/...) to the full server URL */
 export function resolveAudioUrl(relativeUrl: string): string {
@@ -47,6 +49,26 @@ export async function checkServerHealth(retries = 3): Promise<boolean> {
     }
   }
   return false;
+}
+
+/**
+ * Generate an uplifting mood message via the server's LLM endpoint.
+ * Falls back to null on error — callers should use a local fallback.
+ */
+export async function fetchMoodMessage(mood: string, locale: string = 'en'): Promise<string | null> {
+  try {
+    const res = await fetch(`${SERVER_URL}/api/mood/message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mood, locale }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { message?: string };
+    return data.message ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**

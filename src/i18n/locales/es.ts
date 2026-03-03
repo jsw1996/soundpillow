@@ -169,6 +169,20 @@ const es: Record<string, string> = {
   'sleepcastTheme_zen-garden': 'Jardín Zen',
   'sleepcastTheme_stargazing': 'Contemplar Estrellas',
   'sleepcastTheme_snow-lodge': 'Cabaña de Nieve',
+
+  // Mood Check-In
+  moodCheckInTitle: '¿Cómo te sientes hoy?',
+  moodCheckInSubtitle: 'Elige tu vibra de hoy ✨',
+  moodCheckInFooter: 'Solo 2 segundos · Totalmente privado',
+  moodCardLabel: 'La Vibra de Hoy',
+  moodGenerating: 'Creando tu vibra...',
+  moodShare: 'Compartir',
+  moodDone: 'Listo',
+  mood_tired: 'Cansado',
+  mood_meh: 'Así así',
+  mood_okay: 'Bien',
+  mood_good: 'Genial',
+  mood_amazing: 'Increíble',
 };
 
 export default es;

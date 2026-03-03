@@ -169,6 +169,20 @@ const en = {
   'sleepcastTheme_zen-garden': 'Zen Garden',
   'sleepcastTheme_stargazing': 'Stargazing',
   'sleepcastTheme_snow-lodge': 'Snow Lodge',
+
+  // Mood Check-In
+  moodCheckInTitle: 'How are you feeling?',
+  moodCheckInSubtitle: 'Pick your vibe for today ✨',
+  moodCheckInFooter: 'Takes 2 seconds · Totally private',
+  moodCardLabel: "Today's Vibe",
+  moodGenerating: 'Crafting your vibe...',
+  moodShare: 'Share',
+  moodDone: 'Done',
+  mood_tired: 'Tired',
+  mood_meh: 'Meh',
+  mood_okay: 'Okay',
+  mood_good: 'Good',
+  mood_amazing: 'Amazing',
 };
 
 export default en;

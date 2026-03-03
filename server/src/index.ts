@@ -7,6 +7,7 @@ import { ensureDataDir, loadStories, todayDate } from './store.js';
 import { generateDaily } from './generate.js';
 import storiesRouter from './routes/stories.js';
 import ttsRouter from './routes/tts.js';
+import moodRouter from './routes/mood.js';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/audio', express.static(
 // Routes
 app.use('/api/stories', storiesRouter);
 app.use('/api/tts', ttsRouter);
+app.use('/api/mood', moodRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {

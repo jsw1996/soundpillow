@@ -169,6 +169,20 @@ const ja: Record<string, string> = {
   'sleepcastTheme_zen-garden': '禅の庭',
   'sleepcastTheme_stargazing': '星空観察',
   'sleepcastTheme_snow-lodge': '雪のロッジ',
+
+  // Mood Check-In
+  moodCheckInTitle: '今日の気分は？',
+  moodCheckInSubtitle: '今日のバイブを選んで ✨',
+  moodCheckInFooter: '2秒でOK · 完全プライベート',
+  moodCardLabel: '今日のバイブ',
+  moodGenerating: 'バイブを生成中...',
+  moodShare: 'シェア',
+  moodDone: '完了',
+  mood_tired: '疲れた',
+  mood_meh: 'まあまあ',
+  mood_okay: '普通',
+  mood_good: '良い',
+  mood_amazing: '最高',
 };
 
 export default ja;

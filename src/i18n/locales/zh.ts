@@ -169,6 +169,20 @@ const zh: Record<string, string> = {
   'sleepcastTheme_zen-garden': '禅意花园',
   'sleepcastTheme_stargazing': '星空观赏',
   'sleepcastTheme_snow-lodge': '雪中小屋',
+
+  // Mood Check-In
+  moodCheckInTitle: '今天感觉怎么样？',
+  moodCheckInSubtitle: '告诉我你今天的心情 ✨',
+  moodCheckInFooter: '只需 2 秒 · 完全私密',
+  moodCardLabel: '今日心情',
+  moodGenerating: '正在生成你的心情寄语...',
+  moodShare: '分享',
+  moodDone: '完成',
+  mood_tired: '累',
+  mood_meh: '一般',
+  mood_okay: '还好',
+  mood_good: '不错',
+  mood_amazing: '超棒',
 };
 
 export default zh;

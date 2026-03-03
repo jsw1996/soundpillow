@@ -81,6 +81,14 @@ export interface GeneratedSleepcast {
 
 export type SleepcastStatus = 'idle' | 'generating' | 'ready' | 'playing' | 'paused' | 'error';
 
+export type MoodLevel = 'tired' | 'meh' | 'okay' | 'good' | 'amazing';
+
+export interface MoodEntry {
+  date: string;      // "YYYY-MM-DD"
+  mood: MoodLevel;
+  message: string;
+}
+
 export interface WebAudioNode {
   element: HTMLAudioElement;
   source: MediaElementAudioSourceNode;

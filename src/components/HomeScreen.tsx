@@ -102,8 +102,6 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
         </div>
       </div>
 
-
-
       {/* Relaxing Mix — pre-built mixes, scrolls edge-to-edge */}
       <section className="space-y-4 mt-6">
         <div className="flex items-center justify-between px-6">

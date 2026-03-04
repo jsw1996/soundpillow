@@ -127,6 +127,7 @@ function AppContent() {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'home':
+        if (moodCard.shouldShow) return null;
         return <HomeScreen key="home" onTrackSelect={handleTrackSelect} onMixSelect={handleMixSelect} />;
       case 'player':
         return (

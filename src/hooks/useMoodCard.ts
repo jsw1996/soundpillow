@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { MoodEntry, MoodLevel } from '../types';
 import { getMoodMessage } from '../data/moodMessages';
 
@@ -9,30 +9,28 @@ function getTodayString(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-export function useMoodCard() {
-  const [todayMood, setTodayMood] = useState<MoodEntry | null>(null);
-  const [shouldShow, setShouldShow] = useState(false);
-
-  useEffect(() => {
-    const today = getTodayString();
-    try {
-      // Already completed mood check-in today
-      const stored = localStorage.getItem(MOOD_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as MoodEntry;
-        if (parsed.date === today) {
-          setTodayMood(parsed);
-          return;
-        }
+function computeInitialState(): { shouldShow: boolean; todayMood: MoodEntry | null } {
+  const today = getTodayString();
+  try {
+    const stored = localStorage.getItem(MOOD_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as MoodEntry;
+      if (parsed.date === today) {
+        return { shouldShow: false, todayMood: parsed };
       }
-      // Already dismissed today without picking a mood
-      const dismissed = localStorage.getItem(DISMISSED_KEY);
-      if (dismissed === today) return;
-    } catch {
-      // corrupt data — ignore and show check-in
     }
-    setShouldShow(true);
-  }, []);
+    const dismissed = localStorage.getItem(DISMISSED_KEY);
+    if (dismissed === today) return { shouldShow: false, todayMood: null };
+  } catch {
+    // corrupt data — show check-in
+  }
+  return { shouldShow: true, todayMood: null };
+}
+
+export function useMoodCard() {
+  const initial = useRef(computeInitialState()).current;
+  const [todayMood, setTodayMood] = useState<MoodEntry | null>(initial.todayMood);
+  const [shouldShow, setShouldShow] = useState<boolean>(initial.shouldShow);
 
   const saveMood = useCallback((mood: MoodLevel, locale: string) => {
     const entry: MoodEntry = {

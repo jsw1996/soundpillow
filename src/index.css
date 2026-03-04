@@ -180,3 +180,40 @@
   50% { transform: translate(5%, 8%) scale(1.1); }
   100% { transform: translate(-3%, -5%) scale(0.95); }
 }
+
+/* ── Audio bars icon ── */
+.audio-bars-icon .audio-bar {
+  transition: height 0.3s ease, y 0.3s ease;
+}
+.audio-bars-icon .bar-1 { height: 10px; y: 7px; }
+.audio-bars-icon .bar-2 { height: 16px; y: 4px; }
+.audio-bars-icon .bar-3 { height: 12px; y: 6px; }
+.audio-bars-icon .bar-4 { height: 18px; y: 3px; }
+.audio-bars-icon .bar-5 { height: 10px; y: 7px; }
+
+.audio-bars-animate .bar-1 { animation: audioBar1 0.8s ease-in-out infinite; }
+.audio-bars-animate .bar-2 { animation: audioBar2 0.8s ease-in-out 0.1s infinite; }
+.audio-bars-animate .bar-3 { animation: audioBar3 0.8s ease-in-out 0.2s infinite; }
+.audio-bars-animate .bar-4 { animation: audioBar4 0.8s ease-in-out 0.15s infinite; }
+.audio-bars-animate .bar-5 { animation: audioBar5 0.8s ease-in-out 0.05s infinite; }
+
+@keyframes audioBar1 {
+  0%, 100% { height: 10px; y: 7px; }
+  50% { height: 20px; y: 2px; }
+}
+@keyframes audioBar2 {
+  0%, 100% { height: 16px; y: 4px; }
+  50% { height: 8px; y: 8px; }
+}
+@keyframes audioBar3 {
+  0%, 100% { height: 12px; y: 6px; }
+  50% { height: 22px; y: 1px; }
+}
+@keyframes audioBar4 {
+  0%, 100% { height: 18px; y: 3px; }
+  50% { height: 6px; y: 9px; }
+}
+@keyframes audioBar5 {
+  0%, 100% { height: 10px; y: 7px; }
+  50% { height: 18px; y: 3px; }
+}

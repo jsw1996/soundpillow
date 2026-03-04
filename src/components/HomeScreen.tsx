@@ -1,6 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
-  Play,
   Layers,
   Trees,
   PawPrint,
@@ -29,9 +28,12 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 interface HomeScreenProps {
   onTrackSelect: (track: Track) => void;
   onMixSelect: (preset: MixPreset) => void;
+  onMixStop: () => void;
+  playingMixId: string | null;
+  isMixPlaying: boolean;
 }
 
-export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
+export function HomeScreen({ onTrackSelect, onMixSelect, onMixStop, playingMixId, isMixPlaying }: HomeScreenProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeMixIdx, setActiveMixIdx] = useState(0);
   const [isCategoryStuck, setIsCategoryStuck] = useState(false);
@@ -191,9 +193,31 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
                         {translatedMixTracks.map((t) => t.title).join(' · ')}
                       </p>
                     </div>
-                    <div className="shrink-0 bg-primary p-3 rounded-full shadow-lg shadow-primary/30">
-                      <Play size={20} fill="white" className="text-white" />
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (playingMixId === mix.id && isMixPlaying) {
+                          onMixStop();
+                        } else {
+                          onMixSelect(mix);
+                        }
+                      }}
+                      className="shrink-0 bg-primary p-3.5 rounded-full shadow-lg shadow-primary/30 active:scale-90 transition-transform"
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className={`audio-bars-icon ${playingMixId === mix.id && isMixPlaying ? 'audio-bars-animate' : ''}`}
+                      >
+                        <rect className="audio-bar bar-1" x="2" y="8" width="3" rx="1.5" fill="white" />
+                        <rect className="audio-bar bar-2" x="7" y="4" width="3" rx="1.5" fill="white" />
+                        <rect className="audio-bar bar-3" x="12" y="6" width="3" rx="1.5" fill="white" />
+                        <rect className="audio-bar bar-4" x="17" y="3" width="3" rx="1.5" fill="white" />
+                        <rect className="audio-bar bar-5" x="22" y="7" width="3" rx="1.5" fill="white" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>

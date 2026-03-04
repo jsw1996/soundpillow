@@ -124,11 +124,16 @@ function AppContent() {
     [mixer, player, recordSession, checkIn],
   );
 
+  const handleMixStop = useCallback(() => {
+    mixer.stopAll();
+    setActiveMix(null);
+  }, [mixer]);
+
   const renderScreen = () => {
     switch (currentScreen) {
       case 'home':
         if (moodCard.shouldShow) return null;
-        return <HomeScreen key="home" onTrackSelect={handleTrackSelect} onMixSelect={handleMixSelect} />;
+        return <HomeScreen key="home" onTrackSelect={handleTrackSelect} onMixSelect={handleMixSelect} onMixStop={handleMixStop} playingMixId={activeMix?.id ?? null} isMixPlaying={mixer.isMixPlaying} />;
       case 'player':
         return (
           <PlayerScreen

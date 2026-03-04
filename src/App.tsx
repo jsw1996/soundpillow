@@ -1,9 +1,9 @@
 import { useCallback, useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { TRACKS } from './constants';
+import { TRACKS, DEFAULT_MIXES } from './constants';
 import { MixPreset } from './types';
 import { AppProvider, useAppContext } from './context/AppContext';
-import { LanguageProvider, useMixNameTranslation, useTranslation } from './i18n';
+import { LanguageProvider, useMixNameTranslation, useTranslation, useTrackTranslation } from './i18n';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { useSleepTimer } from './hooks/useSleepTimer';
 import { useSoundMixer } from './hooks/useSoundMixer';
@@ -21,8 +21,9 @@ import { MoodCheckIn } from './components/MoodCheckIn';
 import { useMoodCard } from './hooks/useMoodCard';
 
 function AppContent() {
-  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn } = useAppContext();
+  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, mixPresets } = useAppContext();
   const { t, locale } = useTranslation();
+  const tt = useTrackTranslation();
 
   const player = useAudioPlayer(TRACKS);
   const sleepcast = useSleepcast();
@@ -54,25 +55,6 @@ function AppContent() {
   const [hasEverPlayed, setHasEverPlayed] = useState(false);
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
-
-  // Mix-aware skip: cycle through active mix tracks without starting single-track playback
-  const handleMixSkipNext = useCallback(() => {
-    const activeIds = mixer.activeTracks.map((t) => t.trackId);
-    if (activeIds.length === 0) return;
-    const idx = activeIds.indexOf(player.currentTrack.id);
-    const nextId = activeIds[(idx + 1) % activeIds.length];
-    const nextTrack = TRACKS.find((t) => t.id === nextId);
-    if (nextTrack) player.setDisplayTrack(nextTrack);
-  }, [mixer.activeTracks, player]);
-
-  const handleMixSkipPrev = useCallback(() => {
-    const activeIds = mixer.activeTracks.map((t) => t.trackId);
-    if (activeIds.length === 0) return;
-    const idx = activeIds.indexOf(player.currentTrack.id);
-    const prevId = activeIds[(idx - 1 + activeIds.length) % activeIds.length];
-    const prevTrack = TRACKS.find((t) => t.id === prevId);
-    if (prevTrack) player.setDisplayTrack(prevTrack);
-  }, [mixer.activeTracks, player]);
 
   // Check for shared mix in URL on mount
   useEffect(() => {
@@ -113,6 +95,19 @@ function AppContent() {
     }
   }, [player, timer, recordSession, checkIn]);
 
+  const handleMixTogglePlay = useCallback(() => {
+    const willPlay = !mixer.isMixPlaying;
+    mixer.toggleMixPlay();
+    if (willPlay) {
+      setHasEverPlayed(true);
+      timer.start();
+      recordSession(player.currentTrack.id);
+      checkIn(player.currentTrack.id);
+    } else {
+      timer.stop();
+    }
+  }, [mixer, timer, player.currentTrack.id, recordSession, checkIn]);
+
   const handleTrackSelect = useCallback(
     (track: typeof TRACKS[number]) => {
       setHasEverPlayed(true);
@@ -135,13 +130,31 @@ function AppContent() {
       const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);
       if (firstTrack) player.selectTrack(firstTrack);
       player.pause();
+      timer.start();
       if (firstTrack) {
         recordSession(firstTrack.id);
         checkIn(firstTrack.id);
       }
     },
-    [mixer, player, recordSession, checkIn],
+    [mixer, player, timer, recordSession, checkIn],
   );
+
+  // Mix-aware skip: cycle through available mix presets (default + user-saved)
+  const allMixes = [...DEFAULT_MIXES, ...mixPresets];
+
+  const handleMixSkipNext = useCallback(() => {
+    if (allMixes.length === 0 || !activeMix) return;
+    const idx = allMixes.findIndex((m) => m.id === activeMix.id);
+    const next = allMixes[(idx + 1) % allMixes.length];
+    handleMixSelect(next);
+  }, [allMixes, activeMix, handleMixSelect]);
+
+  const handleMixSkipPrev = useCallback(() => {
+    if (allMixes.length === 0 || !activeMix) return;
+    const idx = allMixes.findIndex((m) => m.id === activeMix.id);
+    const prev = allMixes[(idx - 1 + allMixes.length) % allMixes.length];
+    handleMixSelect(prev);
+  }, [allMixes, activeMix, handleMixSelect]);
 
   const handleMixStop = useCallback(() => {
     mixer.stopAll();
@@ -164,13 +177,17 @@ function AppContent() {
             duration={timer.timerMinutes ? timer.formatDisplay(timer.timerMinutes * 60) : '0:00'}
             timerMinutes={timer.timerMinutes}
             timerSecondsRemaining={timer.secondsRemaining}
-            onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
+            onTogglePlay={activeMixName ? handleMixTogglePlay : handleTogglePlay}
             onBack={() => setCurrentScreen('home')}
             onSetTimer={timer.selectTimer}
             onSkipNext={activeMixName ? handleMixSkipNext : player.skipNext}
             onSkipPrev={activeMixName ? handleMixSkipPrev : player.skipPrev}
             formatTimerDisplay={timer.formatDisplay}
             mixName={activeMixName}
+            mixSubtitle={activeMix ? allMixes.find((m) => m.id === activeMix.id)?.tracks
+              .map((mt) => { const t = TRACKS.find((tr) => tr.id === mt.trackId); return t ? tt(t).title : ''; })
+              .filter(Boolean)
+              .join(', ') ?? null : null}
             onOpenMixer={() => setCurrentScreen('mixer')}
           />
         );

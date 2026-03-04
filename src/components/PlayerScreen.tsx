@@ -30,6 +30,7 @@ interface PlayerScreenProps {
   onSkipPrev: () => void;
   formatTimerDisplay: (seconds: number) => string;
   mixName?: string | null;
+  mixSubtitle?: string | null;
   onOpenMixer?: () => void;
 }
 
@@ -48,6 +49,7 @@ export function PlayerScreen({
   onSkipPrev,
   formatTimerDisplay,
   mixName,
+  mixSubtitle,
   onOpenMixer,
 }: PlayerScreenProps) {
   const { isFavorite, toggleFavorite } = useAppContext();
@@ -148,7 +150,7 @@ export function PlayerScreen({
             {mixName ?? translatedTrack.title}
           </h1>
           <p className="text-[15px] text-white/60 font-medium">
-            {mixName ? translatedTrack.title : translatedTrack.artist}
+            {mixName ? (mixSubtitle ?? translatedTrack.title) : translatedTrack.artist}
           </p>
         </motion.div>
 

@@ -1,0 +1,9 @@
+Redesign PlayerScreen & add liquid glass UI effects
+
+- Redesign PlayerScreen: full-screen immersive artwork with Ken Burns zoom, cinematic gradients, left-aligned track info, minimalist white progress bar, collapsible sleep timer drawer
+- Add liquid glass CSS classes (liquid-glass-sm, liquid-glass-play, liquid-glass-pill, liquid-glass-pill-active) with backdrop-filter blur/saturate/brightness and inset shadows
+- Apply liquid glass to all PlayerScreen buttons: back, favorite, mixer, skip, timer toggle, timer pills
+- Update PlayPauseButton to liquid-glass-play instead of solid primary fill
+- Apply liquid-glass-sm to MiniPlayer play/pause button
+- Fix mix skip: add setDisplayTrack to useAudioPlayer, create mix-aware skip handlers cycling only active mix tracks
+- Update progress bar thumb to white with subtle glow

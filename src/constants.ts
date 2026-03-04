@@ -25,7 +25,7 @@ export const TRACKS: Track[] = [
     artist: 'Deep Sleep',
     duration: '60 mins',
     category: 'Nature',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=800&q=80',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/forest_night.ogg`,
     description: 'The peaceful sounds of a forest at night.'
   },
@@ -35,7 +35,7 @@ export const TRACKS: Track[] = [
     artist: 'Calming Rhythm',
     duration: '30 mins',
     category: 'Nature',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1612387364395-9338e6423547?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/waves_crashing_on_rock_beach.ogg`,
     description: 'Rhythmic waves crashing on a sandy shore.'
   },
@@ -45,7 +45,7 @@ export const TRACKS: Track[] = [
     artist: 'Deep Comfort',
     duration: '20 mins',
     category: 'Animals',
-    imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1596921825946-d738194fac80?q=80&w=986&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/cat_purr.ogg`,
     description: 'The soothing vibration of a happy cat.'
   },
@@ -75,7 +75,7 @@ export const TRACKS: Track[] = [
     artist: 'Warm Glow',
     duration: '35 mins',
     category: 'Nature',
-    imageUrl: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1620224027739-3d0e4cc395a5?q=80&w=1035&auto=format&fit=crop&w=800&q=80',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/daytime_forrest_bonfire.ogg`,
     description: 'The comforting crackle of a campfire in the woods.'
   },
@@ -97,7 +97,7 @@ export const TRACKS: Track[] = [
     artist: 'Mindful Meditation',
     duration: '30 mins',
     category: 'Meditation',
-    imageUrl: 'https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1619968747226-67769140323a?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/singing_bowl.ogg`,
     description: 'Resonant tones of a Tibetan singing bowl for deep meditation.'
   },
@@ -107,7 +107,7 @@ export const TRACKS: Track[] = [
     artist: 'Zen Garden',
     duration: '35 mins',
     category: 'Meditation',
-    imageUrl: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1765895193943-35550897cc2d?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/wind_chimes.ogg`,
     description: 'Delicate wind chimes swaying in a gentle breeze.'
   },
@@ -117,7 +117,7 @@ export const TRACKS: Track[] = [
     artist: 'Meditation Flow',
     duration: '45 mins',
     category: 'Meditation',
-    imageUrl: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1506318039632-e5626c0c1394?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/river.ogg`,
     description: 'A calm river flowing through a peaceful valley.'
   },

@@ -59,7 +59,7 @@ export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName }: MiniPlay
                   e.stopPropagation();
                   onTogglePlay();
                 }}
-                className="p-2 rounded-full bg-primary/20 text-primary active:scale-90 transition-transform"
+                className="p-2 rounded-full liquid-glass-sm text-white/80 active:scale-90 transition-transform"
               >
                 {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
               </button>

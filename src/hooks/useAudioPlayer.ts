@@ -83,6 +83,11 @@ export function useAudioPlayer(tracks: Track[]) {
     setIsPlaying(true);
   }, []);
 
+  // Update display track without triggering playback (used for mix skip)
+  const setDisplayTrack = useCallback((track: Track) => {
+    setCurrentTrack(track);
+  }, []);
+
   const skipNext = useCallback(() => {
     const idx = tracks.findIndex((t) => t.id === currentTrack.id);
     const next = tracks[(idx + 1) % tracks.length];
@@ -122,6 +127,7 @@ export function useAudioPlayer(tracks: Track[]) {
     togglePlay,
     pause,
     selectTrack,
+    setDisplayTrack,
     skipNext,
     skipPrev,
     seek,

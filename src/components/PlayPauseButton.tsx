@@ -7,14 +7,14 @@ interface PlayPauseButtonProps {
   iconSize?: number;
 }
 
-export function PlayPauseButton({ isPlaying, onToggle, iconSize = 30 }: PlayPauseButtonProps) {
+export function PlayPauseButton({ isPlaying, onToggle, iconSize = 28 }: PlayPauseButtonProps) {
   return (
     <button
       onClick={onToggle}
-      className="relative size-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+      className="relative size-[68px] rounded-full flex items-center justify-center active:scale-90 transition-transform"
     >
-      <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl" />
-      <div className="relative size-full bg-linear-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-[0_8px_32px_var(--glow-5)]">
+      <div className="absolute inset-[-6px] bg-white/10 rounded-full blur-xl" />
+      <div className="relative size-full liquid-glass-play rounded-full flex items-center justify-center">
         <AnimatePresence mode="wait">
           {isPlaying ? (
             <motion.div

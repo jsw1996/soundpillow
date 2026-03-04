@@ -55,6 +55,25 @@ function AppContent() {
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
 
+  // Mix-aware skip: cycle through active mix tracks without starting single-track playback
+  const handleMixSkipNext = useCallback(() => {
+    const activeIds = mixer.activeTracks.map((t) => t.trackId);
+    if (activeIds.length === 0) return;
+    const idx = activeIds.indexOf(player.currentTrack.id);
+    const nextId = activeIds[(idx + 1) % activeIds.length];
+    const nextTrack = TRACKS.find((t) => t.id === nextId);
+    if (nextTrack) player.setDisplayTrack(nextTrack);
+  }, [mixer.activeTracks, player]);
+
+  const handleMixSkipPrev = useCallback(() => {
+    const activeIds = mixer.activeTracks.map((t) => t.trackId);
+    if (activeIds.length === 0) return;
+    const idx = activeIds.indexOf(player.currentTrack.id);
+    const prevId = activeIds[(idx - 1 + activeIds.length) % activeIds.length];
+    const prevTrack = TRACKS.find((t) => t.id === prevId);
+    if (prevTrack) player.setDisplayTrack(prevTrack);
+  }, [mixer.activeTracks, player]);
+
   // Check for shared mix in URL on mount
   useEffect(() => {
     const shared = getMixFromUrl();
@@ -148,8 +167,8 @@ function AppContent() {
             onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
             onBack={() => setCurrentScreen('home')}
             onSetTimer={timer.selectTimer}
-            onSkipNext={player.skipNext}
-            onSkipPrev={player.skipPrev}
+            onSkipNext={activeMixName ? handleMixSkipNext : player.skipNext}
+            onSkipPrev={activeMixName ? handleMixSkipPrev : player.skipPrev}
             formatTimerDisplay={timer.formatDisplay}
             mixName={activeMixName}
             onOpenMixer={() => setCurrentScreen('mixer')}

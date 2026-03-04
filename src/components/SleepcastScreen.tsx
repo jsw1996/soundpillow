@@ -1,6 +1,7 @@
+import React, { useRef, useState, useCallback } from 'react';
 import {
-  Square, Loader2, BookOpen, AlertCircle,
-  Sparkles, WifiOff, RefreshCw,
+  Square, Loader2, AlertCircle,
+  Sparkles, WifiOff, RefreshCw, Play,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { screenTransition } from '../utils/animations';
@@ -176,7 +177,7 @@ function PlaybackView({
   );
 }
 
-/** Theme selection grid (idle state) */
+/** Theme selection — full-bleed swipeable card carousel */
 function ThemeGrid({
   onSelect,
   isConfigured,
@@ -191,99 +192,200 @@ function ThemeGrid({
   onRetry?: () => void;
 }) {
   const { t } = useTranslation();
+  const [activeIdx, setActiveIdx] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Check which themes have stories ready
   const hasStory = (themeId: string) => dailyStories.some((s) => s.themeId === themeId);
   const storiesReady = dailyStories.length > 0;
+  const activeTheme = SLEEPCAST_THEMES[activeIdx];
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const idx = Math.round(el.scrollLeft / el.offsetWidth);
+    setActiveIdx(idx);
+  }, []);
 
   return (
     <motion.div
       {...screenTransition}
-      className="flex-1 overflow-y-auto pb-40 no-scrollbar"
-      style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
+      className="flex-1 flex flex-col min-h-0 overflow-hidden relative"
     >
-      {/* Header */}
-      <div className="px-6 mb-6 space-y-1">
-        <div className="flex items-center gap-2">
-          <BookOpen size={20} className="text-primary" />
-          <h1 className="text-xl font-extrabold">{t('sleepcastTitle')}</h1>
-        </div>
-        <p className="text-sm text-foreground/40">{t('sleepcastSubtitle')}</p>
-      </div>
+      {/* Dynamic blurred background that morphs with active card */}
+      <AnimatePresence mode="sync">
+        <motion.div
+          key={activeTheme.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+          className="absolute inset-0 pointer-events-none"
+          style={{ zIndex: 0 }}
+        >
+          <img
+            src={activeTheme.imageUrl}
+            alt=""
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            style={{ filter: 'blur(40px) saturate(1.4)', transform: 'scale(1.2)' }}
+          />
+          <div className="absolute inset-0 bg-bg-dark/75" />
+        </motion.div>
+      </AnimatePresence>
 
-      {/* Server unavailable warning */}
-      {!isConfigured && (
-        <div className="mx-6 mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
-          <WifiOff size={18} className="text-amber-400 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-300">{t('sleepcastNoApiKey')}</p>
-            <p className="text-xs text-amber-300/60 mt-1">Stories server is not reachable. Please try again later.</p>
+      {/* Header */}
+      <div
+        className="relative shrink-0 flex items-end justify-between px-6 pb-4"
+        style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))', zIndex: 10 }}
+      >
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <Sparkles size={13} className="text-primary" />
+            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.18em]">
+              {t('sleepcastAiPowered')}
+            </span>
+            {storiesLoading && <Loader2 size={11} className="text-foreground/30 animate-spin" />}
           </div>
-          {onRetry && (
+          <h1 className="text-2xl font-extrabold tracking-tight">{t('sleepcastTitle')}</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {!isConfigured && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/25">
+              <WifiOff size={11} className="text-amber-400" />
+              <span className="text-[9px] font-bold text-amber-300 uppercase tracking-wider">Offline</span>
+            </div>
+          )}
+          {!isConfigured && onRetry && (
             <button
               onClick={onRetry}
               disabled={storiesLoading}
-              className="shrink-0 p-1.5 rounded-lg text-amber-400 hover:bg-amber-400/10 active:scale-90 transition-all disabled:opacity-40"
-              aria-label="Retry"
+              className="p-2 rounded-full bg-white/10 text-white/60 active:scale-90 transition-all disabled:opacity-40"
             >
-              <RefreshCw size={16} className={storiesLoading ? 'animate-spin' : ''} />
+              <RefreshCw size={13} className={storiesLoading ? 'animate-spin' : ''} />
             </button>
           )}
         </div>
-      )}
-
-      {/* AI badge */}
-      <div className="px-6 mb-4 flex items-center gap-2">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-          <Sparkles size={12} className="text-primary" />
-          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{t('sleepcastAiPowered')}</span>
-        </div>
-        {storiesLoading && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground/5">
-            <Loader2 size={12} className="text-foreground/40 animate-spin" />
-            <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Loading</span>
-          </div>
-        )}
       </div>
 
-      {/* Theme cards */}
-      <div className="px-6 grid grid-cols-2 gap-3">
-        {SLEEPCAST_THEMES.map((theme, i) => {
-          const ready = hasStory(theme.id);
-          const canSelect = isConfigured && (ready || !storiesReady);
+      {/* Carousel */}
+      <div className="relative flex-1 flex flex-col min-h-0" style={{ zIndex: 10 }}>
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex overflow-x-auto no-scrollbar flex-1"
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {SLEEPCAST_THEMES.map((theme, i) => {
+            const ready = hasStory(theme.id);
+            const canSelect = isConfigured && (ready || !storiesReady);
+            const story = dailyStories.find((s) => s.themeId === theme.id);
 
-          return (
-            <motion.button
-              key={theme.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              onClick={() => canSelect && onSelect(theme)}
-              disabled={!canSelect}
-              className={`relative rounded-2xl overflow-hidden text-left group ${
-                !canSelect ? 'opacity-50' : 'active:scale-[0.96]'
-              } transition-transform`}
-            >
-              <div className="aspect-[4/3]">
-                <img
-                  src={theme.imageUrl}
-                  alt={theme.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  referrerPolicy="no-referrer"
-                />
+            return (
+              <div
+                key={theme.id}
+                className="min-w-full px-5 flex flex-col justify-center"
+                style={{ scrollSnapAlign: 'start' }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.05, type: 'spring', stiffness: 240, damping: 26 }}
+                  onClick={() => canSelect && onSelect(theme)}
+                  className={`relative rounded-[2rem] overflow-hidden cursor-pointer
+                    ${canSelect ? 'active:scale-[0.97]' : 'opacity-40 cursor-not-allowed'}
+                    transition-transform duration-200`}
+                  style={{ height: 'clamp(340px, 70vw, 480px)' }}
+                >
+                  {/* Image */}
+                  <img
+                    src={theme.imageUrl}
+                    alt={theme.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+
+                  {/* Top highlight: shimmer border */}
+                  <div
+                    className="absolute inset-0 rounded-[2rem] pointer-events-none"
+                    style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)' }}
+                  />
+
+                  {/* Gradient: dark bottom + subtle top */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                  <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
+
+                  {/* Particles */}
+                  <AmbientParticles count={4} minLeft={20} maxLeft={80} minSize={2} maxSize={5} minDuration={10} maxDuration={20} maxDelay={10} />
+
+                  {/* Top badge */}
+                  {ready && (
+                    <div className="absolute top-4 left-4">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/80 backdrop-blur-sm">
+                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                        <span className="text-[9px] font-extrabold text-white uppercase tracking-wider">Ready</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bottom content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2">
+                      {t('sleepcast')}
+                    </p>
+                    <h2 className="text-3xl font-extrabold text-white leading-tight mb-2 tracking-tight">
+                      {t(`sleepcastTheme_${theme.id}` as any) || theme.name}
+                    </h2>
+                    {story?.title ? (
+                      <p className="text-sm text-white/55 leading-snug line-clamp-2 mb-5">
+                        {story.title}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-white/35 mb-5">{t('sleepcastTapToGenerate')}</p>
+                    )}
+
+                    {/* CTA button */}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-sm
+                          ${ready
+                            ? 'bg-primary text-white shadow-lg shadow-primary/50'
+                            : 'bg-white/15 text-white/80 backdrop-blur-sm'
+                          }`}
+                      >
+                        <Play size={16} fill="currentColor" />
+                        <span>{ready ? 'Play Story' : 'Generate'}</span>
+                      </div>
+                      {!canSelect && (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/30">
+                          <WifiOff size={12} className="text-amber-400" />
+                          <span className="text-[10px] font-bold text-amber-300">Offline</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-3">
-                <p className="text-sm font-bold leading-tight text-white">{t(`sleepcastTheme_${theme.id}` as any) || theme.name}</p>
-                <p className="text-[10px] text-white/40 mt-0.5">
-                  {ready
-                    ? dailyStories.find((s) => s.themeId === theme.id)?.title
-                    : t('sleepcastTapToGenerate')}
-                </p>
-              </div>
-            </motion.button>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* Dot indicators + subtitle */}
+        <div className="shrink-0 flex flex-col items-center gap-3 py-4" style={{ zIndex: 10 }}>
+          <div className="flex items-center gap-1.5">
+            {SLEEPCAST_THEMES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  scrollRef.current?.scrollTo({ left: i * (scrollRef.current?.offsetWidth ?? 0), behavior: 'smooth' });
+                }}
+                className={`rounded-full transition-all duration-300 ${
+                  i === activeIdx ? 'bg-primary w-5 h-1.5' : 'bg-white/20 w-1.5 h-1.5'
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-xs text-foreground/35">{t('sleepcastSubtitle')}</p>
+        </div>
       </div>
     </motion.div>
   );

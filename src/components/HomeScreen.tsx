@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   Play,
   Layers,
@@ -34,6 +34,7 @@ interface HomeScreenProps {
 export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeMixIdx, setActiveMixIdx] = useState(0);
+  const [isCategoryStuck, setIsCategoryStuck] = useState(false);
   const { isFavorite, toggleFavorite, setCurrentScreen } = useAppContext();
   const { t } = useTranslation();
   const getCategoryName = useCategoryName();
@@ -41,8 +42,29 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
   const getMixName = useMixNameTranslation();
 
   const carouselRef = useRef<HTMLDivElement>(null);
+  const pageScrollRef = useRef<HTMLDivElement>(null);
+  const stickySentinelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pillRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  useEffect(() => {
+    const root = pageScrollRef.current;
+    const target = stickySentinelRef.current;
+    if (!root || !target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsCategoryStuck(!entry.isIntersecting);
+      },
+      {
+        root,
+        threshold: 0,
+      }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const handleCarouselScroll = useCallback(() => {
     const el = carouselRef.current;
@@ -87,6 +109,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
   return (
     <motion.div
       {...screenTransition}
+      ref={pageScrollRef}
       className="flex-1 overflow-y-auto pb-44 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
@@ -193,7 +216,22 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
       </section>
 
       {/* ── Category pills — sticky ── */}
-      <div className="sticky top-0 z-10 pt-3 pb-3">
+      <div ref={stickySentinelRef} className="h-px" />
+      <div
+        className="sticky z-10 pt-3 pb-3 relative"
+        style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}
+      >
+        <div
+          className={`pointer-events-none absolute left-0 right-0 bottom-0 backdrop-blur-md transition-opacity duration-300 ${
+            isCategoryStuck ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{
+            top: 'calc(env(safe-area-inset-top) * -1)',
+            background: 'color-mix(in srgb, var(--color-bg-dark, #1e1c23) 70%, transparent)',
+            WebkitMaskImage: 'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.5) 45%, rgba(0,0,0,1) 100%)',
+            maskImage: 'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.5) 45%, rgba(0,0,0,1) 100%)',
+          }}
+        />
         <div ref={scrollContainerRef} className="flex gap-3 overflow-x-auto no-scrollbar px-6">
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.id;
@@ -213,10 +251,10 @@ export function HomeScreen({ onTrackSelect, onMixSelect }: HomeScreenProps) {
                 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 whileTap={{ scale: 0.94 }}
-                className={`flex items-center gap-2 px-4 py-1.5 whitespace-nowrap backdrop-blur-md border ${
+                className={`flex items-center gap-2 px-4 py-1.5 whitespace-nowrap backdrop-blur-md border shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] ${
                   isActive
-                    ? 'bg-primary/70 text-white border-primary/40 shadow-[0_0_20px_-5px_var(--glow-4)]'
-                    : 'text-foreground/70 border-foreground/10'
+                    ? 'bg-[color-mix(in_srgb,var(--color-primary,#8c2bee)_66%,white_18%)] text-white border-white/35 shadow-[0_0_20px_-5px_var(--glow-4)]'
+                    : 'bg-white/70 text-foreground/80 border-white/25'
                 }`}
               >
                 {CATEGORY_ICONS[cat.icon]}

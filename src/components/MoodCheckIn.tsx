@@ -36,7 +36,20 @@ function wrapText(
   ctx: CanvasRenderingContext2D,
   text: string, x: number, y: number,
   maxWidth: number, lineHeight: number,
+  maxLines: number,
 ): void {
+  const fitEllipsis = (line: string): string => {
+    const ellipsis = '…';
+    if (ctx.measureText(line + ellipsis).width <= maxWidth) return line + ellipsis;
+    let trimmed = line;
+    while (trimmed.length > 0 && ctx.measureText(trimmed + ellipsis).width > maxWidth) {
+      trimmed = trimmed.slice(0, -1);
+    }
+    return (trimmed || '').trimEnd() + ellipsis;
+  };
+
+  const lines: string[] = [];
+
   // Detect whether text is predominantly CJK (no space-separated words)
   const hasCJK = /[\u3000-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]/.test(text);
   const hasSpaces = text.includes(' ');
@@ -44,34 +57,43 @@ function wrapText(
   if (hasCJK && !hasSpaces) {
     // Character-by-character wrapping for CJK text without spaces
     let line = '';
-    let currentY = y;
     for (const char of text) {
       const testLine = line + char;
       if (ctx.measureText(testLine).width > maxWidth && line) {
-        ctx.fillText(line, x, currentY);
+        lines.push(line);
         line = char;
-        currentY += lineHeight;
       } else {
         line = testLine;
       }
     }
-    if (line) ctx.fillText(line, x, currentY);
+    if (line) lines.push(line);
   } else {
     // Space-based wrapping for Latin / mixed text
     const words = text.split(' ');
     let line = '';
-    let currentY = y;
     for (const word of words) {
       const testLine = line ? line + ' ' + word : word;
       if (ctx.measureText(testLine).width > maxWidth && line) {
-        ctx.fillText(line, x, currentY);
+        lines.push(line);
         line = word;
-        currentY += lineHeight;
       } else {
         line = testLine;
       }
     }
-    if (line) ctx.fillText(line, x, currentY);
+    if (line) lines.push(line);
+  }
+
+  const shouldTruncate = lines.length > maxLines;
+  const visibleLines = shouldTruncate ? lines.slice(0, maxLines) : lines;
+  if (shouldTruncate && visibleLines.length > 0) {
+    const lastIdx = visibleLines.length - 1;
+    visibleLines[lastIdx] = fitEllipsis(visibleLines[lastIdx]);
+  }
+
+  let currentY = y;
+  for (const line of visibleLines) {
+    ctx.fillText(line, x, currentY);
+    currentY += lineHeight;
   }
 }
 
@@ -173,7 +195,7 @@ async function generateShareImage(config: MoodConfig, message: string, dateLabel
       ctx.font = `600 40px ${fontStack}`;
       ctx.fillStyle = '#2a2a2a';
       ctx.textBaseline = 'alphabetic';
-      wrapText(ctx, `"${message}"`, photoCX, msgY + 72, photoW - 20, 56);
+      wrapText(ctx, `"${message}"`, photoCX, msgY + 72, photoW - 20, 56, 4);
 
       // ── Branding footer ───────────────────────────────────────────────
       ctx.font = `500 26px ${fontStack}`;
@@ -308,7 +330,13 @@ function MoodCard({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="text-center text-lg leading-relaxed font-semibold text-white/90 max-w-xs"
+            className="text-center text-lg leading-relaxed font-semibold text-white/90 max-w-xs break-words"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
           >
             {entry.message}
           </motion.p>
@@ -542,7 +570,13 @@ function MoodCardSheet({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-center text-[15px] leading-relaxed font-semibold text-white/90 px-2"
+          className="text-center text-[15px] leading-relaxed font-semibold text-white/90 px-2 break-words"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 4,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
         >
           {entry.message}
         </motion.p>

@@ -230,11 +230,6 @@ function MoodBackground({
         />
       )}
 
-      {/* Dark gradient overlay for readability */}
-      <div className="absolute inset-0" style={{
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0.45) 100%)',
-      }} />
-
       {/* Content */}
       <div className="absolute inset-0">{children}</div>
     </div>
@@ -380,21 +375,21 @@ function MoodSelectSheet({
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-      className="w-full rounded-t-4xl bg-bg-dark border-t border-white/8 px-6 pt-5 pb-8"
+      className="w-full rounded-t-4xl bg-white/10 backdrop-blur-2xl border-t border-white/15 px-6 pt-5 pb-8"
       style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
     >
       {/* Handle */}
-      <div className="w-10 h-1 bg-foreground/15 rounded-full mx-auto mb-5" />
+      <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
 
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-xl font-extrabold">{t('moodCheckInTitle')}</h2>
-          <p className="text-sm text-foreground/45 mt-0.5">{t('moodCheckInSubtitle')}</p>
+          <h2 className="text-xl font-extrabold text-white">{t('moodCheckInTitle')}</h2>
+          <p className="text-sm text-white/55 mt-0.5">{t('moodCheckInSubtitle')}</p>
         </div>
         <button
           onClick={onDismiss}
-          className="p-2 rounded-full bg-foreground/6 text-foreground/40 hover:bg-foreground/10 active:scale-90 transition-all"
+          className="p-2 rounded-full bg-white/10 text-white/50 hover:bg-white/18 active:scale-90 transition-all"
         >
           <X size={16} />
         </button>
@@ -423,7 +418,7 @@ function MoodSelectSheet({
             className="flex-1 flex flex-col items-center gap-2 py-3 rounded-2xl transition-colors"
             style={{
               background: hovered === mood.level
-                ? `linear-gradient(135deg, ${mood.gradientFrom}22, ${mood.gradientTo}22)`
+                ? `linear-gradient(135deg, ${mood.gradientFrom}33, ${mood.gradientTo}33)`
                 : 'transparent',
             }}
           >
@@ -435,14 +430,14 @@ function MoodSelectSheet({
             >
               {mood.emoji}
             </motion.span>
-            <span className="text-[10px] font-semibold text-foreground/50 capitalize">
+            <span className="text-[10px] font-semibold text-white/60 capitalize">
               {t(`mood_${mood.level}` as any)}
             </span>
           </motion.button>
         ))}
       </div>
 
-      <p className="text-center text-[11px] text-foreground/25 mt-5">
+      <p className="text-center text-[11px] text-white/35 mt-5">
         {t('moodCheckInFooter')}
       </p>
     </motion.div>
@@ -461,10 +456,10 @@ function LoadingSheet({ mood }: { mood: MoodLevel }) {
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-      className="w-full rounded-t-4xl bg-bg-dark border-t border-white/8 px-6 pt-5"
+      className="w-full rounded-t-4xl bg-white/10 backdrop-blur-2xl border-t border-white/15 px-6 pt-5"
       style={{ paddingBottom: 'calc(3rem + env(safe-area-inset-bottom))' }}
     >
-      <div className="w-10 h-1 bg-foreground/15 rounded-full mx-auto mb-8" />
+      <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-8" />
 
       <div className="flex flex-col items-center gap-4 py-4">
         {/* Bouncing emoji */}
@@ -478,7 +473,7 @@ function LoadingSheet({ mood }: { mood: MoodLevel }) {
         </motion.div>
 
         {/* Animated gradient bar */}
-        <div className="w-full h-1.5 rounded-full overflow-hidden bg-foreground/8">
+        <div className="w-full h-1.5 rounded-full overflow-hidden bg-white/15">
           <motion.div
             className="h-full rounded-full"
             style={{ background: `linear-gradient(to right, ${config.gradientFrom}, ${config.gradientTo})` }}
@@ -487,7 +482,7 @@ function LoadingSheet({ mood }: { mood: MoodLevel }) {
           />
         </div>
 
-        <p className="text-sm font-semibold text-foreground/50">{t('moodGenerating')}</p>
+        <p className="text-sm font-semibold text-white/60">{t('moodGenerating')}</p>
       </div>
     </motion.div>
   );

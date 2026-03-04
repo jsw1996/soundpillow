@@ -12,7 +12,7 @@ interface MiniPlayerProps {
   mixName?: string | null;
 }
 
-export function MiniPlayer({ track, isPlaying, progress, onTogglePlay, mixName }: MiniPlayerProps) {
+export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName }: MiniPlayerProps) {
   const { currentScreen, setCurrentScreen } = useAppContext();
   const { t } = useTranslation();
   const tt = useTrackTranslation();
@@ -30,23 +30,15 @@ export function MiniPlayer({ track, isPlaying, progress, onTogglePlay, mixName }
           exit={{ y: 80, opacity: 0 }}
           transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
           className="fixed left-0 right-0 max-w-md mx-auto px-3 pb-2 z-40"
-          style={{ bottom: 'calc(3.2rem + env(safe-area-inset-bottom) * 0.4)' }}
+          style={{ bottom: 'calc(3.2rem + 0.75rem + env(safe-area-inset-bottom) * 0.4)' }}
         >
           <div
             onClick={() => setCurrentScreen('player')}
-            className="glass-panel rounded-2xl p-3 cursor-pointer active:scale-[0.98] transition-transform"
+            className="glass-panel px-3 py-2 cursor-pointer active:scale-[0.98] transition-transform" style={{ borderRadius: '45px' }}
           >
-            {/* Progress bar at top */}
-            <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl overflow-hidden">
-              <div
-                className="h-full bg-primary/60 transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
             <div className="flex items-center gap-3">
               {/* Artwork */}
-              <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
+              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
                 <img
                   src={track.imageUrl}
                   alt={track.title}

@@ -199,11 +199,21 @@ function ThemeGrid({
   const storiesReady = dailyStories.length > 0;
   const activeTheme = SLEEPCAST_THEMES[activeIdx];
 
+  const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
   const handleScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const idx = Math.round(el.scrollLeft / el.offsetWidth);
-    setActiveIdx(idx);
+    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+    scrollTimer.current = setTimeout(() => {
+      const el = scrollRef.current;
+      if (!el || !el.offsetWidth) return;
+      const idx = Math.round(el.scrollLeft / el.offsetWidth);
+      setActiveIdx(Math.max(0, Math.min(idx, SLEEPCAST_THEMES.length - 1)));
+
+      // Manual snap correction: if not perfectly aligned, nudge into place
+      const expectedLeft = idx * el.offsetWidth;
+      if (Math.abs(el.scrollLeft - expectedLeft) > 2) {
+        el.scrollTo({ left: expectedLeft, behavior: 'smooth' });
+      }
+    }, 120);
   }, []);
 
   return (
@@ -273,7 +283,10 @@ function ThemeGrid({
           ref={scrollRef}
           onScroll={handleScroll}
           className="flex overflow-x-auto no-scrollbar flex-1"
-          style={{ scrollSnapType: 'x mandatory' }}
+          style={{
+            scrollSnapType: 'x mandatory',
+            WebkitOverflowScrolling: 'touch',
+          }}
         >
           {SLEEPCAST_THEMES.map((theme, i) => {
             const ready = hasStory(theme.id);
@@ -283,18 +296,21 @@ function ThemeGrid({
             return (
               <div
                 key={theme.id}
-                className="min-w-full px-5 flex flex-col justify-center"
-                style={{ scrollSnapAlign: 'start' }}
+                className="w-full shrink-0 px-5 flex flex-col justify-center"
+                style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
               >
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05, type: 'spring', stiffness: 240, damping: 26 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.06, duration: 0.4 }}
                   onClick={() => canSelect && onSelect(theme)}
                   className={`relative rounded-[2rem] overflow-hidden cursor-pointer
                     ${canSelect ? 'active:scale-[0.97]' : 'opacity-40 cursor-not-allowed'}
                     transition-transform duration-200`}
-                  style={{ height: 'clamp(340px, 70vw, 480px)' }}
+                  style={{
+                    height: '80dvh',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)',
+                  }}
                 >
                   {/* Image */}
                   <img
@@ -310,13 +326,6 @@ function ThemeGrid({
                     style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)' }}
                   />
 
-                  {/* Gradient: dark bottom + subtle top */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                  <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
-
-                  {/* Particles */}
-                  <AmbientParticles count={4} minLeft={20} maxLeft={80} minSize={2} maxSize={5} minDuration={10} maxDuration={20} maxDelay={10} />
-
                   {/* Top badge */}
                   {ready && (
                     <div className="absolute top-4 left-4">
@@ -327,8 +336,15 @@ function ThemeGrid({
                     </div>
                   )}
 
+                  {/* Center play icon */}
+                  <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
+                    <div className="w-16 h-16 rounded-full liquid-glass-play flex items-center justify-center">
+                      <Play size={28} fill="currentColor" className="text-white ml-0.5" />
+                    </div>
+                  </div>
+
                   {/* Bottom content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <div className="absolute bottom-0 left-0 right-0 p-6" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, transparent 100%)' }}>
                     <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mb-2">
                       {t('sleepcast')}
                     </p>
@@ -336,32 +352,18 @@ function ThemeGrid({
                       {t(`sleepcastTheme_${theme.id}` as any) || theme.name}
                     </h2>
                     {story?.title ? (
-                      <p className="text-sm text-white/55 leading-snug line-clamp-2 mb-5">
+                      <p className="text-sm text-white/55 leading-snug line-clamp-2">
                         {story.title}
                       </p>
                     ) : (
-                      <p className="text-sm text-white/35 mb-5">{t('sleepcastTapToGenerate')}</p>
+                      <p className="text-sm text-white/35">{t('sleepcastTapToGenerate')}</p>
                     )}
-
-                    {/* CTA button */}
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-sm
-                          ${ready
-                            ? 'bg-primary text-white shadow-lg shadow-primary/50'
-                            : 'bg-white/15 text-white/80 backdrop-blur-sm'
-                          }`}
-                      >
-                        <Play size={16} fill="currentColor" />
-                        <span>{ready ? 'Play Story' : 'Generate'}</span>
+                    {!canSelect && (
+                      <div className="flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/30 w-fit">
+                        <WifiOff size={12} className="text-amber-400" />
+                        <span className="text-[10px] font-bold text-amber-300">Offline</span>
                       </div>
-                      {!canSelect && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/30">
-                          <WifiOff size={12} className="text-amber-400" />
-                          <span className="text-[10px] font-bold text-amber-300">Offline</span>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </motion.div>
               </div>

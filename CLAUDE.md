@@ -1,79 +1,58 @@
-# SleepyHub - Project Guide
+# CLAUDE.md
 
-## Overview
-SleepyHub is a sleep & relaxation ambient audio player web app. Users can browse, play, and mix ambient sounds (rain, forest, ocean, etc.) to help them fall asleep.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Tech Stack
-- **Framework**: React 19 + TypeScript 5.8
-- **Build**: Vite 6.2 with @vitejs/plugin-react
-- **Styling**: Tailwind CSS 4.1 (@tailwindcss/vite)
-- **Animations**: Motion 12.x (import from "motion/react")
-- **Icons**: Lucide React (import from "lucide-react")
-- **API**: Google GenAI (@google/genai) for Gemini integration
-- **Runtime**: ES modules, strict TypeScript
+## Commands
 
-## Project Structure
-```
-src/
-├── App.tsx                  # Main app, screen routing via AnimatePresence
-├── main.tsx                 # React DOM entry point
-├── index.css                # Global styles, Tailwind config, custom animations
-├── types.ts                 # TypeScript interfaces (Track, Category, Screen types)
-├── constants.ts             # Pre-loaded tracks (8) and categories (5)
-├── components/
-│   ├── HomeScreen.tsx       # Browse tracks: search, categories, favorites
-│   ├── PlayerScreen.tsx     # Full audio player with controls & sleep timer
-│   ├── MixerScreen.tsx      # Sound mixer: layer multiple sounds with volume control
-│   ├── ProfileScreen.tsx    # User profile & settings page
-│   ├── MiniPlayer.tsx       # Mini player bar shown on non-player screens
-│   └── Navigation.tsx       # Bottom nav: Home, Mixer, Player, Profile
-├── context/
-│   └── AppContext.tsx        # Global state: screen, search, favorites, etc.
-└── hooks/
-    ├── useAudioPlayer.ts    # Single track audio playback, progress, seek
-    ├── useSleepTimer.ts     # Sleep timer with presets (15/30/45/60 min)
-    └── useSoundMixer.ts     # Multi-track audio mixing with per-track volume
-```
-
-## Screens & Navigation
-- `home` - Browse and search tracks, category filter, favorites
-- `player` - Full-screen audio player with controls, progress, sleep timer
-- `mixer` - Sound mixer to layer multiple ambient sounds
-- `profile` - User settings, listening stats, preferences
-
-## Design System
-- **Theme**: Dark purple (#191022 background, #8c2bee primary accent)
-- **Style**: Glass morphism panels (backdrop-blur + semi-transparent borders)
-- **Layout**: Mobile-first, max-w-md centered
-- **Font**: Manrope (Google Fonts), weights 300-800
-- **Animations**: Subtle and calming - breathing glow, floating particles, smooth transitions
-
-## Key Patterns
-- Screen routing via `currentScreen` state in AppContext (not React Router)
-- AnimatePresence + motion for page transitions
-- Custom hooks for audio logic separation (useAudioPlayer, useSoundMixer)
-- localStorage for persistence (favorites, settings, listening stats)
-- All audio URLs from Google Sounds API
-
-## Development
 ```bash
-npm install          # Install dependencies
-npm run dev          # Dev server on port 3000
-npm run build        # Production build to dist/
-npm run preview      # Preview production build
-npm run lint         # TypeScript type checking
+npm run dev              # Start Vite dev server on :3000
+npm run build            # Production build → dist/
+npm run lint             # TypeScript type check (tsc --noEmit) — no test suite
+npm run server:dev       # Start Express backend on :3001 (watch mode)
+npm run server:generate  # Manually generate today's stories + TTS audio
+npm run ios:run          # Build frontend, sync Capacitor, run iOS simulator
 ```
 
-## Environment Variables
-- `GEMINI_API_KEY` - Required for Gemini API integration
-- `APP_URL` - Injected by AI Studio at runtime
+## Architecture
 
-## Current Iteration Status
-**In Progress** (2026-02-26):
-- [x] Core audio player with playback controls
-- [x] Home screen with search, categories, favorites
-- [x] Sleep timer with presets
-- [ ] UI/UX enhancements: Mini player bar, improved cards, sound wave animations
-- [ ] Sound Mixer feature: multi-track layering with independent volume
-- [ ] Profile/Settings page: default timer, theme toggle, listening stats
-- [ ] Navigation updates for new screens (Mixer, Profile)
+**SoundPillow** — a sleep & relaxation ambient audio player with AI-generated bedtime stories. Mobile-first web app (max-w-md), also deployed to iOS via Capacitor.
+
+**Stack:** React 19, TypeScript 5.8, Vite 6, Tailwind CSS 4.1 (using `@theme`/`@layer`, not tailwind.config), Motion (framer-motion), Lucide icons, Express 5 backend.
+
+### Routing
+
+No React Router. Screen routing is driven by `AppContext.currentScreen` state (`home | player | mixer | sleepcast | profile`). `App.tsx` renders the active screen inside `AnimatePresence`.
+
+### State Management
+
+Single `AppContext` (React Context) manages all global state: favorites, settings, listening stats, mix presets, journal entries, streak tracking. All persisted to localStorage via `loadFromStorage` utility. No Redux or external state library.
+
+### Audio System
+
+Three separate audio subsystems:
+- **`useAudioPlayer`** — Single `HTMLAudioElement` with looping for ambient track playback. Uses track ID ref to detect changes (not URL comparison).
+- **`useSoundMixer`** — Web Audio API (`AudioContext` + `GainNode`) for up to 5 simultaneous tracks. Volume changes use `setTargetAtTime` to avoid audio pops.
+- **`useSleepcast`** — Fetches pre-generated stories from server, layers 2 ambient background tracks, plays TTS audio sequentially per paragraph. Reuses a single Audio element for narration.
+
+All hooks return `useMemo`-wrapped objects for stable references and wrap their returns in `useMemo` to prevent cascading re-renders.
+
+### Backend (server/)
+
+npm workspace at `server/`. Express 5 app that:
+- Generates daily AI stories via OpenRouter LLM (cron at 4 AM UTC)
+- Synthesizes TTS audio via Azure Speech Services
+- Serves stories and audio files via REST API
+- Stores generated content in `server/data/` (gitignored)
+
+### i18n
+
+Custom i18n system in `src/i18n/`. Four locales: `en`, `zh`, `ja`, `es`. Track/category translations use `track_${id}_title` key convention. Locale saved to localStorage.
+
+## Key Conventions
+
+- **iOS is the primary target.** Use `100dvh` not `100vh`. AudioContext requires user gesture to resume. Avoid heavy CSS filters (`blur > 20px`). No `.ogg` audio support on iOS Safari (assets are `.ogg` — known issue requiring conversion).
+- **Shared utilities** in `src/utils/`: `audio.ts` (AudioContext lifecycle), `date.ts` (date string formatting), `storage.ts` (localStorage with JSON parsing), `time.ts` (formatTime), `mixShare.ts` (URL-based mix sharing).
+- **All custom hooks** return `useMemo`-wrapped objects. `useCallback` deps should reference stable destructured properties (e.g., `player.pause`) not whole hook objects.
+- **14 ambient tracks** defined in `src/constants.ts` (IDs "1"–"14"), plus 5 default mix presets and 6 sleepcast themes in `src/data/sleepcastThemes.ts`.
+- **Styling** uses Tailwind `@theme` block in `index.css` for CSS custom properties. Dark/light themes switch via `[data-theme]` attribute. Custom classes: `.glass-panel`, `.liquid-glass*`, `.soft-glow`.
+- **Animation** uses Motion library. Prefer CSS transitions over infinite Motion animations on iOS for GPU performance.

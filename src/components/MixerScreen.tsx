@@ -12,6 +12,12 @@ import {
   Wind,
   PawPrint,
   Trash2,
+  Bell,
+  Music,
+  Droplets,
+  CloudDrizzle,
+  BrainCircuit,
+  Moon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { screenTransition } from '../utils/animations';
@@ -44,6 +50,12 @@ const TRACK_ICONS: Record<string, React.ReactNode> = {
   '6': <Snowflake size={24} />,
   '7': <Flame size={24} />,
   '8': <Wind size={24} />,
+  '9': <Bell size={24} />,
+  '10': <Music size={24} />,
+  '11': <Droplets size={24} />,
+  '12': <CloudDrizzle size={24} />,
+  '13': <BrainCircuit size={24} />,
+  '14': <Moon size={24} />,
 };
 
 interface MixerScreenProps {

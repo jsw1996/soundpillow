@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Track, MixerTrack, WebAudioNode } from '../types';
-import { cleanupAudioNode, cleanupAudioNodes } from '../utils/audio';
+import { cleanupAudioNode, cleanupAudioNodes, getOrCreateAudioContext, closeAudioContext } from '../utils/audio';
 
 const MAX_ACTIVE_TRACKS = 5;
 
@@ -12,25 +12,11 @@ export function useSoundMixer(tracks: Track[]) {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioNodes = useRef<Map<string, WebAudioNode>>(new Map());
 
-  // Get or create AudioContext, resuming if suspended (required for iOS)
-  const getAudioContext = useCallback(() => {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext();
-    }
-    if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current;
-  }, []);
-
   // Cleanup all audio on unmount
   useEffect(() => {
     return () => {
       cleanupAudioNodes(audioNodes.current);
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close();
-        audioCtxRef.current = null;
-      }
+      closeAudioContext(audioCtxRef);
     };
   }, []);
 
@@ -44,7 +30,7 @@ export function useSoundMixer(tracks: Track[]) {
 
       if (mt.isActive) {
         if (!node) {
-          const ctx = getAudioContext();
+          const ctx = getOrCreateAudioContext(audioCtxRef);
           const element = new Audio(track.audioUrl);
           element.loop = true;
           const source = ctx.createMediaElementSource(element);
@@ -54,10 +40,10 @@ export function useSoundMixer(tracks: Track[]) {
           node = { element, source, gain };
           audioNodes.current.set(mt.trackId, node);
         }
-        // Use GainNode for volume control (works on iOS, unlike audio.volume)
-        node.gain.gain.value = mt.volume / 100;
+        // Use linearRampToValueAtTime to avoid audio clicks/pops
+        const ctx = getOrCreateAudioContext(audioCtxRef);
+        node.gain.gain.setTargetAtTime(mt.volume / 100, ctx.currentTime, 0.015);
         if (isMixPlaying) {
-          getAudioContext(); // ensure context is resumed
           node.element.play().catch(() => {});
         } else {
           node.element.pause();
@@ -69,14 +55,13 @@ export function useSoundMixer(tracks: Track[]) {
         }
       }
     });
-  }, [mixerTracks, isMixPlaying, tracks, getAudioContext]);
+  }, [mixerTracks, isMixPlaying, tracks]);
 
   const toggleTrack = useCallback((trackId: string) => {
     setMixerTracks((prev) => {
       const target = prev.find((t) => t.trackId === trackId);
       if (!target) return prev;
 
-      // If activating, check max limit
       if (!target.isActive) {
         const activeCount = prev.filter((t) => t.isActive).length;
         if (activeCount >= MAX_ACTIVE_TRACKS) return prev;
@@ -86,7 +71,6 @@ export function useSoundMixer(tracks: Track[]) {
         t.trackId === trackId ? { ...t, isActive: !t.isActive } : t,
       );
 
-      // Auto-play when any track is active, auto-stop when none
       const hasActive = next.some((t) => t.isActive);
       setIsMixPlaying(hasActive);
 
@@ -127,7 +111,7 @@ export function useSoundMixer(tracks: Track[]) {
 
   const activeTracks = useMemo(() => mixerTracks.filter((t) => t.isActive), [mixerTracks]);
 
-  return {
+  return useMemo(() => ({
     mixerTracks,
     activeTracks,
     isMixPlaying,
@@ -136,5 +120,5 @@ export function useSoundMixer(tracks: Track[]) {
     toggleMixPlay,
     stopAll,
     loadPresetTracks,
-  };
+  }), [mixerTracks, activeTracks, isMixPlaying, toggleTrack, setTrackVolume, toggleMixPlay, stopAll, loadPresetTracks]);
 }

@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Track } from '../types';
-import { formatTime } from '../utils/time';
 
 export function useAudioPlayer(tracks: Track[]) {
   const [currentTrack, setCurrentTrack] = useState<Track>(tracks[0]);
@@ -8,65 +7,52 @@ export function useAudioPlayer(tracks: Track[]) {
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(75);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const loadedTrackIdRef = useRef<string | null>(null);
 
-  // Initialize audio element
+  // Initialize audio element + progress tracking
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.loop = true;
       audioRef.current.volume = volume / 100;
     }
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Track progress
-  useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
 
     const updateProgress = () => {
       if (audio.duration && !isNaN(audio.duration)) {
         setProgress((audio.currentTime / audio.duration) * 100);
       }
     };
-
     audio.addEventListener('timeupdate', updateProgress);
-    return () => audio.removeEventListener('timeupdate', updateProgress);
+
+    return () => {
+      audio.removeEventListener('timeupdate', updateProgress);
+      audio.pause();
+      audio.src = '';
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle track changes
+  // Handle track changes + play/pause in a single effect to avoid race conditions
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (audio.src !== currentTrack.audioUrl) {
+    // Compare by track ID to avoid resolved-URL vs relative-URL mismatch
+    const trackChanged = loadedTrackIdRef.current !== currentTrack.id;
+    if (trackChanged) {
+      loadedTrackIdRef.current = currentTrack.id;
       audio.pause();
       audio.src = currentTrack.audioUrl;
       audio.load();
-      if (isPlaying) {
-        audio.play().catch(() => setIsPlaying(false));
-      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack]);
-
-  // Handle play/pause
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
 
     if (isPlaying) {
       audio.play().catch(() => setIsPlaying(false));
     } else {
       audio.pause();
     }
-  }, [isPlaying]);
+  }, [currentTrack, isPlaying]);
 
   // Handle volume changes
   useEffect(() => {
@@ -83,7 +69,6 @@ export function useAudioPlayer(tracks: Track[]) {
     setIsPlaying(true);
   }, []);
 
-  // Update display track without triggering playback (used for mix skip)
   const setDisplayTrack = useCallback((track: Track) => {
     setCurrentTrack(track);
   }, []);
@@ -110,19 +95,12 @@ export function useAudioPlayer(tracks: Track[]) {
     }
   }, []);
 
-  const currentTime = audioRef.current ? formatTime(audioRef.current.currentTime) : '0:00';
-  const duration =
-    audioRef.current && !isNaN(audioRef.current.duration)
-      ? formatTime(audioRef.current.duration)
-      : '0:00';
-
-  return {
+  // Return a stable object reference via useMemo to prevent downstream useCallback invalidation
+  return useMemo(() => ({
     currentTrack,
     isPlaying,
     progress,
     volume,
-    currentTime,
-    duration,
     setVolume,
     togglePlay,
     pause,
@@ -131,5 +109,5 @@ export function useAudioPlayer(tracks: Track[]) {
     skipNext,
     skipPrev,
     seek,
-  };
+  }), [currentTrack, isPlaying, progress, volume, togglePlay, pause, selectTrack, setDisplayTrack, skipNext, skipPrev, seek]);
 }

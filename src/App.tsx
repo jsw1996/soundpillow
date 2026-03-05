@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { TRACKS, DEFAULT_MIXES } from './constants';
 import { MixPreset } from './types';
@@ -32,7 +32,7 @@ function AppContent() {
   // Load daily stories from server on mount and when locale changes
   useEffect(() => {
     sleepcast.loadDailyStories(locale);
-  }, [locale]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [locale, sleepcast.loadDailyStories]);
 
   // Retry loading stories when the app comes back to foreground (e.g. iOS resume)
   useEffect(() => {
@@ -43,7 +43,7 @@ function AppContent() {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [sleepcast.serverAvailable, locale]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sleepcast.serverAvailable, sleepcast.loadDailyStories, locale]);
 
   const timer = useSleepTimer(
     useCallback(() => player.pause(), [player.pause]),
@@ -61,7 +61,6 @@ function AppContent() {
     const shared = getMixFromUrl();
     if (shared) {
       clearMixFromUrl();
-      // Validate that all track IDs exist
       const validTracks = shared.tracks.filter((st) =>
         TRACKS.some((t) => t.id === st.trackId),
       );
@@ -73,7 +72,6 @@ function AppContent() {
         if (firstTrack) player.selectTrack(firstTrack);
         player.pause();
         setCurrentScreen('mixer');
-        // Delay toast to ensure UI is ready
         setTimeout(() => showToast(t('sharedMixLoaded'), 'info'), 500);
       } else {
         setTimeout(() => showToast(t('sharedMixInvalid'), 'error'), 500);
@@ -81,32 +79,29 @@ function AppContent() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync timer with playback state
-  const handleTogglePlay = useCallback(() => {
-    const willPlay = !player.isPlaying;
-    player.togglePlay();
+  // Shared side-effect logic for play state changes
+  const onPlayStateChange = useCallback((willPlay: boolean, trackId: string) => {
     if (willPlay) {
       setHasEverPlayed(true);
       timer.start();
-      recordSession(player.currentTrack.id);
-      checkIn(player.currentTrack.id);
+      recordSession(trackId);
+      checkIn(trackId);
     } else {
       timer.stop();
     }
-  }, [player, timer, recordSession, checkIn]);
+  }, [timer.start, timer.stop, recordSession, checkIn]);
+
+  const handleTogglePlay = useCallback(() => {
+    const willPlay = !player.isPlaying;
+    player.togglePlay();
+    onPlayStateChange(willPlay, player.currentTrack.id);
+  }, [player.isPlaying, player.togglePlay, player.currentTrack.id, onPlayStateChange]);
 
   const handleMixTogglePlay = useCallback(() => {
     const willPlay = !mixer.isMixPlaying;
     mixer.toggleMixPlay();
-    if (willPlay) {
-      setHasEverPlayed(true);
-      timer.start();
-      recordSession(player.currentTrack.id);
-      checkIn(player.currentTrack.id);
-    } else {
-      timer.stop();
-    }
-  }, [mixer, timer, player.currentTrack.id, recordSession, checkIn]);
+    onPlayStateChange(willPlay, player.currentTrack.id);
+  }, [mixer.isMixPlaying, mixer.toggleMixPlay, player.currentTrack.id, onPlayStateChange]);
 
   const handleTrackSelect = useCallback(
     (track: typeof TRACKS[number]) => {
@@ -118,7 +113,7 @@ function AppContent() {
       recordSession(track.id);
       checkIn(track.id);
     },
-    [player, mixer, timer, recordSession, checkIn],
+    [player.selectTrack, mixer.stopAll, timer.start, recordSession, checkIn],
   );
 
   const handleMixSelect = useCallback(
@@ -126,7 +121,6 @@ function AppContent() {
       setHasEverPlayed(true);
       mixer.loadPresetTracks(preset.tracks);
       setActiveMix({ id: preset.id, name: preset.name });
-      // Set first track as display track, but pause single player to avoid double audio
       const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);
       if (firstTrack) player.selectTrack(firstTrack);
       player.pause();
@@ -136,11 +130,11 @@ function AppContent() {
         checkIn(firstTrack.id);
       }
     },
-    [mixer, player, timer, recordSession, checkIn],
+    [mixer.loadPresetTracks, player.selectTrack, player.pause, timer.start, recordSession, checkIn],
   );
 
-  // Mix-aware skip: cycle through available mix presets (default + user-saved)
-  const allMixes = [...DEFAULT_MIXES, ...mixPresets];
+  // Memoize allMixes to avoid recreating on every render
+  const allMixes = useMemo(() => [...DEFAULT_MIXES, ...mixPresets], [mixPresets]);
 
   const handleMixSkipNext = useCallback(() => {
     if (allMixes.length === 0 || !activeMix) return;
@@ -159,7 +153,7 @@ function AppContent() {
   const handleMixStop = useCallback(() => {
     mixer.stopAll();
     setActiveMix(null);
-  }, [mixer]);
+  }, [mixer.stopAll]);
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -216,7 +210,6 @@ function AppContent() {
             dailyStories={sleepcast.dailyStories}
             storiesLoading={sleepcast.storiesLoading}
             onStartSleepcast={(theme) => {
-              // Stop any playing audio/mixer before starting sleepcast
               player.pause();
               mixer.stopAll();
               timer.stop();
@@ -231,7 +224,7 @@ function AppContent() {
   };
 
   return (
-    <div className="max-w-md mx-auto h-screen flex flex-col relative overflow-hidden bg-bg-dark">
+    <div className="max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden bg-bg-dark">
       {currentScreen !== 'home' && <div className="ambient-bg" />}
       <AnimatePresence mode="wait">
         {renderScreen()}

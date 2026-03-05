@@ -5,6 +5,7 @@ import { MOODS, getMoodMessage, type MoodConfig } from '../data/moodMessages';
 import type { MoodLevel, MoodEntry } from '../types';
 import { useTranslation } from '../i18n';
 import { fetchMoodMessage } from '../services/api';
+import { formatDateLabel } from '../utils/date';
 
 interface Props {
   onComplete: (entry: MoodEntry) => void;
@@ -258,129 +259,6 @@ function MoodBackground({
   );
 }
 
-// ─── Card Step ────────────────────────────────────────────────────────────────
-
-function MoodCard({
-  entry,
-  config,
-  imageLoaded,
-  onShare,
-  onDone,
-  sharing,
-}: {
-  entry: MoodEntry;
-  config: MoodConfig;
-  imageLoaded: boolean;
-  onShare: () => void;
-  onDone: () => void;
-  sharing: boolean;
-}) {
-  const { t } = useTranslation();
-  const dateLabel = new Date().toLocaleDateString(undefined, {
-    month: 'long', day: 'numeric', year: 'numeric',
-  });
-
-  return (
-    <MoodBackground config={config} imageLoaded={imageLoaded}>
-      <div className="flex flex-col h-full">
-        {/* Top bar */}
-        <div className="flex justify-end p-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}>
-          <button
-            onClick={onDone}
-            className="p-2.5 rounded-full bg-black/20 backdrop-blur-sm text-white/80 hover:bg-black/30 active:scale-90 transition-all"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Center content */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4">
-          {/* Label */}
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-[11px] font-bold tracking-[0.25em] text-white/50 uppercase"
-          >
-            {t('moodCardLabel')}
-          </motion.p>
-
-          {/* Emoji */}
-          <motion.div
-            initial={{ scale: 0.3, rotate: -20 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', damping: 12, stiffness: 180, delay: 0.1 }}
-            className="text-8xl select-none"
-            style={{ lineHeight: 1 }}
-          >
-            {config.emoji}
-          </motion.div>
-
-          {/* Date */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15 }}
-            className="text-sm font-medium text-white/45"
-          >
-            {dateLabel}
-          </motion.p>
-
-          {/* Message */}
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="text-center text-lg leading-relaxed font-semibold text-white/90 max-w-xs break-words"
-            style={{
-              display: '-webkit-box',
-              WebkitLineClamp: 4,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {entry.message}
-          </motion.p>
-        </div>
-
-        {/* Bottom actions */}
-        <motion.div
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.35 }}
-          className="px-6 pb-4"
-          style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
-        >
-          <div className="flex gap-3">
-            <button
-              onClick={onShare}
-              disabled={sharing}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-white font-bold text-sm active:scale-95 hover:bg-white/22 transition-all disabled:opacity-50"
-            >
-              {sharing ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white"
-                />
-              ) : (
-                <Share2 size={15} />
-              )}
-              {t('moodShare')}
-            </button>
-            <button
-              onClick={onDone}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white/90 text-gray-800 font-bold text-sm active:scale-95 hover:bg-white transition-all"
-            >
-              <Check size={15} />
-              {t('moodDone')}
-            </button>
-          </div>
-        </motion.div>
-      </div>
-    </MoodBackground>
-  );
-}
-
 // ─── Select Step ──────────────────────────────────────────────────────────────
 
 function MoodSelectSheet({
@@ -532,9 +410,7 @@ function MoodCardSheet({
   sharing: boolean;
 }) {
   const { t } = useTranslation();
-  const dateLabel = new Date().toLocaleDateString(undefined, {
-    month: 'long', day: 'numeric', year: 'numeric',
-  });
+  const dateLabel = formatDateLabel();
 
   return (
     <motion.div
@@ -670,9 +546,7 @@ export function MoodCheckIn({ onComplete, onDismiss }: Props) {
   const handleShare = useCallback(async () => {
     if (!entry) return;
     const config = MOODS.find((m) => m.level === entry.mood)!;
-    const dateLabel = new Date().toLocaleDateString(undefined, {
-      month: 'long', day: 'numeric', year: 'numeric',
-    });
+    const dateLabel = formatDateLabel();
     setSharing(true);
     try {
       const blob = await generateShareImage(config, entry.message, dateLabel);

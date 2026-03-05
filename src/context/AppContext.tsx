@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats } from '../types';
+import { getDateString, getYesterday } from '../utils/date';
+import { loadFromStorage } from '../utils/storage';
 
 interface AppContextValue {
   currentScreen: Screen;
@@ -16,7 +18,6 @@ interface AppContextValue {
   settings: UserSettings;
   updateSettings: (patch: Partial<UserSettings>) => void;
   stats: ListeningStats;
-  addListeningTime: (minutes: number) => void;
   recordSession: (trackId?: string) => void;
   resetStats: () => void;
   mixPresets: MixPreset[];
@@ -57,66 +58,8 @@ const DEFAULT_STREAK: StreakStats = {
   lastCheckInDate: null,
 };
 
-function getDateString(date: Date = new Date()): string {
-  return date.toISOString().split('T')[0];
-}
-
-function getYesterday(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return getDateString(d);
-}
-
-function loadFavorites(): Set<string> {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return new Set(JSON.parse(stored));
-  } catch { /* ignore */ }
-  return new Set();
-}
-
 function saveFavorites(favs: Set<string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...favs]));
-}
-
-function loadSettings(): UserSettings {
-  try {
-    const stored = localStorage.getItem(SETTINGS_KEY);
-    if (stored) return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
-  } catch { /* ignore */ }
-  return DEFAULT_SETTINGS;
-}
-
-function loadStats(): ListeningStats {
-  try {
-    const stored = localStorage.getItem(STATS_KEY);
-    if (stored) return { ...DEFAULT_STATS, ...JSON.parse(stored) };
-  } catch { /* ignore */ }
-  return DEFAULT_STATS;
-}
-
-function loadPresets(): MixPreset[] {
-  try {
-    const stored = localStorage.getItem(PRESETS_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch { /* ignore */ }
-  return [];
-}
-
-function loadJournal(): SleepEntry[] {
-  try {
-    const stored = localStorage.getItem(JOURNAL_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch { /* ignore */ }
-  return [];
-}
-
-function loadStreak(): StreakStats {
-  try {
-    const stored = localStorage.getItem(STREAK_KEY);
-    if (stored) return { ...DEFAULT_STREAK, ...JSON.parse(stored) };
-  } catch { /* ignore */ }
-  return DEFAULT_STREAK;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -124,14 +67,26 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [searchQuery, setSearchQuery] = useState('');
-  const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
+  const [favorites, setFavorites] = useState<Set<string>>(() =>
+    loadFromStorage(STORAGE_KEY, new Set<string>(), (v) => new Set(v)),
+  );
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [settings, setSettings] = useState<UserSettings>(loadSettings);
-  const [stats, setStats] = useState<ListeningStats>(loadStats);
-  const [mixPresets, setMixPresets] = useState<MixPreset[]>(loadPresets);
-  const [journal, setJournal] = useState<SleepEntry[]>(loadJournal);
-  const [streakStats, setStreakStats] = useState<StreakStats>(loadStreak);
+  const [settings, setSettings] = useState<UserSettings>(() =>
+    loadFromStorage(SETTINGS_KEY, DEFAULT_SETTINGS, (v) => ({ ...DEFAULT_SETTINGS, ...v })),
+  );
+  const [stats, setStats] = useState<ListeningStats>(() =>
+    loadFromStorage(STATS_KEY, DEFAULT_STATS, (v) => ({ ...DEFAULT_STATS, ...v })),
+  );
+  const [mixPresets, setMixPresets] = useState<MixPreset[]>(() =>
+    loadFromStorage(PRESETS_KEY, [] as MixPreset[]),
+  );
+  const [journal, setJournal] = useState<SleepEntry[]>(() =>
+    loadFromStorage(JOURNAL_KEY, [] as SleepEntry[]),
+  );
+  const [streakStats, setStreakStats] = useState<StreakStats>(() =>
+    loadFromStorage(STREAK_KEY, DEFAULT_STREAK, (v) => ({ ...DEFAULT_STREAK, ...v })),
+  );
 
   useEffect(() => {
     saveFavorites(favorites);
@@ -181,14 +136,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateSettings = useCallback((patch: Partial<UserSettings>) => {
     setSettings((prev) => ({ ...prev, ...patch }));
-  }, []);
-
-  const addListeningTime = useCallback((minutes: number) => {
-    setStats((prev) => ({
-      ...prev,
-      totalMinutes: prev.totalMinutes + minutes,
-      lastPlayedAt: Date.now(),
-    }));
   }, []);
 
   const recordSession = useCallback((trackId?: string) => {
@@ -308,7 +255,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     settings,
     updateSettings,
     stats,
-    addListeningTime,
     recordSession,
     resetStats,
     mixPresets,
@@ -323,7 +269,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     currentScreen, searchQuery, favorites, showFavoritesOnly, menuOpen,
     settings, stats, mixPresets, journal, streakStats,
     setCurrentScreen, setSearchQuery, toggleFavorite, isFavorite,
-    setShowFavoritesOnly, setMenuOpen, updateSettings, addListeningTime,
+    setShowFavoritesOnly, setMenuOpen, updateSettings,
     recordSession, resetStats, saveMixPreset, deleteMixPreset,
     checkIn, getTodayEntry, getWeekEntries,
   ]);

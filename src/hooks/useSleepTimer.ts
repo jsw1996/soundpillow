@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { formatTime } from '../utils/time';
 
 export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | null = 30) {
@@ -13,7 +13,14 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
   // Keep callback ref current
   useEffect(() => {
     onTimerEndRef.current = onTimerEnd;
-  });
+  }, [onTimerEnd]);
+
+  // Sync default timer from settings when it changes
+  useEffect(() => {
+    if (!isActive) {
+      setTimerMinutes(defaultMinutes);
+    }
+  }, [defaultMinutes, isActive]);
 
   // Sync selected minutes to countdown
   useEffect(() => {
@@ -57,7 +64,7 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
   const totalSeconds = timerMinutes !== null ? timerMinutes * 60 : 0;
   const timerProgress = totalSeconds > 0 ? ((totalSeconds - secondsRemaining) / totalSeconds) * 100 : 0;
 
-  return {
+  return useMemo(() => ({
     timerMinutes,
     secondsRemaining,
     timerProgress,
@@ -65,5 +72,5 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
     start,
     stop,
     formatDisplay,
-  };
+  }), [timerMinutes, secondsRemaining, timerProgress, selectTimer, start, stop]);
 }

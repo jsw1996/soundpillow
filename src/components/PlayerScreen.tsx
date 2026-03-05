@@ -72,14 +72,12 @@ export function PlayerScreen({
     >
       {/* ── Full-screen artwork background ── */}
       <div className="absolute inset-0">
-        <motion.img
+        <img
           src={track.imageUrl}
           alt={track.title}
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover"
-          initial={{ scale: 1.1 }}
-          animate={{ scale: isPlaying ? 1.05 : 1 }}
-          transition={{ duration: 20, ease: 'linear', repeat: Infinity, repeatType: 'reverse' }}
+          style={{ transform: isPlaying ? 'scale(1.05)' : 'scale(1)', transition: 'transform 2s ease-in-out' }}
         />
         {/* Cinematic overlays for depth */}
         <div className="absolute inset-0 bg-black/25" />

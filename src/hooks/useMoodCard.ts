@@ -1,16 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import type { MoodEntry, MoodLevel } from '../types';
 import { getMoodMessage } from '../data/moodMessages';
+import { getDateString } from '../utils/date';
 
 const MOOD_KEY = 'sleepyhub-mood-card';
 const DISMISSED_KEY = 'sleepyhub-mood-dismissed';
 
-function getTodayString(): string {
-  return new Date().toISOString().split('T')[0];
-}
-
 function computeInitialState(): { shouldShow: boolean; todayMood: MoodEntry | null } {
-  const today = getTodayString();
+  const today = getDateString();
   try {
     const stored = localStorage.getItem(MOOD_KEY);
     if (stored) {
@@ -34,7 +31,7 @@ export function useMoodCard() {
 
   const saveMood = useCallback((mood: MoodLevel, locale: string) => {
     const entry: MoodEntry = {
-      date: getTodayString(),
+      date: getDateString(),
       mood,
       message: getMoodMessage(mood, locale),
     };
@@ -50,7 +47,7 @@ export function useMoodCard() {
 
   const dismiss = useCallback(() => {
     try {
-      localStorage.setItem(DISMISSED_KEY, getTodayString());
+      localStorage.setItem(DISMISSED_KEY, getDateString());
     } catch { /* storage full */ }
     setShouldShow(false);
   }, []);

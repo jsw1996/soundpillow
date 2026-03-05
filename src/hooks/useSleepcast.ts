@@ -1,8 +1,8 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { TRACKS } from '../constants';
 import type { SleepcastTheme, GeneratedSleepcast, SleepcastStatus, WebAudioNode } from '../types';
 import { fetchTodayStories, checkServerHealth, fetchTts, resolveAudioUrl } from '../services/api';
-import { cleanupAudioNode, cleanupAudioNodes } from '../utils/audio';
+import { cleanupAudioNodes, getOrCreateAudioContext, closeAudioContext } from '../utils/audio';
 
 /**
  * Hook that manages sleepcast lifecycle:
@@ -22,22 +22,46 @@ export function useSleepcast() {
   const [storiesLoading, setStoriesLoading] = useState(false);
   const [serverAvailable, setServerAvailable] = useState(true);
 
+  // Reusable narration audio element (avoid creating new Audio() per paragraph on iOS)
   const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const bgNodesRef = useRef<Map<string, WebAudioNode>>(new Map());
   const paragraphIndexRef = useRef(0);
   const pausedRef = useRef(false);
+  const startingRef = useRef(false);
 
-  // Get or create AudioContext
-  const getAudioContext = useCallback(() => {
-    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-    if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
-    return audioCtxRef.current;
+  // Get or create the reusable narration audio element
+  const getNarrationAudio = useCallback(() => {
+    if (!narrationAudioRef.current) {
+      narrationAudioRef.current = new Audio();
+    }
+    return narrationAudioRef.current;
   }, []);
+
+  // Play a single audio source, reusing the narration element. Returns a promise that resolves when done.
+  const playNarrationAudio = useCallback((url: string, cleanup?: () => void): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (pausedRef.current) { cleanup?.(); resolve(); return; }
+
+      const audio = getNarrationAudio();
+      audio.onended = () => { cleanup?.(); resolve(); };
+      audio.onerror = () => {
+        cleanup?.();
+        if (pausedRef.current) resolve();
+        else reject(new Error('Audio playback failed'));
+      };
+      audio.src = url;
+      audio.play().catch((err) => {
+        cleanup?.();
+        if (pausedRef.current) resolve();
+        else reject(err);
+      });
+    });
+  }, [getNarrationAudio]);
 
   // Start background ambient tracks for a theme
   const startBgAudio = useCallback((theme: SleepcastTheme) => {
-    const ctx = getAudioContext();
+    const ctx = getOrCreateAudioContext(audioCtxRef);
     theme.bgTrackIds.forEach((trackId) => {
       if (bgNodesRef.current.has(trackId)) return;
       const track = TRACKS.find((t) => t.id === trackId);
@@ -47,90 +71,28 @@ export function useSleepcast() {
       element.loop = true;
       const source = ctx.createMediaElementSource(element);
       const gain = ctx.createGain();
-      gain.gain.value = 0.25; // quiet background
+      gain.gain.value = 0.25;
       source.connect(gain);
       gain.connect(ctx.destination);
       element.play().catch(() => {});
       bgNodesRef.current.set(trackId, { element, source, gain });
     });
-  }, [getAudioContext]);
+  }, []);
 
-  // Stop background audio
   const stopBgAudio = useCallback(() => {
     cleanupAudioNodes(bgNodesRef.current);
   }, []);
 
-  // Pause background audio
   const pauseBgAudio = useCallback(() => {
     bgNodesRef.current.forEach((node) => node.element.pause());
   }, []);
 
-  // Resume background audio
   const resumeBgAudio = useCallback(() => {
-    getAudioContext();
+    getOrCreateAudioContext(audioCtxRef);
     bgNodesRef.current.forEach((node) => node.element.play().catch(() => {}));
-  }, [getAudioContext]);
-
-  // Play a single audio file, returns a promise that resolves when done
-  const playAudioUrl = useCallback((url: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (pausedRef.current) { resolve(); return; }
-
-      const audio = new Audio(url);
-      narrationAudioRef.current = audio;
-
-      audio.onended = () => {
-        narrationAudioRef.current = null;
-        resolve();
-      };
-      audio.onerror = () => {
-        narrationAudioRef.current = null;
-        if (pausedRef.current) resolve();
-        else reject(new Error('Audio playback failed'));
-      };
-
-      audio.play().catch((err) => {
-        narrationAudioRef.current = null;
-        if (pausedRef.current) resolve();
-        else reject(err);
-      });
-    });
   }, []);
 
-  // Speak a single paragraph using on-demand server TTS (fallback)
-  const speakParagraphFallback = useCallback(async (text: string, locale: string): Promise<void> => {
-    if (pausedRef.current) return;
-
-    const blob = await fetchTts(text, locale);
-    if (pausedRef.current) return;
-
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    narrationAudioRef.current = audio;
-
-    return new Promise<void>((resolve, reject) => {
-      audio.onended = () => {
-        URL.revokeObjectURL(url);
-        narrationAudioRef.current = null;
-        resolve();
-      };
-      audio.onerror = () => {
-        URL.revokeObjectURL(url);
-        narrationAudioRef.current = null;
-        if (pausedRef.current) resolve();
-        else reject(new Error('Audio playback failed'));
-      };
-
-      audio.play().catch((err) => {
-        URL.revokeObjectURL(url);
-        narrationAudioRef.current = null;
-        if (pausedRef.current) resolve();
-        else reject(err);
-      });
-    });
-  }, []);
-
-  // Narrate all paragraphs sequentially using pre-generated audio or fallback
+  // Narrate all paragraphs sequentially using pre-generated audio or fallback TTS
   const narrateStory = useCallback(async (cast: GeneratedSleepcast, locale: string, startFrom: number = 0) => {
     paragraphIndexRef.current = startFrom;
 
@@ -139,11 +101,15 @@ export function useSleepcast() {
       paragraphIndexRef.current = i;
       setActiveParagraph(i);
 
-      // Use pre-generated audio if available, otherwise fall back to on-demand TTS
       if (cast.audioUrls && cast.audioUrls[i]) {
-        await playAudioUrl(resolveAudioUrl(cast.audioUrls[i]));
+        await playNarrationAudio(resolveAudioUrl(cast.audioUrls[i]));
       } else {
-        await speakParagraphFallback(cast.paragraphs[i], locale);
+        // On-demand TTS fallback
+        if (pausedRef.current) break;
+        const blob = await fetchTts(cast.paragraphs[i], locale);
+        if (pausedRef.current) break;
+        const blobUrl = URL.createObjectURL(blob);
+        await playNarrationAudio(blobUrl, () => URL.revokeObjectURL(blobUrl));
       }
 
       // Brief pause between paragraphs
@@ -157,11 +123,8 @@ export function useSleepcast() {
       setStatus('idle');
       stopBgAudio();
     }
-  }, [playAudioUrl, speakParagraphFallback, stopBgAudio]);
+  }, [playNarrationAudio, stopBgAudio]);
 
-  /**
-   * Fetch today's stories from the server.
-   */
   const loadDailyStories = useCallback(async (locale: string = 'en') => {
     setStoriesLoading(true);
     try {
@@ -181,20 +144,18 @@ export function useSleepcast() {
     }
   }, []);
 
-  /**
-   * Start playing a sleepcast. Finds the pre-generated story for the theme,
-   * starts background audio, and begins narration.
-   */
   const startSleepcast = useCallback(async (theme: SleepcastTheme, locale: string = 'en') => {
+    // Guard against concurrent starts
+    if (startingRef.current) return;
+    startingRef.current = true;
+
     setError(null);
     setCurrentTheme(theme);
     setActiveParagraph(-1);
     pausedRef.current = false;
 
-    // Find the pre-generated story for this theme
     let story = dailyStories.find((s) => s.themeId === theme.id);
 
-    // If not found in cache, try fetching fresh
     if (!story) {
       setStatus('generating');
       try {
@@ -204,6 +165,7 @@ export function useSleepcast() {
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load story');
         setStatus('error');
+        startingRef.current = false;
         return;
       }
     }
@@ -211,14 +173,15 @@ export function useSleepcast() {
     if (!story) {
       setError('No story available for this theme today. Please try again later.');
       setStatus('error');
+      startingRef.current = false;
       return;
     }
 
     setCurrentCast(story);
     startBgAudio(theme);
     setStatus('playing');
+    startingRef.current = false;
 
-    // Start narration
     try {
       await narrateStory(story, locale);
     } catch (err) {
@@ -230,7 +193,6 @@ export function useSleepcast() {
     }
   }, [dailyStories, startBgAudio, narrateStory]);
 
-  // Play — start or resume
   const play = useCallback(async (locale: string = 'en') => {
     if (status === 'paused' && currentCast) {
       pausedRef.current = false;
@@ -240,19 +202,20 @@ export function useSleepcast() {
     }
   }, [status, currentCast, resumeBgAudio, narrateStory]);
 
-  // Pause
-  const pause = useCallback(() => {
+  const cleanupNarration = useCallback(() => {
     pausedRef.current = true;
     if (narrationAudioRef.current) {
       narrationAudioRef.current.pause();
       narrationAudioRef.current.src = '';
-      narrationAudioRef.current = null;
     }
+  }, []);
+
+  const pause = useCallback(() => {
+    cleanupNarration();
     pauseBgAudio();
     setStatus('paused');
-  }, [pauseBgAudio]);
+  }, [cleanupNarration, pauseBgAudio]);
 
-  // Toggle play/pause
   const togglePlay = useCallback(async (locale: string = 'en') => {
     if (status === 'playing') {
       pause();
@@ -261,21 +224,15 @@ export function useSleepcast() {
     }
   }, [status, pause, play]);
 
-  // Stop completely
   const stop = useCallback(() => {
-    pausedRef.current = true;
-    if (narrationAudioRef.current) {
-      narrationAudioRef.current.pause();
-      narrationAudioRef.current.src = '';
-      narrationAudioRef.current = null;
-    }
+    cleanupNarration();
     stopBgAudio();
     setStatus('idle');
     setCurrentCast(null);
     setCurrentTheme(null);
     setActiveParagraph(-1);
     paragraphIndexRef.current = 0;
-  }, [stopBgAudio]);
+  }, [cleanupNarration, stopBgAudio]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -286,14 +243,11 @@ export function useSleepcast() {
         narrationAudioRef.current = null;
       }
       cleanupAudioNodes(bgNodesRef.current);
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close();
-        audioCtxRef.current = null;
-      }
+      closeAudioContext(audioCtxRef);
     };
   }, []);
 
-  return {
+  return useMemo(() => ({
     status,
     currentCast,
     currentTheme,
@@ -309,5 +263,5 @@ export function useSleepcast() {
     play,
     stop,
     loadDailyStories,
-  };
+  }), [status, currentCast, currentTheme, activeParagraph, error, serverAvailable, dailyStories, storiesLoading, startSleepcast, togglePlay, pause, play, stop, loadDailyStories]);
 }

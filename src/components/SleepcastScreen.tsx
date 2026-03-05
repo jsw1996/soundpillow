@@ -199,7 +199,7 @@ function ThemeGrid({
   const storiesReady = dailyStories.length > 0;
   const activeTheme = SLEEPCAST_THEMES[activeIdx];
 
-  const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const handleScroll = useCallback(() => {
     if (scrollTimer.current) clearTimeout(scrollTimer.current);
     scrollTimer.current = setTimeout(() => {
@@ -222,7 +222,7 @@ function ThemeGrid({
       className="flex-1 flex flex-col min-h-0 overflow-hidden relative"
     >
       {/* Dynamic blurred background that morphs with active card */}
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
         <motion.div
           key={activeTheme.id}
           initial={{ opacity: 0 }}
@@ -237,7 +237,7 @@ function ThemeGrid({
             alt=""
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
-            style={{ filter: 'blur(40px) saturate(1.4)', transform: 'scale(1.2)' }}
+            style={{ filter: 'blur(20px) saturate(1.2)', transform: 'scale(1.15)', willChange: 'opacity' }}
           />
           <div className="absolute inset-0 bg-bg-dark/75" />
         </motion.div>

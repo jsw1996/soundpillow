@@ -15,6 +15,24 @@ export interface DailyStoriesResponse {
   date: string;
   locale: string;
   stories: GeneratedSleepcast[];
+  stale?: boolean;
+  requestedDate?: string;
+}
+
+async function fetchStoriesForDate(date: string, locale: string): Promise<DailyStoriesResponse> {
+  const res = await fetch(`${SERVER_URL}/api/stories/${date}?locale=${locale}`);
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+  return res.json();
+}
+
+async function fetchAvailableStoryDates(): Promise<string[]> {
+  const res = await fetch(`${SERVER_URL}/api/stories/dates`);
+  if (!res.ok) return [];
+
+  const data = await res.json() as { dates?: string[] };
+  return data.dates ?? [];
 }
 
 /**
@@ -22,13 +40,25 @@ export interface DailyStoriesResponse {
  */
 export async function fetchTodayStories(locale: string = 'en'): Promise<DailyStoriesResponse> {
   const res = await fetch(`${SERVER_URL}/api/stories/today?locale=${locale}`);
-  if (!res.ok) {
-    if (res.status === 404) {
-      return { date: new Date().toISOString().slice(0, 10), locale, stories: [] };
-    }
-    throw new Error(`Server error: ${res.status}`);
+  if (res.ok) {
+    return res.json();
   }
-  return res.json();
+
+  if (res.status === 404) {
+    const dates = await fetchAvailableStoryDates();
+    if (dates.length > 0) {
+      try {
+        const fallback = await fetchStoriesForDate(dates[0], locale);
+        return { ...fallback, stale: true, requestedDate: new Date().toISOString().slice(0, 10) };
+      } catch {
+        // Fall through to empty response below.
+      }
+    }
+
+    return { date: new Date().toISOString().slice(0, 10), locale, stories: [] };
+  }
+
+  throw new Error(`Server error: ${res.status}`);
 }
 
 /**

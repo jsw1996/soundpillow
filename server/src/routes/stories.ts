@@ -5,6 +5,20 @@ import type { GeneratedSleepcast } from '../types.js';
 
 const router = Router();
 
+async function loadStoriesForLocale(date: string, locale: string): Promise<GeneratedSleepcast[] | null> {
+  const data = await loadStories(date);
+  if (!data) return null;
+
+  const stories: GeneratedSleepcast[] = [];
+  for (const themeStories of Object.values(data.stories)) {
+    if (themeStories[locale]) {
+      stories.push(themeStories[locale]);
+    }
+  }
+
+  return stories;
+}
+
 /**
  * GET /api/stories/today?locale=en
  * Returns today's stories for the given locale (default: en).
@@ -14,20 +28,28 @@ router.get('/today', async (req, res) => {
   const locale = (req.query.locale as string) || 'en';
   const date = todayDate();
 
-  const data = await loadStories(date);
-  if (!data) {
-    res.status(404).json({ error: 'No stories generated for today yet' });
+  const todayStories = await loadStoriesForLocale(date, locale);
+  if (todayStories?.length) {
+    res.json({ date, locale, stories: todayStories, stale: false });
     return;
   }
 
-  const stories: GeneratedSleepcast[] = [];
-  for (const themeStories of Object.values(data.stories)) {
-    if (themeStories[locale]) {
-      stories.push(themeStories[locale]);
+  const [latestDate] = await listDates(1);
+  if (latestDate && latestDate !== date) {
+    const latestStories = await loadStoriesForLocale(latestDate, locale);
+    if (latestStories?.length) {
+      res.json({
+        date: latestDate,
+        locale,
+        stories: latestStories,
+        stale: true,
+        requestedDate: date,
+      });
+      return;
     }
   }
 
-  res.json({ date, locale, stories });
+  res.status(404).json({ error: 'No stories generated for today yet', date, locale });
 });
 
 /**
@@ -52,17 +74,10 @@ router.get('/:date', async (req, res) => {
     return;
   }
 
-  const data = await loadStories(date);
-  if (!data) {
+  const stories = await loadStoriesForLocale(date, locale);
+  if (!stories) {
     res.status(404).json({ error: `No stories found for ${date}` });
     return;
-  }
-
-  const stories: GeneratedSleepcast[] = [];
-  for (const themeStories of Object.values(data.stories)) {
-    if (themeStories[locale]) {
-      stories.push(themeStories[locale]);
-    }
   }
 
   res.json({ date, locale, stories });

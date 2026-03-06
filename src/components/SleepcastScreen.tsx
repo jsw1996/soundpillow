@@ -136,7 +136,7 @@ function SceneBackdrop({ theme }: { theme: SleepcastTheme }) {
 
       <div className="sleepcast-noise absolute inset-0" />
       <div className="sleepcast-vignette absolute inset-0" />
-      <AmbientParticles count={8} minLeft={8} maxLeft={92} minSize={3} maxSize={7} minDuration={10} maxDuration={20} maxDelay={8} />
+      <AmbientParticles count={5} minLeft={12} maxLeft={88} minSize={3} maxSize={6} minDuration={12} maxDuration={22} maxDelay={8} />
     </div>
   );
 }
@@ -174,7 +174,7 @@ function LoadingView({ theme }: { theme: SleepcastTheme }) {
               transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
               style={{ background: `radial-gradient(circle, ${visual.halo} 0%, transparent 72%)` }}
             />
-            <div className="relative flex h-28 w-28 items-center justify-center rounded-full border border-white/12 bg-white/6 backdrop-blur-2xl">
+            <div className="relative flex h-28 w-28 items-center justify-center rounded-full border border-white/10 bg-black/30">
               <Loader2 size={30} className="animate-spin" style={{ color: visual.accent }} />
             </div>
           </div>
@@ -257,13 +257,13 @@ function PlaybackView({
         }}
       >
         <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3 py-1.5 backdrop-blur-xl">
+          <div className="sleepcast-chip flex items-center gap-2 rounded-full px-3 py-1.5">
             <Sparkles size={12} style={{ color: visual.accent }} />
             <span className="text-[10px] font-bold uppercase tracking-[0.26em] text-white/58">
               {t('sleepcast')}
             </span>
           </div>
-          <div className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/52 backdrop-blur-xl">
+          <div className="sleepcast-chip rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/52">
             {Math.max(activeParagraph + 1, 1)} / {cast.paragraphs.length}
           </div>
         </div>
@@ -277,7 +277,7 @@ function PlaybackView({
           </h1>
         </div>
 
-        <div className="sleepcast-reading-shell relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2rem] border border-white/8 bg-white/7 p-3">
+        <div className="sleepcast-reading-shell relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2rem] border border-white/8 p-3">
           <div
             ref={scrollContainerRef}
             className="no-scrollbar flex-1 overflow-y-auto px-1 py-1"
@@ -304,9 +304,9 @@ function PlaybackView({
                     style={{
                       borderColor: isActive ? visual.rim : 'rgba(255,255,255,0.06)',
                       background: isActive
-                        ? `linear-gradient(135deg, ${visual.shadow} 0%, rgba(255,255,255,0.07) 100%)`
-                        : 'rgba(255,255,255,0.03)',
-                      boxShadow: isActive ? `0 20px 50px ${visual.shadow}` : 'none',
+                        ? `linear-gradient(135deg, ${visual.shadow} 0%, rgba(255,255,255,0.04) 100%)`
+                        : 'rgba(255,255,255,0.015)',
+                      boxShadow: isActive ? `0 14px 34px ${visual.shadow}` : 'none',
                     }}
                   >
                     <div className="flex gap-3">
@@ -335,7 +335,7 @@ function PlaybackView({
           </div>
         </div>
 
-        <div className="sleepcast-control-dock mt-4 rounded-[1.8rem] border border-white/8 bg-white/7 px-4 pb-4 pt-3">
+        <div className="sleepcast-control-dock mt-4 rounded-[1.8rem] border border-white/8 px-4 pb-4 pt-3">
           <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.22em] text-white/42">
             <span>{getThemeName(t, theme)}</span>
             <span>{cast.paragraphs.length} {t('sleepcastParagraphs')}</span>
@@ -356,12 +356,12 @@ function PlaybackView({
           <div className="mt-4 flex items-center justify-center gap-5">
             <button
               onClick={onStop}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/6 text-white/70 transition-all active:scale-90"
+              className="sleepcast-chip flex h-12 w-12 items-center justify-center rounded-full text-white/70 transition-all active:scale-90"
               type="button"
             >
               <Square size={18} fill="currentColor" />
             </button>
-            <PlayPauseButton isPlaying={status === 'playing'} onToggle={onTogglePlay} iconSize={28} />
+            <PlayPauseButton isPlaying={status === 'playing'} onToggle={onTogglePlay} iconSize={28} variant="solid" />
             <div className="w-12" />
           </div>
         </div>
@@ -436,11 +436,11 @@ function ThemeGrid({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <div className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/50 backdrop-blur-xl">
+            <div className="sleepcast-chip rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/50">
               {formattedDate}
             </div>
             {!isConfigured && (
-              <div className="flex items-center gap-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 backdrop-blur-xl">
+              <div className="flex items-center gap-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5">
                 <WifiOff size={11} className="text-amber-300" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-100">
                   {t('sleepcastOffline')}
@@ -451,7 +451,7 @@ function ThemeGrid({
               <button
                 onClick={onRetry}
                 disabled={storiesLoading}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/8 text-white/65 transition-all active:scale-90 disabled:opacity-40"
+                className="sleepcast-chip flex h-10 w-10 items-center justify-center rounded-full text-white/65 transition-all active:scale-90 disabled:opacity-40"
                 type="button"
               >
                 <RefreshCw size={14} className={storiesLoading ? 'animate-spin' : ''} />
@@ -509,14 +509,14 @@ function ThemeGrid({
             />
 
             <div className="absolute left-5 right-5 top-5 z-10 flex items-start justify-between gap-3">
-              <div className="rounded-full border border-white/12 bg-black/18 px-3 py-1.5 backdrop-blur-xl">
+              <div className="sleepcast-chip rounded-full px-3 py-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/65">
                   {t('sleepcast')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 {activeStory && (
-                  <div className="flex items-center gap-1.5 rounded-full border border-white/12 bg-black/18 px-3 py-1.5 backdrop-blur-xl">
+                  <div className="sleepcast-chip flex items-center gap-1.5 rounded-full px-3 py-1.5">
                     <span className="h-2 w-2 rounded-full" style={{ background: visual.accent }} />
                     <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/72">
                       {t('sleepcastReady')}
@@ -548,11 +548,11 @@ function ThemeGrid({
                     className="absolute inset-[-10px] rounded-full blur-2xl"
                     style={{ background: `radial-gradient(circle, ${visual.halo} 0%, transparent 72%)` }}
                   />
-                  <div className="relative flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full liquid-glass-play text-white">
+                  <div className="relative flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full border border-white/10 bg-white text-[#10131d] shadow-[0_18px_36px_rgba(0,0,0,0.28)]">
                     {storiesLoading ? (
-                      <Loader2 size={28} className="animate-spin" />
+                      <Loader2 size={26} className="animate-spin" />
                     ) : (
-                      <Play size={28} fill="currentColor" className="ml-1" />
+                      <Play size={26} fill="currentColor" className="ml-1" />
                     )}
                   </div>
                 </div>
@@ -560,7 +560,7 @@ function ThemeGrid({
             </div>
           </motion.button>
 
-          <div className="sleepcast-gallery-shell mt-5 rounded-[2rem] border border-white/8 bg-white/6 p-4">
+          <div className="sleepcast-gallery-shell mt-5 rounded-[2rem] border border-white/8 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-white/42">
@@ -570,7 +570,7 @@ function ThemeGrid({
                   {t('sleepcastStoriesReady', { count: dailyStories.length })}
                 </p>
               </div>
-              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/42">
+              <div className="sleepcast-chip rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/42">
                 {activeIdx + 1} / {SLEEPCAST_THEMES.length}
               </div>
             </div>
@@ -666,7 +666,7 @@ function ErrorView({
       <SceneBackdrop theme={theme} />
 
       <div className="relative z-10 flex flex-1 items-center justify-center px-6">
-        <div className="sleepcast-gallery-shell w-full max-w-sm rounded-[2rem] border border-white/8 bg-white/7 p-8 text-center">
+        <div className="sleepcast-gallery-shell w-full max-w-sm rounded-[2rem] border border-white/8 p-8 text-center">
           <div
             className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-red-400/20 bg-red-400/10"
           >

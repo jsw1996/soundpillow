@@ -7,9 +7,25 @@ function getFilePath(date: string): string {
   return path.join(config.dataDir, `${date}.json`);
 }
 
-/** Get today's date string in YYYY-MM-DD format */
+function formatUtcDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+/** Get a UTC date string offset by N days from now in YYYY-MM-DD format */
+export function dateWithOffset(offsetDays: number): string {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  return formatUtcDate(date);
+}
+
+/** Get today's UTC date string in YYYY-MM-DD format */
 export function todayDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return dateWithOffset(0);
+}
+
+/** Get tomorrow's UTC date string in YYYY-MM-DD format */
+export function tomorrowDate(): string {
+  return dateWithOffset(1);
 }
 
 /** Ensure the data directory exists */

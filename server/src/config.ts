@@ -3,8 +3,8 @@ import 'dotenv/config';
 export const config = {
   port: parseInt(process.env.PORT || '3001', 10),
   openRouterApiKey: process.env.OPENROUTER_API_KEY || '',
-  /** Cron expression for daily generation (default: 4:00 AM UTC) */
-  cronSchedule: process.env.CRON_SCHEDULE || '0 4 * * *',
+  /** Cron expression for pre-generating the next UTC day (default: 8:00 PM UTC) */
+  cronSchedule: process.env.CRON_SCHEDULE || '0 20 * * *',
   /** Directory to store generated story JSON files */
   dataDir: process.env.DATA_DIR || 'data/stories',
   /** Comma-separated locales to pre-generate */

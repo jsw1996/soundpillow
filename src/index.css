@@ -1,8 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Noto+Serif+JP:wght@500;600;700&family=Noto+Serif+SC:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", "Noto Serif SC", "Noto Serif JP", serif;
 
   --color-primary: #9B7ED8;
   --color-bg-dark: #1e1c23;
@@ -216,6 +217,44 @@
   :root[data-theme="light"] .ambient-bg::before,
   :root[data-theme="light"] .ambient-bg::after {
     opacity: 0.08;
+  }
+
+  .sleepcast-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.045em;
+  }
+
+  .sleepcast-noise {
+    background-image:
+      radial-gradient(circle at 20% 18%, rgba(255,255,255,0.05) 0%, transparent 22%),
+      radial-gradient(circle at 82% 4%, rgba(255,255,255,0.04) 0%, transparent 16%),
+      radial-gradient(circle at 50% 72%, rgba(255,255,255,0.025) 0%, transparent 26%),
+      linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.14) 100%);
+    mix-blend-mode: screen;
+  }
+
+  .sleepcast-vignette {
+    background:
+      radial-gradient(circle at top, rgba(255,255,255,0.05) 0%, transparent 30%),
+      linear-gradient(180deg, rgba(5,8,16,0.16) 0%, rgba(5,8,16,0.35) 42%, rgba(5,8,16,0.88) 100%);
+  }
+
+  .sleepcast-stage-card {
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.32),
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  .sleepcast-gallery-shell,
+  .sleepcast-reading-shell,
+  .sleepcast-control-dock {
+    backdrop-filter: blur(26px) saturate(145%);
+    -webkit-backdrop-filter: blur(26px) saturate(145%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      0 24px 60px rgba(0,0,0,0.2);
   }
 }
 

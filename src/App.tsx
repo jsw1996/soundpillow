@@ -135,6 +135,8 @@ function AppContent() {
 
   // Memoize allMixes to avoid recreating on every render
   const allMixes = useMemo(() => [...DEFAULT_MIXES, ...mixPresets], [mixPresets]);
+  const isSleepcastShowcase = currentScreen === 'sleepcast'
+    && (sleepcast.status === 'idle' || sleepcast.status === 'ready');
 
   const handleMixSkipNext = useCallback(() => {
     if (allMixes.length === 0 || !activeMix) return;
@@ -224,12 +226,14 @@ function AppContent() {
   };
 
   return (
-    <div className="max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden bg-bg-dark">
-      {currentScreen !== 'home' && <div className="ambient-bg" />}
+    <div className={`max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden ${
+      isSleepcastShowcase ? 'bg-[#edf0f4]' : 'bg-bg-dark'
+    }`}>
+      {currentScreen !== 'home' && !isSleepcastShowcase && <div className="ambient-bg" />}
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>
-      {hasEverPlayed && sleepcast.status === 'idle' && (
+      {hasEverPlayed && sleepcast.status === 'idle' && currentScreen !== 'sleepcast' && (
         <MiniPlayer
           track={player.currentTrack}
           isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}

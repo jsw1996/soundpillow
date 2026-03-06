@@ -21,7 +21,11 @@ import { screenTransition } from '../utils/animations';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, SUPPORTED_LOCALES } from '../i18n';
 import { TRACKS } from '../constants';
+import { MOODS } from '../data/moodMessages';
 import { formatTotalTime } from '../utils/time';
+import { loadMoodHistory } from '../utils/mood';
+
+const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((mood) => [mood.level, mood.emoji]));
 
 export function ProfileScreen() {
   const { settings, updateSettings, stats, resetStats, favorites, streakStats, getWeekEntries } = useAppContext();
@@ -41,6 +45,7 @@ export function ProfileScreen() {
     : null;
 
   const weekEntries = getWeekEntries();
+  const weekMoods = new Map(loadMoodHistory().map((entry) => [entry.date, entry]));
 
   return (
     <motion.div
@@ -98,6 +103,7 @@ export function ProfileScreen() {
           <div className="grid grid-cols-7 gap-1">
             {[t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'), t('dayFri'), t('daySat'), t('daySun')].map((day, i) => {
               const entry = weekEntries[i];
+              const mood = entry ? weekMoods.get(entry.id) : null;
               const isToday = i === ((new Date().getDay() + 6) % 7);
               return (
                 <div key={i} className="text-center space-y-2">
@@ -114,7 +120,13 @@ export function ProfileScreen() {
                     }`}
                   >
                     {entry ? (
-                      <Moon size={14} fill="currentColor" />
+                      mood ? (
+                        <span className="text-base leading-none">
+                          {MOOD_EMOJI_BY_LEVEL[mood.mood]}
+                        </span>
+                      ) : (
+                        <Moon size={14} fill="currentColor" />
+                      )
                     ) : (
                       <span className="text-[10px]">--</span>
                     )}

@@ -1,21 +1,18 @@
 import { useState, useCallback, useRef } from 'react';
-import type { MoodEntry, MoodLevel } from '../types';
-import { getMoodMessage } from '../data/moodMessages';
+import type { MoodEntry } from '../types';
 import { getDateString } from '../utils/date';
+import { getMoodEntryForDate, saveMoodEntry } from '../utils/mood';
 
-const MOOD_KEY = 'sleepyhub-mood-card';
 const DISMISSED_KEY = 'sleepyhub-mood-dismissed';
 
 function computeInitialState(): { shouldShow: boolean; todayMood: MoodEntry | null } {
   const today = getDateString();
   try {
-    const stored = localStorage.getItem(MOOD_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored) as MoodEntry;
-      if (parsed.date === today) {
-        return { shouldShow: false, todayMood: parsed };
-      }
+    const todayMood = getMoodEntryForDate(today);
+    if (todayMood) {
+      return { shouldShow: false, todayMood };
     }
+
     const dismissed = localStorage.getItem(DISMISSED_KEY);
     if (dismissed === today) return { shouldShow: false, todayMood: null };
   } catch {
@@ -29,14 +26,9 @@ export function useMoodCard() {
   const [todayMood, setTodayMood] = useState<MoodEntry | null>(initial.todayMood);
   const [shouldShow, setShouldShow] = useState<boolean>(initial.shouldShow);
 
-  const saveMood = useCallback((mood: MoodLevel, locale: string) => {
-    const entry: MoodEntry = {
-      date: getDateString(),
-      mood,
-      message: getMoodMessage(mood, locale),
-    };
+  const saveMood = useCallback((entry: MoodEntry) => {
     try {
-      localStorage.setItem(MOOD_KEY, JSON.stringify(entry));
+      saveMoodEntry(entry);
     } catch {
       // storage full — still update state
     }

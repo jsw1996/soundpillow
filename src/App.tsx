@@ -242,7 +242,7 @@ function AppContent() {
       <AnimatePresence>
         {moodCard.shouldShow && (
           <MoodCheckIn
-            onComplete={(entry) => moodCard.saveMood(entry.mood, locale)}
+            onComplete={moodCard.saveMood}
             onDismiss={moodCard.dismiss}
           />
         )}

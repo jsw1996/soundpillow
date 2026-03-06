@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
-  ChevronRight,
   Loader2,
+  Plus,
   RefreshCw,
   Sparkles,
   Square,
@@ -36,59 +36,102 @@ interface SceneVisual {
   halo: string;
   haze: string;
   shadow: string;
+  card: string;
+  cardInk: string;
+  sticker: string;
+  stickerInk: string;
 }
 
+type ThemeFilter = 'all' | 'ready' | 'generate' | 'offline';
+
 const DEFAULT_VISUAL: SceneVisual = {
-  accent: '#9B7ED8',
-  rim: 'rgba(155, 126, 216, 0.22)',
-  halo: 'rgba(155, 126, 216, 0.22)',
-  haze: 'rgba(88, 58, 156, 0.12)',
-  shadow: 'rgba(15, 23, 42, 0.24)',
+  accent: '#7A63D4',
+  rim: 'rgba(122, 99, 212, 0.18)',
+  halo: 'rgba(122, 99, 212, 0.20)',
+  haze: 'rgba(255, 208, 129, 0.18)',
+  shadow: 'rgba(40, 34, 82, 0.22)',
+  card: 'linear-gradient(135deg, #f4df6b 0%, #f2c94c 100%)',
+  cardInk: '#6d3600',
+  sticker: '#ffffff',
+  stickerInk: '#17181c',
 };
 
 const SCENE_VISUALS: Record<string, SceneVisual> = {
   'cabin-rain': {
-    accent: '#A1C1E6',
-    rim: 'rgba(161, 193, 230, 0.28)',
-    halo: 'rgba(98, 151, 207, 0.24)',
-    haze: 'rgba(230, 171, 103, 0.14)',
-    shadow: 'rgba(14, 24, 40, 0.24)',
+    accent: '#7e5d46',
+    rim: 'rgba(126, 93, 70, 0.18)',
+    halo: 'rgba(126, 93, 70, 0.16)',
+    haze: 'rgba(255, 210, 145, 0.18)',
+    shadow: 'rgba(67, 42, 24, 0.22)',
+    card: 'linear-gradient(135deg, #f4dd53 0%, #f1bf10 100%)',
+    cardInk: '#86411d',
+    sticker: '#ffffff',
+    stickerInk: '#3a2415',
   },
   'ocean-voyage': {
-    accent: '#76D5E8',
-    rim: 'rgba(118, 213, 232, 0.28)',
-    halo: 'rgba(63, 167, 209, 0.22)',
-    haze: 'rgba(197, 229, 248, 0.16)',
-    shadow: 'rgba(6, 21, 39, 0.24)',
+    accent: '#3b8fbb',
+    rim: 'rgba(59, 143, 187, 0.18)',
+    halo: 'rgba(59, 143, 187, 0.16)',
+    haze: 'rgba(220, 241, 251, 0.20)',
+    shadow: 'rgba(20, 58, 90, 0.22)',
+    card: 'linear-gradient(135deg, #74d2f2 0%, #3a89c9 100%)',
+    cardInk: '#0f3652',
+    sticker: '#fefefe',
+    stickerInk: '#173c56',
   },
   'enchanted-forest': {
-    accent: '#74D39D',
-    rim: 'rgba(116, 211, 157, 0.26)',
-    halo: 'rgba(86, 183, 120, 0.22)',
-    haze: 'rgba(195, 255, 214, 0.14)',
-    shadow: 'rgba(8, 24, 19, 0.22)',
+    accent: '#4c9867',
+    rim: 'rgba(76, 152, 103, 0.18)',
+    halo: 'rgba(76, 152, 103, 0.16)',
+    haze: 'rgba(214, 250, 221, 0.18)',
+    shadow: 'rgba(27, 68, 40, 0.22)',
+    card: 'linear-gradient(135deg, #89da83 0%, #3e8e64 100%)',
+    cardInk: '#133f2b',
+    sticker: '#fff8ed',
+    stickerInk: '#224d38',
   },
   'zen-garden': {
-    accent: '#E4C8A7',
-    rim: 'rgba(228, 200, 167, 0.26)',
-    halo: 'rgba(226, 181, 126, 0.2)',
-    haze: 'rgba(189, 223, 190, 0.16)',
-    shadow: 'rgba(24, 18, 14, 0.22)',
+    accent: '#b78453',
+    rim: 'rgba(183, 132, 83, 0.18)',
+    halo: 'rgba(183, 132, 83, 0.16)',
+    haze: 'rgba(242, 230, 214, 0.18)',
+    shadow: 'rgba(92, 58, 24, 0.2)',
+    card: 'linear-gradient(135deg, #edd5b4 0%, #c89f77 100%)',
+    cardInk: '#68472a',
+    sticker: '#fffaf2',
+    stickerInk: '#62452b',
   },
   stargazing: {
-    accent: '#B6C5FF',
-    rim: 'rgba(182, 197, 255, 0.28)',
-    halo: 'rgba(126, 154, 255, 0.22)',
-    haze: 'rgba(255, 234, 164, 0.16)',
-    shadow: 'rgba(8, 12, 34, 0.24)',
+    accent: '#536fda',
+    rim: 'rgba(83, 111, 218, 0.18)',
+    halo: 'rgba(83, 111, 218, 0.16)',
+    haze: 'rgba(232, 237, 255, 0.20)',
+    shadow: 'rgba(24, 31, 72, 0.24)',
+    card: 'linear-gradient(135deg, #1d2237 0%, #060913 100%)',
+    cardInk: '#eef1ff',
+    sticker: '#f7f7fb',
+    stickerInk: '#171c33',
   },
   'snow-lodge': {
-    accent: '#E9F0FF',
-    rim: 'rgba(233, 240, 255, 0.28)',
-    halo: 'rgba(173, 204, 255, 0.18)',
-    haze: 'rgba(255, 204, 138, 0.14)',
-    shadow: 'rgba(15, 20, 34, 0.24)',
+    accent: '#8f9fc6',
+    rim: 'rgba(143, 159, 198, 0.18)',
+    halo: 'rgba(143, 159, 198, 0.16)',
+    haze: 'rgba(255, 255, 255, 0.24)',
+    shadow: 'rgba(34, 46, 77, 0.2)',
+    card: 'linear-gradient(135deg, #dde7f8 0%, #bac7de 100%)',
+    cardInk: '#30415f',
+    sticker: '#ffffff',
+    stickerInk: '#324869',
   },
+};
+
+const THEME_EMOJIS: Record<string, string[]> = {
+  'cabin-rain': ['🔥', '🌧️', '🪵'],
+  'ocean-voyage': ['🌊', '⛵️', '💫'],
+  'enchanted-forest': ['🌿', '🪲', '✨'],
+  'zen-garden': ['🍵', '🪨', '🌸'],
+  stargazing: ['🌙', '⭐️', '🛸'],
+  'snow-lodge': ['❄️', '☕️', '🧣'],
 };
 
 function getSceneVisual(themeId: string): SceneVisual {
@@ -101,29 +144,54 @@ function getThemeName(t: ReturnType<typeof useTranslation>['t'], theme: Sleepcas
 
 function getThemeSummary(theme: SleepcastTheme) {
   const firstSentence = theme.prompt.replace(/\s+/g, ' ').split('. ')[0]?.trim() ?? theme.prompt;
-  return firstSentence.length > 92 ? `${firstSentence.slice(0, 89)}...` : firstSentence;
+  return firstSentence.length > 96 ? `${firstSentence.slice(0, 93)}...` : firstSentence;
 }
 
-function DaylightBackdrop({ theme }: { theme: SleepcastTheme }) {
+function formatCardDate(timestamp: number) {
+  const date = new Date(timestamp);
+  const day = String(date.getDate()).padStart(2, '0');
+  const stamp = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+  return { day, stamp };
+}
+
+function getFilterLabel(t: ReturnType<typeof useTranslation>['t'], filter: ThemeFilter) {
+  switch (filter) {
+    case 'ready':
+      return t('sleepcastFilterReady');
+    case 'generate':
+      return t('sleepcastFilterGenerate');
+    case 'offline':
+      return t('sleepcastFilterOffline');
+    default:
+      return t('sleepcastFilterAll');
+  }
+}
+
+function PaperBackdrop({ theme }: { theme: SleepcastTheme }) {
   const visual = getSceneVisual(theme.id);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="sleepcast-daylight-bg absolute inset-0" />
-      <motion.div
-        className="absolute -right-20 top-[-4rem] h-72 w-72 rounded-full blur-3xl"
-        animate={{ x: [0, 18, -4, 0], y: [0, 10, -14, 0], scale: [1, 1.06, 0.98, 1] }}
-        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ background: `radial-gradient(circle, ${visual.halo} 0%, transparent 72%)` }}
-      />
-      <motion.div
-        className="absolute -left-24 bottom-[-5rem] h-80 w-80 rounded-full blur-3xl"
-        animate={{ x: [0, -14, 8, 0], y: [0, -16, 12, 0], scale: [1, 0.95, 1.04, 1] }}
-        transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#f8f1d7_0%,#f7f2e6_44%,#fff8f0_100%)]" />
+      <div
+        className="absolute inset-x-6 top-28 h-40 rounded-[3rem] opacity-70 blur-3xl"
         style={{ background: `radial-gradient(circle, ${visual.haze} 0%, transparent 72%)` }}
       />
-      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/45 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-white/28 to-transparent" />
+      <div
+        className="absolute -right-12 top-36 h-44 w-44 rounded-full blur-3xl"
+        style={{ background: `radial-gradient(circle, ${visual.halo} 0%, transparent 72%)` }}
+      />
+      <div
+        className="absolute -left-10 bottom-32 h-48 w-48 rounded-full blur-3xl"
+        style={{ background: `radial-gradient(circle, ${visual.rim} 0%, transparent 72%)` }}
+      />
+      <div className="absolute inset-x-5 top-[11.75rem] h-px bg-black/5" />
+      <div className="absolute right-8 top-[20rem] grid grid-cols-6 gap-2 opacity-25">
+        {Array.from({ length: 24 }).map((_, index) => (
+          <span key={index} className="h-1 w-1 rounded-full bg-black/20" />
+        ))}
+      </div>
     </div>
   );
 }
@@ -138,12 +206,12 @@ function ScreenFrame({
   bottomPadding?: string;
 }) {
   return (
-    <div className="relative flex flex-1 flex-col overflow-hidden bg-[#edf0f4] text-[#17181c]">
-      <DaylightBackdrop theme={theme} />
+    <div className="relative flex flex-1 flex-col overflow-hidden bg-[#fbf5ea] text-[#17181c]">
+      <PaperBackdrop theme={theme} />
       <div
         className="relative z-10 flex flex-1 flex-col px-5"
         style={{
-          paddingTop: 'max(1.25rem, env(safe-area-inset-top))',
+          paddingTop: 'max(1rem, env(safe-area-inset-top))',
           paddingBottom: bottomPadding,
         }}
       >
@@ -153,75 +221,130 @@ function ScreenFrame({
   );
 }
 
-/** Loading view shown while fetching story from server */
+function HeaderBadge({ imageUrl }: { imageUrl: string }) {
+  return (
+    <div className="relative h-[4.4rem] w-[4.4rem] overflow-hidden rounded-[1.15rem] border border-white/70 bg-white shadow-[0_14px_30px_rgba(23,24,28,0.09)]">
+      <img
+        src={imageUrl}
+        alt=""
+        className="h-full w-full object-cover"
+        referrerPolicy="no-referrer"
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10" />
+    </div>
+  );
+}
+
+function ThemeArtwork({
+  theme,
+  visual,
+  title,
+  statusLabel,
+}: {
+  theme: SleepcastTheme;
+  visual: SceneVisual;
+  title: string;
+  statusLabel: string;
+}) {
+  return (
+    <div className="pointer-events-none absolute inset-y-0 right-0 flex w-[42%] items-center justify-center">
+      <div className="relative h-[82%] w-full">
+        <div
+          className="absolute right-[10%] top-[18%] h-24 w-24 rounded-full opacity-90 shadow-[0_20px_44px_rgba(0,0,0,0.24)]"
+          style={{
+            background: 'radial-gradient(circle at 34% 34%, rgba(255,255,255,0.15), rgba(0,0,0,0.92) 70%)',
+          }}
+        />
+        <div className="absolute left-[6%] top-[10%] h-28 w-24 -rotate-[14deg] overflow-hidden rounded-[1rem] bg-[#17181c] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
+          <img
+            src={theme.imageUrl}
+            alt=""
+            className="h-full w-full object-cover opacity-88"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/58" />
+          <div className="absolute inset-x-2 bottom-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/88">
+            {title.slice(0, 10)}
+          </div>
+        </div>
+        <div className="absolute left-[24%] top-[30%] h-28 w-24 rotate-[10deg] overflow-hidden rounded-[1rem] bg-white shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
+          <img
+            src={theme.imageUrl}
+            alt=""
+            className="h-full w-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/8 via-transparent to-black/32" />
+        </div>
+        <div
+          className="absolute left-[18%] top-[60%] rotate-[-10deg] rounded-[0.95rem] px-4 py-3 text-sm font-black uppercase tracking-[0.05em] shadow-[0_18px_34px_rgba(0,0,0,0.16)]"
+          style={{ background: visual.sticker, color: visual.stickerInk }}
+        >
+          {statusLabel}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LoadingView({ theme }: { theme: SleepcastTheme }) {
   const { t } = useTranslation();
   const visual = getSceneVisual(theme.id);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-1 flex-col"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 flex-col">
       <ScreenFrame theme={theme}>
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-black/34">
-              {t('sleepcastAiPowered')}
-            </p>
-            <h1 className="mt-2 text-[1.95rem] font-semibold tracking-[-0.045em] text-[#17181c]">
-              {getThemeName(t, theme)}
-            </h1>
-          </div>
-          <div className="sleepcast-frost-card flex h-11 w-11 items-center justify-center rounded-full">
-            <Sparkles size={18} style={{ color: visual.accent }} />
+        <div className="flex items-center justify-between">
+          <HeaderBadge imageUrl={theme.imageUrl} />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-black/8 bg-white/65 shadow-[0_10px_24px_rgba(23,24,28,0.08)] backdrop-blur-md">
+            <Sparkles size={22} style={{ color: visual.accent }} />
           </div>
         </div>
 
-        <div className="mt-6 rounded-[2rem] p-2 sleepcast-frost-card">
-          <div className="relative h-[18.5rem] overflow-hidden rounded-[1.6rem]">
-            <img
-              src={theme.imageUrl}
-              alt={getThemeName(t, theme)}
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/18 to-black/74" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full border border-white/28 bg-white/18 backdrop-blur-xl">
-                <Loader2 size={30} className="animate-spin" style={{ color: visual.accent }} />
-              </div>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/58">
+        <div className="mt-8 max-w-[16rem]">
+          <p className="text-sm font-medium text-black/45">{t('sleepcastGreetingSubline')}</p>
+          <h1 className="mt-3 text-[3.1rem] font-black italic leading-[0.9] tracking-[-0.08em] text-[#111217]">
+            {t('sleepcastTraceTitle')}
+            <span className="ml-2 align-top text-[2rem] not-italic">✨</span>
+          </h1>
+        </div>
+
+        <div
+          className="mt-8 rounded-[2.25rem] p-5"
+          style={{ background: visual.card, boxShadow: `0 24px 50px ${visual.shadow}` }}
+        >
+          <div className="relative min-h-[17.5rem] overflow-hidden rounded-[1.7rem] bg-black/6 px-5 py-5">
+            <div className="relative z-10 max-w-[12rem]">
+              <div className="text-[11px] font-black uppercase tracking-[0.02em] opacity-55" style={{ color: visual.cardInk }}>
                 {t('sleepcastGenerating')}
-              </p>
-              <h2 className="mt-2 text-[2rem] font-semibold leading-[0.96] tracking-[-0.045em] text-white">
-                {t('sleepcastTitle')}
+              </div>
+              <h2 className="mt-4 text-[2.3rem] font-black leading-[0.92] tracking-[-0.06em]" style={{ color: visual.cardInk }}>
+                {getThemeName(t, theme)}
               </h2>
+              <p className="mt-3 text-sm leading-6 opacity-75" style={{ color: visual.cardInk }}>
+                {t('sleepcastGeneratingDesc')}
+              </p>
             </div>
-          </div>
-        </div>
 
-        <div className="mt-5 rounded-[2rem] p-6 text-center sleepcast-frost-card">
-          <p className="text-sm leading-relaxed text-black/56">
-            {t('sleepcastGeneratingDesc')}
-          </p>
-          <div className="mt-5 flex items-center justify-center gap-2">
-            {[0, 1, 2, 3].map((index) => (
-              <motion.span
-                key={index}
-                className="rounded-full"
-                animate={{ height: [8, 24, 8], opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 1.1, repeat: Infinity, delay: index * 0.12 }}
-                style={{
-                  width: 5,
-                  background: visual.accent,
-                  boxShadow: `0 0 16px ${visual.halo}`,
-                }}
-              />
-            ))}
+            <ThemeArtwork
+              theme={theme}
+              visual={visual}
+              title={getThemeName(t, theme)}
+              statusLabel={t('sleepcastGenerating')}
+            />
+
+            <div className="relative z-10 mt-8 flex items-end gap-2">
+              {[0, 1, 2, 3].map((index) => (
+                <motion.span
+                  key={index}
+                  className="w-2.5 rounded-full"
+                  animate={{ height: [8, 30, 10], opacity: [0.32, 1, 0.42] }}
+                  transition={{ duration: 1.1, repeat: Infinity, delay: index * 0.12 }}
+                  style={{ background: visual.cardInk }}
+                />
+              ))}
+              <Loader2 size={18} className="ml-3 animate-spin" style={{ color: visual.cardInk }} />
+            </div>
           </div>
         </div>
       </ScreenFrame>
@@ -229,7 +352,6 @@ function LoadingView({ theme }: { theme: SleepcastTheme }) {
   );
 }
 
-/** Active narration playback view */
 function PlaybackView({
   cast,
   theme,
@@ -260,135 +382,73 @@ function PlaybackView({
   }, [activeParagraph]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-1 flex-col"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 flex-col">
       <ScreenFrame theme={theme}>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <div className="sleepcast-frost-card rounded-full px-3 py-2 text-[11px] font-semibold tracking-[0.08em] text-black/58">
-              {getThemeName(t, theme)}
-            </div>
-            <div className="sleepcast-frost-card rounded-full px-3 py-2 text-[11px] font-semibold text-black/44">
-              {Math.max(activeParagraph + 1, 1)} / {cast.paragraphs.length}
+          <div className="flex items-center gap-3">
+            <HeaderBadge imageUrl={theme.imageUrl} />
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-black/38">
+                {status === 'playing' ? t('sleepcastPlaying') : t('sleepcastPaused')}
+              </p>
+              <p className="mt-1 text-sm text-black/50">{getThemeName(t, theme)}</p>
             </div>
           </div>
+
           <button
             onClick={onStop}
             type="button"
-            className="sleepcast-frost-card flex h-11 w-11 items-center justify-center rounded-full text-[#17181c] transition-transform active:scale-95"
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-black/8 bg-white/65 text-[#17181c] shadow-[0_10px_24px_rgba(23,24,28,0.08)] backdrop-blur-md transition-transform active:scale-95"
           >
-            <Square size={17} fill="currentColor" />
+            <Square size={18} fill="currentColor" />
           </button>
         </div>
 
-        <div className="mt-4 rounded-[2rem] p-2 sleepcast-frost-card">
-          <div className="relative h-52 overflow-hidden rounded-[1.6rem]">
-            <img
-              src={theme.imageUrl}
-              alt={cast.title}
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/8 via-black/16 to-black/72" />
-            <div className="absolute left-4 right-4 top-4">
-              <div className="inline-flex rounded-full border border-white/16 bg-white/14 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white backdrop-blur-md">
-                {status === 'playing' ? t('sleepcastPlaying') : t('sleepcastPaused')}
+        <div
+          className="mt-7 rounded-[2.25rem] p-5"
+          style={{ background: visual.card, boxShadow: `0 24px 50px ${visual.shadow}` }}
+        >
+          <div className="relative min-h-[13.5rem] overflow-hidden rounded-[1.7rem] px-5 py-5">
+            <div className="relative z-10 max-w-[12rem]">
+              <div className="text-[11px] font-black uppercase tracking-[0.02em] opacity-55" style={{ color: visual.cardInk }}>
+                {String(activeParagraph + 1).padStart(2, '0')} / {String(cast.paragraphs.length).padStart(2, '0')}
               </div>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/58">
-                {getThemeName(t, theme)}
-              </p>
-              <h1 className="mt-2 text-[2rem] font-semibold leading-[0.96] tracking-[-0.045em] text-white">
+              <h1 className="mt-4 text-[2.15rem] font-black leading-[0.92] tracking-[-0.06em]" style={{ color: visual.cardInk }}>
                 {cast.title}
               </h1>
+              <p className="mt-3 text-sm leading-6 opacity-72" style={{ color: visual.cardInk }}>
+                {getThemeSummary(theme)}
+              </p>
             </div>
+
+            <ThemeArtwork
+              theme={theme}
+              visual={visual}
+              title={cast.title}
+              statusLabel={status === 'playing' ? t('sleepcastPlaying') : t('sleepcastPaused')}
+            />
           </div>
         </div>
 
-        <div className="mt-4 flex min-h-0 flex-1 flex-col rounded-[2rem] p-4 sleepcast-frost-card">
-          <div className="mb-3 flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-black/36">
-            <span>{status === 'playing' ? t('sleepcastPlaying') : t('sleepcastPaused')}</span>
-            <span>{cast.paragraphs.length} {t('sleepcastParagraphs')}</span>
-          </div>
-
-          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pr-1">
-            <div className="space-y-3 pb-1">
-              {cast.paragraphs.map((paragraph, index) => {
-                const isActive = index === activeParagraph;
-                const isPast = index < activeParagraph;
-
-                return (
-                  <motion.div
-                    key={index}
-                    ref={(node) => {
-                      paragraphRefs.current[index] = node;
-                    }}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{
-                      opacity: isActive ? 1 : isPast ? 0.68 : 0.48,
-                      y: 0,
-                      scale: isActive ? 1 : 0.985,
-                    }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="rounded-[1.45rem] border px-4 py-4"
-                    style={{
-                      borderColor: isActive ? visual.rim : 'rgba(15,23,42,0.06)',
-                      background: isActive
-                        ? 'linear-gradient(135deg, rgba(23,24,28,0.98) 0%, rgba(34,38,46,0.96) 100%)'
-                        : 'rgba(255,255,255,0.72)',
-                      boxShadow: isActive
-                        ? `0 16px 30px ${visual.shadow}`
-                        : '0 10px 22px rgba(15,23,42,0.05)',
-                    }}
-                  >
-                    <div className="flex gap-3">
-                      <span
-                        className="mt-0.5 shrink-0 text-[10px] font-bold uppercase tracking-[0.22em]"
-                        style={{ color: isActive ? visual.accent : 'rgba(23,24,28,0.34)' }}
-                      >
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <p
-                        className={`text-[15px] leading-7 ${
-                          isActive
-                            ? 'font-medium text-white'
-                            : isPast
-                            ? 'text-black/62'
-                            : 'text-black/46'
-                        }`}
-                      >
-                        {paragraph}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="sleepcast-dark-dock mt-4 rounded-[2rem] px-4 py-4 text-white">
-          <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em] text-white/58">
+        <div className="mt-5 rounded-[2rem] border border-black/6 bg-white/70 p-4 shadow-[0_18px_40px_rgba(23,24,28,0.06)] backdrop-blur-md">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.18em] text-black/38">
             <span>{getThemeName(t, theme)}</span>
             <span>{Math.round(progress)}%</span>
           </div>
 
-          <div className="mt-3 overflow-hidden rounded-full bg-white/10">
+          <div className="mt-3 overflow-hidden rounded-full bg-black/8">
             <motion.div
-              className="h-1.5 rounded-full"
+              className="h-2 rounded-full"
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.45 }}
-              style={{
-                background: `linear-gradient(90deg, ${visual.accent} 0%, rgba(255,255,255,0.96) 100%)`,
-              }}
+              style={{ background: `linear-gradient(90deg, ${visual.accent} 0%, rgba(255,255,255,0.96) 100%)` }}
             />
           </div>
 
-          <div className="mt-4 flex items-center justify-center">
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="text-sm text-black/54">
+              {cast.paragraphs.length} {t('sleepcastParagraphs')}
+            </div>
             <PlayPauseButton
               isPlaying={status === 'playing'}
               onToggle={onTogglePlay}
@@ -397,12 +457,57 @@ function PlaybackView({
             />
           </div>
         </div>
+
+        <div className="mt-5 min-h-0 flex-1 overflow-hidden">
+          <div className="no-scrollbar flex h-full flex-col gap-3 overflow-y-auto pb-1">
+            {cast.paragraphs.map((paragraph, index) => {
+              const isActive = index === activeParagraph;
+              const isPast = index < activeParagraph;
+
+              return (
+                <motion.div
+                  key={index}
+                  ref={(node) => {
+                    paragraphRefs.current[index] = node;
+                  }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{
+                    opacity: isActive ? 1 : isPast ? 0.76 : 0.58,
+                    y: 0,
+                    scale: isActive ? 1 : 0.985,
+                  }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  className="rounded-[1.75rem] border px-4 py-4"
+                  style={{
+                    borderColor: isActive ? visual.rim : 'rgba(23,24,28,0.06)',
+                    background: isActive ? '#17181c' : 'rgba(255,255,255,0.76)',
+                    boxShadow: isActive
+                      ? `0 18px 36px ${visual.shadow}`
+                      : '0 14px 30px rgba(23,24,28,0.05)',
+                    transform: isActive ? 'rotate(-1deg)' : isPast ? 'rotate(-0.4deg)' : 'rotate(0.35deg)',
+                  }}
+                >
+                  <div className="flex gap-3">
+                    <span
+                      className="mt-0.5 shrink-0 text-[10px] font-black uppercase tracking-[0.24em]"
+                      style={{ color: isActive ? '#ffffff' : 'rgba(23,24,28,0.34)' }}
+                    >
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <p className={`text-[15px] leading-7 ${isActive ? 'font-medium text-white' : isPast ? 'text-black/64' : 'text-black/48'}`}>
+                      {paragraph}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
       </ScreenFrame>
     </motion.div>
   );
 }
 
-/** Theme selection screen */
 function ThemeGrid({
   onSelect,
   isConfigured,
@@ -417,116 +522,100 @@ function ThemeGrid({
   onRetry?: () => void;
 }) {
   const { t } = useTranslation();
-  const [activeThemeId, setActiveThemeId] = useState(SLEEPCAST_THEMES[0].id);
-  const chipRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const carouselRef = useRef<HTMLDivElement | null>(null);
-  const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const syncingCarouselRef = useRef(false);
+  const [filter, setFilter] = useState<ThemeFilter>('all');
+  const [activeThemeId, setActiveThemeId] = useState(SLEEPCAST_THEMES[0]?.id ?? '');
 
-  const filteredThemes = SLEEPCAST_THEMES;
+  const storiesByTheme = useMemo(
+    () => new Map(dailyStories.map((story) => [story.themeId, story])),
+    [dailyStories],
+  );
+
+  const filteredThemes = useMemo(() => {
+    switch (filter) {
+      case 'ready':
+        return SLEEPCAST_THEMES.filter((theme) => storiesByTheme.has(theme.id));
+      case 'generate':
+        return SLEEPCAST_THEMES.filter((theme) => !storiesByTheme.has(theme.id));
+      case 'offline':
+        return isConfigured ? [] : SLEEPCAST_THEMES;
+      default:
+        return SLEEPCAST_THEMES;
+    }
+  }, [filter, isConfigured, storiesByTheme]);
+
+  useEffect(() => {
+    if (!filteredThemes.some((theme) => theme.id === activeThemeId) && filteredThemes[0]) {
+      setActiveThemeId(filteredThemes[0].id);
+    }
+  }, [activeThemeId, filteredThemes]);
 
   const activeTheme = filteredThemes.find((theme) => theme.id === activeThemeId)
-    ?? filteredThemes[0]
     ?? SLEEPCAST_THEMES.find((theme) => theme.id === activeThemeId)
+    ?? filteredThemes[0]
     ?? SLEEPCAST_THEMES[0];
 
   const storiesReady = dailyStories.length > 0;
-  const activeThemeIndex = filteredThemes.findIndex((theme) => theme.id === activeTheme.id);
-
-  useEffect(() => {
-    const chipIndex = SLEEPCAST_THEMES.findIndex((theme) => theme.id === activeTheme.id);
-    if (chipIndex >= 0) {
-      chipRefs.current[chipIndex]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
-    }
-  }, [activeTheme.id]);
-
-  useEffect(() => {
-    if (syncingCarouselRef.current) {
-      syncingCarouselRef.current = false;
-      return;
-    }
-
-    const cardIndex = filteredThemes.findIndex((theme) => theme.id === activeTheme.id);
-    if (cardIndex >= 0) {
-      cardRefs.current[cardIndex]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
-    }
-  }, [activeTheme.id, filteredThemes]);
-
-  const handleCarouselScroll = () => {
-    const container = carouselRef.current;
-    if (!container || filteredThemes.length === 0) return;
-
-    let nearestIndex = 0;
-    let smallestDelta = Number.POSITIVE_INFINITY;
-
-    cardRefs.current.forEach((node, index) => {
-      if (!node || index >= filteredThemes.length) return;
-      const cardCenter = node.offsetLeft + node.offsetWidth / 2;
-      const containerCenter = container.scrollLeft + container.clientWidth / 2;
-      const delta = Math.abs(cardCenter - containerCenter);
-      if (delta < smallestDelta) {
-        smallestDelta = delta;
-        nearestIndex = index;
-      }
-    });
-
-    const nextId = filteredThemes[nearestIndex]?.id;
-    if (nextId && nextId !== activeThemeId) {
-      syncingCarouselRef.current = true;
-      setActiveThemeId(nextId);
-    }
-  };
+  const filters: ThemeFilter[] = isConfigured
+    ? ['all', 'ready', 'generate']
+    : ['all', 'offline', 'generate'];
 
   return (
-    <motion.div
-      {...screenTransition}
-      className="flex flex-1 flex-col"
-    >
-      <ScreenFrame
-        theme={activeTheme}
-        bottomPadding="calc(7rem + env(safe-area-inset-bottom))"
-      >
+    <motion.div {...screenTransition} className="flex flex-1 flex-col">
+      <ScreenFrame theme={activeTheme} bottomPadding="calc(6rem + env(safe-area-inset-bottom))">
         <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[1.85rem] font-semibold leading-none tracking-[-0.05em] text-[#17181c]">
-              {t('sleepcastGreeting')}
-            </p>
-            <p className="mt-1 text-sm text-black/46">
-              {t('sleepcastGreetingSubline')}
-            </p>
-          </div>
+          <HeaderBadge imageUrl={activeTheme.imageUrl} />
+          <button
+            type="button"
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-black/8 bg-white/65 text-[#17181c] shadow-[0_10px_24px_rgba(23,24,28,0.08)] backdrop-blur-md transition-transform active:scale-95"
+            aria-label={t('sleepcast')}
+          >
+            <Plus size={24} />
+          </button>
+        </div>
 
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/70 shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
-            <img
-              src={activeTheme.imageUrl}
-              alt={getThemeName(t, activeTheme)}
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20" />
+        <div className="mt-8 max-w-[16rem]">
+          <p className="text-sm font-medium text-black/45">{t('sleepcastCollectionLabel')}</p>
+          <h1 className="mt-3 text-[3.25rem] font-black italic leading-[0.9] tracking-[-0.08em] text-[#111217]">
+            {t('sleepcastTraceTitle')}
+            <span className="ml-2 align-top text-[2rem] not-italic">✨</span>
+          </h1>
+        </div>
+
+        <div className="mt-7 -mx-1 overflow-x-auto pb-1">
+          <div className="flex min-w-max gap-3 px-1">
+            {filters.map((item) => {
+              const isActive = filter === item;
+
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setFilter(item)}
+                  className={`rounded-full border px-5 py-3 text-base font-semibold transition-all ${
+                    isActive
+                      ? 'border-black bg-[#111217] text-white shadow-[0_12px_28px_rgba(17,18,23,0.18)]'
+                      : 'border-black/8 bg-white/55 text-black/72 shadow-[0_8px_18px_rgba(17,18,23,0.06)]'
+                  }`}
+                >
+                  {getFilterLabel(t, item)}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-1">
-          <div className="sleepcast-frost-card rounded-full px-3 py-1.5 text-[11px] font-semibold text-black/44">
+        <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
+          <div className="rounded-full border border-black/7 bg-white/55 px-3 py-2 shadow-[0_8px_18px_rgba(17,18,23,0.05)]">
             {t('sleepcastStoriesReady', { count: dailyStories.length })}
           </div>
           {storiesLoading && (
-            <div className="sleepcast-frost-card flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-black/44">
+            <div className="flex items-center gap-2 rounded-full border border-black/7 bg-white/55 px-3 py-2 shadow-[0_8px_18px_rgba(17,18,23,0.05)]">
               <Loader2 size={12} className="animate-spin" />
               <span>{t('sleepcastGenerating')}</span>
             </div>
           )}
           {!isConfigured && (
-            <div className="flex items-center gap-1.5 rounded-full border border-amber-400/35 bg-amber-100/80 px-3 py-1.5 text-[11px] font-semibold text-amber-900 shadow-[0_10px_22px_rgba(251,191,36,0.14)]">
+            <div className="flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-100/90 px-3 py-2 text-amber-900 shadow-[0_8px_18px_rgba(245,158,11,0.10)]">
               <WifiOff size={12} />
               <span>{t('sleepcastOffline')}</span>
             </div>
@@ -536,7 +625,7 @@ function ThemeGrid({
               onClick={onRetry}
               disabled={storiesLoading}
               type="button"
-              className="sleepcast-frost-card flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-black/44 transition-transform active:scale-95 disabled:opacity-45"
+              className="flex items-center gap-2 rounded-full border border-black/7 bg-white/55 px-3 py-2 shadow-[0_8px_18px_rgba(17,18,23,0.05)] transition-transform active:scale-95 disabled:opacity-45"
             >
               <RefreshCw size={12} className={storiesLoading ? 'animate-spin' : ''} />
               <span>{t('sleepcastTryAgain')}</span>
@@ -544,132 +633,120 @@ function ThemeGrid({
           )}
         </div>
 
-        <div className="mt-7">
-          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-black/34">
-            {t('sleepcastAiPowered')}
-          </p>
-          <div className="mt-2 flex items-end justify-between gap-3">
-            <h1 className="max-w-[14rem] text-[2rem] font-semibold leading-[0.98] tracking-[-0.05em] text-[#17181c]">
-              {t('sleepcastSelectScene')}
-            </h1>
-            <div className="rounded-full bg-[#1d1f24] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
-              {String(activeThemeIndex + 1).padStart(2, '0')} / {String(filteredThemes.length).padStart(2, '0')}
+        <div className="mt-6 min-h-0 flex-1 overflow-hidden">
+          {filteredThemes.length === 0 ? (
+            <div className="flex h-full items-center justify-center rounded-[2rem] border border-dashed border-black/10 bg-white/45 p-6 text-center text-black/48">
+              {t('sleepcastNoResults')}
             </div>
-          </div>
-        </div>
+          ) : (
+            <div className="no-scrollbar flex h-full flex-col gap-4 overflow-y-auto pb-1">
+              {filteredThemes.map((theme, index) => {
+                const visual = getSceneVisual(theme.id);
+                const story = storiesByTheme.get(theme.id);
+                const isActive = theme.id === activeThemeId;
+                const themeCanSelect = isConfigured && (!!story || !storiesReady);
+                const cardDate = formatCardDate(story?.createdAt ?? Date.now() - index * 86400000);
+                const displayTitle = story?.title ?? getThemeName(t, theme);
+                const displayMeta = story
+                  ? `${story.paragraphs.length} ${t('sleepcastParagraphs')}`
+                  : t('sleepcastTapToGenerate');
+                const statusLabel = story
+                  ? t('sleepcastAvailableNow')
+                  : themeCanSelect
+                  ? t('sleepcastGenerateNow')
+                  : t('sleepcastOffline');
+                const emojis = THEME_EMOJIS[theme.id] ?? ['✨', '🌙', '🎧'];
 
-        <div className="mt-4 -mx-5 no-scrollbar overflow-x-auto pb-1">
-          <div className="flex gap-2 pl-5">
-            {SLEEPCAST_THEMES.map((theme, index) => {
-              const isActive = theme.id === activeTheme.id;
+                return (
+                  <motion.button
+                    key={theme.id}
+                    type="button"
+                    whileTap={{ scale: 0.988 }}
+                    onClick={() => {
+                      if (!isActive) {
+                        setActiveThemeId(theme.id);
+                        return;
+                      }
 
-              return (
-                <button
-                  key={theme.id}
-                  ref={(node) => {
-                    chipRefs.current[index] = node;
-                  }}
-                  onClick={() => setActiveThemeId(theme.id)}
-                  type="button"
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
-                    isActive
-                      ? 'bg-[#1d1f24] text-white'
-                      : 'sleepcast-flat-pill text-black/54'
-                  }`}
-                >
-                  {getThemeName(t, theme)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                      if (themeCanSelect) {
+                        onSelect(theme);
+                      }
+                    }}
+                    className={`relative overflow-hidden rounded-[2.4rem] px-5 py-5 text-left transition-all ${isActive ? 'scale-[1.01]' : ''} ${themeCanSelect || !isActive ? '' : 'cursor-not-allowed'}`}
+                    style={{
+                      background: visual.card,
+                      minHeight: 248,
+                      boxShadow: isActive
+                        ? `0 26px 50px ${visual.shadow}`
+                        : '0 18px 34px rgba(23,24,28,0.10)',
+                      transform: isActive
+                        ? 'rotate(-1deg)'
+                        : index % 3 === 0
+                        ? 'rotate(-0.8deg)'
+                        : index % 3 === 1
+                        ? 'rotate(0.9deg)'
+                        : 'rotate(-0.35deg)',
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 opacity-25"
+                      style={{
+                        backgroundImage: 'radial-gradient(currentColor 0.8px, transparent 0.8px)',
+                        backgroundSize: '12px 12px',
+                        color: visual.cardInk,
+                      }}
+                    />
 
-        <div className="mt-5 -mx-5">
-          <div
-            ref={carouselRef}
-            onScroll={handleCarouselScroll}
-            className="no-scrollbar flex w-full snap-x snap-mandatory items-start overflow-x-auto overflow-y-hidden pb-8"
-            style={{ scrollPaddingInline: '6%' }}
-          >
-            {filteredThemes.map((theme, index) => {
-              const isActive = theme.id === activeTheme.id;
-              const distance = Math.abs(index - activeThemeIndex);
-              const story = dailyStories.find((item) => item.themeId === theme.id);
-              const themeCanSelect = isConfigured && (!!story || !storiesReady);
-              const themeVisual = getSceneVisual(theme.id);
-              const themeTitle = story?.title || getThemeName(t, theme);
-              const themeDescription = story ? getThemeSummary(theme) : t('sleepcastTapToGenerate');
+                    <div className="relative z-10 flex h-full max-w-[58%] flex-col">
+                      <div>
+                        <div className="text-[2.25rem] font-black leading-none tracking-[-0.08em] opacity-35" style={{ color: visual.cardInk }}>
+                          {cardDate.day}
+                        </div>
+                        <div className="mt-1 text-sm font-bold opacity-45" style={{ color: visual.cardInk }}>
+                          {cardDate.stamp}
+                        </div>
+                      </div>
 
-              return (
-                <button
-                  key={theme.id}
-                  ref={(node) => {
-                    cardRefs.current[index] = node;
-                  }}
-                  onClick={() => {
-                    if (!isActive) {
-                      setActiveThemeId(theme.id);
-                      return;
-                    }
+                      <div className="mt-6">
+                        <h2 className="max-w-[11rem] text-[2rem] font-black leading-[0.95] tracking-[-0.06em]" style={{ color: visual.cardInk }}>
+                          {displayTitle}
+                        </h2>
+                        <p className="mt-2 text-base opacity-72" style={{ color: visual.cardInk }}>
+                          {displayMeta}
+                        </p>
+                      </div>
 
-                    if (themeCanSelect) {
-                      onSelect(theme);
-                    }
-                  }}
-                  type="button"
-                  className={`sleepcast-story-card relative aspect-[0.72] w-[88%] shrink-0 snap-center overflow-hidden rounded-[2.4rem] text-left transition-all duration-300 ${
-                    isActive
-                      ? 'translate-y-0 scale-100 opacity-100'
-                      : distance === 1
-                      ? '-translate-y-3 scale-[0.86] opacity-80'
-                      : '-translate-y-7 scale-[0.78] opacity-58'
-                  } ${
-                    themeCanSelect ? 'active:scale-[0.988]' : 'cursor-not-allowed'
-                  }`}
-                  style={{
-                    marginLeft: index === 0 ? '6%' : '-26%',
-                    marginRight: index === filteredThemes.length - 1 ? '6%' : undefined,
-                    boxShadow: isActive
-                      ? `inset 0 0 0 1px ${themeVisual.rim}, inset 0 1px 0 rgba(255,255,255,0.12)`
-                      : 'inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.08)',
-                    zIndex: isActive ? filteredThemes.length + 1 : filteredThemes.length - distance,
-                  }}
-                >
-                  <img
-                    src={theme.imageUrl}
-                    alt={themeTitle}
-                    className="absolute inset-0 h-full w-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black/82 via-black/44 to-transparent" />
-                  <div
-                    className="absolute inset-0"
-                    style={{ boxShadow: `inset 0 0 0 1px ${themeVisual.rim}` }}
-                  />
-                  <div
-                    className="absolute -left-10 top-[18%] h-40 w-40 rounded-full blur-3xl"
-                    style={{ background: `radial-gradient(circle, ${themeVisual.halo} 0%, transparent 72%)` }}
-                  />
-                  <div
-                    className="absolute -right-8 top-[-1rem] h-44 w-44 rounded-full blur-3xl"
-                    style={{ background: `radial-gradient(circle, ${themeVisual.haze} 0%, transparent 72%)` }}
-                  />
+                      <div className="mt-auto flex items-center gap-2 pt-6">
+                        {emojis.map((emoji) => (
+                          <span
+                            key={emoji}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/80 bg-white/88 text-lg shadow-[0_8px_18px_rgba(17,18,23,0.08)]"
+                          >
+                            {emoji}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
 
-                  <div className="absolute inset-x-0 bottom-0 z-10 p-5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/58">
-                      {getThemeName(t, theme)}
-                    </p>
-                    <h2 className="mt-2 max-w-[13rem] text-[2rem] font-semibold leading-[0.95] tracking-[-0.05em] text-white">
-                      {themeTitle}
-                    </h2>
-                    <p className="mt-3 max-w-[15rem] text-sm leading-5 text-white/72 line-clamp-2">
-                      {themeDescription}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    <ThemeArtwork
+                      theme={theme}
+                      visual={visual}
+                      title={displayTitle}
+                      statusLabel={statusLabel}
+                    />
+
+                    <div className="absolute bottom-5 right-5 rounded-full border border-black/8 bg-white/78 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#17181c] shadow-[0_10px_20px_rgba(17,18,23,0.08)]">
+                      {isActive
+                        ? themeCanSelect
+                          ? t('sleepcastTapToGenerate')
+                          : t('sleepcastOffline')
+                        : getThemeName(t, theme)}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </ScreenFrame>
     </motion.div>
@@ -686,36 +763,32 @@ function ErrorView({
   onStop: () => void;
 }) {
   const { t } = useTranslation();
+  const visual = getSceneVisual(theme.id);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex flex-1 flex-col"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-1 flex-col">
       <ScreenFrame theme={theme}>
-        <div className="my-auto w-full rounded-[2rem] p-8 text-center sleepcast-frost-card">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#17181c] text-white shadow-[0_18px_34px_rgba(15,23,42,0.18)]">
-            <AlertCircle size={24} />
+        <div
+          className="my-auto rounded-[2.4rem] p-5"
+          style={{ background: visual.card, boxShadow: `0 26px 50px ${visual.shadow}` }}
+        >
+          <div className="rounded-[1.8rem] bg-white/78 p-8 text-center shadow-[0_18px_34px_rgba(17,18,23,0.08)] backdrop-blur-md">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#17181c] text-white shadow-[0_18px_34px_rgba(15,23,42,0.18)]">
+              <AlertCircle size={24} />
+            </div>
+            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.24em] text-black/34">{t('sleepcast')}</p>
+            <h2 className="mt-2 text-[2rem] font-black leading-[0.96] tracking-[-0.05em] text-[#17181c]">
+              {getThemeName(t, theme)}
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-black/56">{message}</p>
+            <button
+              onClick={onStop}
+              type="button"
+              className="mt-6 inline-flex items-center rounded-full bg-[#17181c] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_34px_rgba(15,23,42,0.18)] transition-transform active:scale-95"
+            >
+              {t('sleepcastTryAgain')}
+            </button>
           </div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/34">
-            {t('sleepcast')}
-          </p>
-          <h2 className="mt-2 text-[2rem] font-semibold leading-[0.96] tracking-[-0.045em] text-[#17181c]">
-            {getThemeName(t, theme)}
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-black/56">
-            {message}
-          </p>
-          <button
-            onClick={onStop}
-            type="button"
-            className="sleepcast-dark-dock mt-6 inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white"
-          >
-            {t('sleepcastTryAgain')}
-            <ChevronRight size={16} />
-          </button>
         </div>
       </ScreenFrame>
     </motion.div>

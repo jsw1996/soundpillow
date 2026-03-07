@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { MOODS, getMoodMessage, type MoodConfig } from '../data/moodMessages';
-import { TRACKS } from '../constants';
+import { useAppContext } from '../context/AppContext';
 import type { MoodLevel, MoodEntry } from '../types';
 import { useTranslation } from '../i18n';
 import { fetchMoodMessage } from '../services/api';
@@ -39,6 +39,7 @@ export function useMoodCheckIn({
   requireCheckIn,
 }: UseMoodCheckInOptions): UseMoodCheckInReturn {
   const { locale } = useTranslation();
+  const { tracks } = useAppContext();
 
   const [pendingMood, setPendingMood] = useState<MoodLevel | null>(null);
   const [entry, setEntry] = useState<MoodEntry | null>(null);
@@ -52,14 +53,14 @@ export function useMoodCheckIn({
   // Random splash image from tracks, stable across renders
   const splashConfig = useMemo<MoodConfig>(() => {
     const fallback = MOODS[2];
-    const images = TRACKS.map((t) => t.imageUrl).filter(Boolean);
+    const images = tracks.map((t) => t.imageUrl).filter(Boolean);
     return {
       ...fallback,
       imageUrl: images.length > 0
         ? images[Math.floor(Math.random() * images.length)]
         : fallback.imageUrl,
     };
-  }, []);
+  }, [tracks]);
 
   // Preload all mood images
   useEffect(() => {

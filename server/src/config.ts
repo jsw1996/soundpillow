@@ -14,6 +14,8 @@ export const config = {
   /** Azure Speech Services */
   azureSpeechKey: process.env.AZURE_SPEECH_KEY || '',
   azureSpeechRegion: process.env.AZURE_SPEECH_REGION || 'southeastasia',
+  /** Public asset base URL for ambient track media */
+  assetBaseUrl: process.env.ASSET_BASE_URL || 'https://soundpillow0308001430.blob.core.windows.net/soundpillow-assets',
 };
 
 export function validateConfig(): void {

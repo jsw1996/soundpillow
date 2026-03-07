@@ -20,7 +20,6 @@ import { motion } from 'motion/react';
 import { screenTransition } from '../utils/animations';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, SUPPORTED_LOCALES } from '../i18n';
-import { TRACKS } from '../constants';
 import { MOODS } from '../data/moodMessages';
 import { formatTotalTime } from '../utils/time';
 import { loadMoodHistory } from '../utils/mood';
@@ -28,7 +27,7 @@ import { loadMoodHistory } from '../utils/mood';
 const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((mood) => [mood.level, mood.emoji]));
 
 export function ProfileScreen() {
-  const { settings, updateSettings, stats, resetStats, favorites, streakStats, getWeekEntries } = useAppContext();
+  const { settings, updateSettings, stats, resetStats, favorites, streakStats, getWeekEntries, tracks } = useAppContext();
   const { t, locale, setLocale } = useTranslation();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -41,7 +40,7 @@ export function ProfileScreen() {
   ];
 
   const mostPlayedTrack = stats.favoriteTrackId
-    ? TRACKS.find((t) => t.id === stats.favoriteTrackId)
+    ? tracks.find((t) => t.id === stats.favoriteTrackId)
     : null;
 
   const weekEntries = getWeekEntries();

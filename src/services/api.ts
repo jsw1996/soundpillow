@@ -1,4 +1,4 @@
-import type { GeneratedSleepcast } from '../types';
+import type { GeneratedSleepcast, Track } from '../types';
 
 // dev → local server; prod build (iOS + GitHub Pages) → online server
 const SERVER_URL = import.meta.env.DEV
@@ -17,6 +17,14 @@ export interface DailyStoriesResponse {
   stories: GeneratedSleepcast[];
   stale?: boolean;
   requestedDate?: string;
+}
+
+export async function fetchAudios(): Promise<Track[]> {
+  const res = await fetch(`${SERVER_URL}/api/audios`);
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+  return res.json();
 }
 
 async function fetchStoriesForDate(date: string, locale: string): Promise<DailyStoriesResponse> {

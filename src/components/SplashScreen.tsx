@@ -1,18 +1,19 @@
 import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { TRACKS } from '../constants';
+import { useAppContext } from '../context/AppContext';
 
 export function SplashScreen({ onComplete }: { onComplete: () => void }) {
+  const { tracks } = useAppContext();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   
   const randomImage = useMemo(() => {
-    const images = TRACKS.map(t => t.imageUrl).filter(Boolean);
+    const images = tracks.map(t => t.imageUrl).filter(Boolean);
     if (!images.length) return '';
     const selected = images[Math.floor(Math.random() * images.length)];
     console.log('[SplashScreen] selected image', selected);
     return selected;
-  }, []);
+  }, [tracks]);
 
   useEffect(() => {
     console.log('[SplashScreen] mounted');

@@ -5,6 +5,7 @@
   "type": "module",
   "workspaces": ["server"],
   "scripts": {
+    "assets:upload": "tsx scripts/upload-track-assets.ts",
     "server:dev": "npm run dev --workspace=server",
     "server:build": "npm run build --workspace=server",
     "server:generate": "npm run generate --workspace=server",
@@ -21,6 +22,7 @@
     "deploy": "npm run server:build && bash scripts/deploy.sh"
   },
   "dependencies": {
+    "@azure/storage-blob": "^12.28.0",
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
     "@capacitor/ios": "^8.1.0",

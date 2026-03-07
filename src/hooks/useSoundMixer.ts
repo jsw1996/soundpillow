@@ -22,6 +22,16 @@ export function useSoundMixer(tracks: Track[]) {
 
   // Sync audio elements with mixer state
   useEffect(() => {
+    setMixerTracks((prev) =>
+      tracks.map((track) => prev.find((item) => item.trackId === track.id) ?? {
+        trackId: track.id,
+        volume: 70,
+        isActive: false,
+      }),
+    );
+  }, [tracks]);
+
+  useEffect(() => {
     mixerTracks.forEach((mt) => {
       const track = tracks.find((t) => t.id === mt.trackId);
       if (!track) return;

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { TRACKS } from '../constants';
+import { useAppContext } from '../context/AppContext';
 import type { SleepcastTheme, GeneratedSleepcast, SleepcastStatus, WebAudioNode } from '../types';
 import { fetchTodayStories, checkServerHealth, fetchTts, resolveAudioUrl } from '../services/api';
 import { cleanupAudioNodes, getOrCreateAudioContext, closeAudioContext } from '../utils/audio';
@@ -11,6 +11,7 @@ import { cleanupAudioNodes, getOrCreateAudioContext, closeAudioContext } from '.
  * 3. Layer ambient background tracks underneath
  */
 export function useSleepcast() {
+  const { tracks } = useAppContext();
   const [status, setStatus] = useState<SleepcastStatus>('idle');
   const [currentCast, setCurrentCast] = useState<GeneratedSleepcast | null>(null);
   const [currentTheme, setCurrentTheme] = useState<SleepcastTheme | null>(null);
@@ -64,7 +65,7 @@ export function useSleepcast() {
     const ctx = getOrCreateAudioContext(audioCtxRef);
     theme.bgTrackIds.forEach((trackId) => {
       if (bgNodesRef.current.has(trackId)) return;
-      const track = TRACKS.find((t) => t.id === trackId);
+      const track = tracks.find((t) => t.id === trackId);
       if (!track) return;
 
       const element = new Audio(track.audioUrl);
@@ -77,7 +78,7 @@ export function useSleepcast() {
       element.play().catch(() => {});
       bgNodesRef.current.set(trackId, { element, source, gain });
     });
-  }, []);
+  }, [tracks]);
 
   const stopBgAudio = useCallback(() => {
     cleanupAudioNodes(bgNodesRef.current);

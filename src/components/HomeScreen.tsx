@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { screenTransition } from '../utils/animations';
-import { TRACKS } from '../constants';
 import { Track, MixPreset } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { MixCarousel } from './home/MixCarousel';
@@ -18,10 +17,10 @@ interface HomeScreenProps {
 
 export function HomeScreen({ onTrackSelect, onMixSelect, onMixStop, playingMixId, isMixPlaying }: HomeScreenProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const { isFavorite } = useAppContext();
+  const { isFavorite, tracks } = useAppContext();
   const pageScrollRef = useRef<HTMLDivElement>(null);
 
-  const filteredTracks = TRACKS.filter((track) => {
+  const filteredTracks = tracks.filter((track) => {
     if (activeCategory === 'favorites') return isFavorite(track.id);
     if (activeCategory && track.category.toLowerCase() !== activeCategory) return false;
     return true;

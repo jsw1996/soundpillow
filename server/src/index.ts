@@ -5,6 +5,7 @@ import cron from 'node-cron';
 import { config, validateConfig } from './config.js';
 import { ensureDataDir, loadStories, todayDate, tomorrowDate } from './store.js';
 import { generateDaily } from './generate.js';
+import audiosRouter from './routes/audios.js';
 import storiesRouter from './routes/stories.js';
 import ttsRouter from './routes/tts.js';
 import moodRouter from './routes/mood.js';
@@ -22,6 +23,7 @@ app.use('/api/audio', express.static(
 ));
 
 // Routes
+app.use('/api/audios', audiosRouter);
 app.use('/api/stories', storiesRouter);
 app.use('/api/tts', ttsRouter);
 app.use('/api/mood', moodRouter);

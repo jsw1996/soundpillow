@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { Layers, Share2 } from 'lucide-react';
-import { TRACKS, DEFAULT_MIXES } from '../../constants';
+import { DEFAULT_MIXES } from '../../constants';
 import { Track, MixPreset } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { useTranslation, useTrackTranslation, useMixNameTranslation } from '../../i18n';
@@ -16,7 +16,7 @@ interface MixCarouselProps {
 
 export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying }: MixCarouselProps) {
   const [activeMixIdx, setActiveMixIdx] = useState(0);
-  const { setCurrentScreen } = useAppContext();
+  const { setCurrentScreen, tracks } = useAppContext();
   const { t } = useTranslation();
   const tt = useTrackTranslation();
   const getMixName = useMixNameTranslation();
@@ -51,7 +51,7 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
       >
         {DEFAULT_MIXES.map((mix) => {
           const mixTracks = mix.tracks
-            .map((mt) => TRACKS.find((t) => t.id === mt.trackId))
+            .map((mt) => tracks.find((t) => t.id === mt.trackId))
             .filter(Boolean) as Track[];
           const translatedMixName = getMixName(mix.id, mix.name);
           const translatedMixTracks = mixTracks.map(tt);

@@ -1,6 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { TRACKS } from './constants';
 import { MixPreset } from './types';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { LanguageProvider, useMixNameTranslation, useTranslation } from './i18n';
@@ -23,16 +22,21 @@ import { useMoodCard } from './hooks/useMoodCard';
 function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
 
-  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn } = useAppContext();
+  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks } = useAppContext();
   const { t, locale } = useTranslation();
 
-  const player = useAudioPlayer(TRACKS);
+  const player = useAudioPlayer(tracks);
   const sleepcast = useSleepcast();
   const moodCard = useMoodCard();
 
   useEffect(() => {
     console.log('[AppContent] showStartupOverlay changed', showStartupOverlay);
   }, [showStartupOverlay]);
+
+  // Daily check-in: opening the app counts as today's check-in
+  useEffect(() => {
+    checkIn();
+  }, [checkIn]);
 
   // Load daily stories from server on mount and when locale changes
   useEffect(() => {
@@ -55,7 +59,7 @@ function AppContent() {
     settings.defaultTimerMinutes,
   );
 
-  const mixer = useSoundMixer(TRACKS);
+  const mixer = useSoundMixer(tracks);
   const [activeMix, setActiveMix] = useState<{ id: string; name: string } | null>(null);
   const [hasEverPlayed, setHasEverPlayed] = useState(false);
   const getMixName = useMixNameTranslation();
@@ -63,22 +67,24 @@ function AppContent() {
 
   // Mix-aware skip: cycle through active mix tracks without starting single-track playback
   const handleMixSkipNext = useCallback(() => {
+    if (!player.currentTrack) return;
     const activeIds = mixer.activeTracks.map((t) => t.trackId);
     if (activeIds.length === 0) return;
     const idx = activeIds.indexOf(player.currentTrack.id);
     const nextId = activeIds[(idx + 1) % activeIds.length];
-    const nextTrack = TRACKS.find((t) => t.id === nextId);
+    const nextTrack = tracks.find((t) => t.id === nextId);
     if (nextTrack) player.setDisplayTrack(nextTrack);
-  }, [mixer.activeTracks, player]);
+  }, [mixer.activeTracks, player, tracks]);
 
   const handleMixSkipPrev = useCallback(() => {
+    if (!player.currentTrack) return;
     const activeIds = mixer.activeTracks.map((t) => t.trackId);
     if (activeIds.length === 0) return;
     const idx = activeIds.indexOf(player.currentTrack.id);
     const prevId = activeIds[(idx - 1 + activeIds.length) % activeIds.length];
-    const prevTrack = TRACKS.find((t) => t.id === prevId);
+    const prevTrack = tracks.find((t) => t.id === prevId);
     if (prevTrack) player.setDisplayTrack(prevTrack);
-  }, [mixer.activeTracks, player]);
+  }, [mixer.activeTracks, player, tracks]);
 
   // Check for shared mix in URL on mount
   useEffect(() => {
@@ -87,13 +93,13 @@ function AppContent() {
       clearMixFromUrl();
       // Validate that all track IDs exist
       const validTracks = shared.tracks.filter((st) =>
-        TRACKS.some((t) => t.id === st.trackId),
+        tracks.some((t) => t.id === st.trackId),
       );
       if (validTracks.length > 0) {
         const preset = sharedMixToPreset({ ...shared, tracks: validTracks });
         mixer.loadPresetTracks(validTracks);
         setActiveMix({ id: preset.id, name: preset.name });
-        const firstTrack = TRACKS.find((t) => t.id === validTracks[0]?.trackId);
+        const firstTrack = tracks.find((t) => t.id === validTracks[0]?.trackId);
         if (firstTrack) player.selectTrack(firstTrack);
         player.pause();
         setCurrentScreen('mixer');
@@ -103,33 +109,32 @@ function AppContent() {
         setTimeout(() => showToast(t('sharedMixInvalid'), 'error'), 500);
       }
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mixer, player, setCurrentScreen, t, tracks]);
 
   // Sync timer with playback state
   const handleTogglePlay = useCallback(() => {
+    if (!player.currentTrack) return;
     const willPlay = !player.isPlaying;
     player.togglePlay();
     if (willPlay) {
       setHasEverPlayed(true);
       timer.start();
       recordSession(player.currentTrack.id);
-      checkIn(player.currentTrack.id);
     } else {
       timer.stop();
     }
-  }, [player, timer, recordSession, checkIn]);
+  }, [player, timer, recordSession]);
 
   const handleTrackSelect = useCallback(
-    (track: typeof TRACKS[number]) => {
+    (track: typeof tracks[number]) => {
       setHasEverPlayed(true);
       player.selectTrack(track);
       setActiveMix(null);
       mixer.stopAll();
       timer.start();
       recordSession(track.id);
-      checkIn(track.id);
     },
-    [player, mixer, timer, recordSession, checkIn],
+    [player, mixer, timer, recordSession],
   );
 
   const handleMixSelect = useCallback(
@@ -138,15 +143,14 @@ function AppContent() {
       mixer.loadPresetTracks(preset.tracks);
       setActiveMix({ id: preset.id, name: preset.name });
       // Set first track as display track, but pause single player to avoid double audio
-      const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);
+      const firstTrack = tracks.find((t) => t.id === preset.tracks[0]?.trackId);
       if (firstTrack) player.selectTrack(firstTrack);
       player.pause();
       if (firstTrack) {
         recordSession(firstTrack.id);
-        checkIn(firstTrack.id);
       }
     },
-    [mixer, player, recordSession, checkIn],
+    [mixer, player, recordSession, tracks],
   );
 
   const handleMixStop = useCallback(() => {
@@ -160,6 +164,7 @@ function AppContent() {
         if (moodCard.shouldShow) return null;
         return <HomeScreen key="home" onTrackSelect={handleTrackSelect} onMixSelect={handleMixSelect} onMixStop={handleMixStop} playingMixId={activeMix?.id ?? null} isMixPlaying={mixer.isMixPlaying} />;
       case 'player':
+        if (!player.currentTrack) return null;
         return (
           <PlayerScreen
             key="player"
@@ -243,7 +248,7 @@ function AppContent() {
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>
-      {hasEverPlayed && sleepcast.status === 'idle' && (
+      {hasEverPlayed && sleepcast.status === 'idle' && player.currentTrack && (
         <MiniPlayer
           track={player.currentTrack}
           isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}

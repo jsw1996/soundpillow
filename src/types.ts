@@ -5,6 +5,7 @@ export interface Track {
   duration: string;
   category: string;
   imageUrl: string;
+  imageSourceUrl?: string;
   audioUrl: string;
   description?: string;
 }

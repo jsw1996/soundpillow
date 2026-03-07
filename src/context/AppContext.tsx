@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
-import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats } from '../types';
+import { fetchAudios } from '../services/api';
+import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats, Track } from '../types';
 import { getDateString, getYesterday } from '../utils/date';
 import { loadFromStorage } from '../utils/storage';
 
@@ -15,6 +16,9 @@ interface AppContextValue {
   setShowFavoritesOnly: (v: boolean) => void;
   menuOpen: boolean;
   setMenuOpen: (v: boolean) => void;
+  tracks: Track[];
+  tracksLoading: boolean;
+  tracksError: string | null;
   settings: UserSettings;
   updateSettings: (patch: Partial<UserSettings>) => void;
   stats: ListeningStats;
@@ -25,7 +29,7 @@ interface AppContextValue {
   deleteMixPreset: (id: string) => void;
   journal: SleepEntry[];
   streakStats: StreakStats;
-  checkIn: (trackId: string) => void;
+  checkIn: (trackId?: string) => void;
   getTodayEntry: () => SleepEntry | undefined;
   getWeekEntries: () => (SleepEntry | null)[];
 }
@@ -72,6 +76,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [tracksLoading, setTracksLoading] = useState(true);
+  const [tracksError, setTracksError] = useState<string | null>(null);
   const [settings, setSettings] = useState<UserSettings>(() =>
     loadFromStorage(SETTINGS_KEY, DEFAULT_SETTINGS, (v) => ({ ...DEFAULT_SETTINGS, ...v })),
   );
@@ -116,6 +123,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem(STREAK_KEY, JSON.stringify(streakStats));
   }, [streakStats]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTracks = async () => {
+      try {
+        const nextTracks = await fetchAudios();
+        if (cancelled) return;
+        setTracks(nextTracks);
+        setTracksError(null);
+      } catch (error) {
+        if (cancelled) return;
+        console.error('Failed to load audio catalog:', error);
+        setTracks([]);
+        setTracksError(error instanceof Error ? error.message : 'Failed to load audio catalog');
+      } finally {
+        if (!cancelled) {
+          setTracksLoading(false);
+        }
+      }
+    };
+
+    loadTracks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const toggleFavorite = useCallback((trackId: string) => {
     setFavorites((prev) => {
@@ -202,13 +237,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, [journal]);
 
-  const checkIn = useCallback((trackId: string) => {
+  const checkIn = useCallback((trackId?: string) => {
     const today = getDateString();
 
     setJournal((prev) => {
       const existing = prev.find((e) => e.id === today);
       if (existing) {
-        // Already checked in today — just add track if new
+        // Already checked in today — optionally add track if new
+        if (!trackId) return prev;
         if (existing.tracksUsed.includes(trackId)) return prev;
         return prev.map((e) =>
           e.id === today
@@ -220,7 +256,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const entry: SleepEntry = {
         id: today,
         bedtime: Date.now(),
-        tracksUsed: [trackId],
+        tracksUsed: trackId ? [trackId] : [],
         listenedMinutes: 0,
       };
       return [entry, ...prev];
@@ -252,6 +288,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setShowFavoritesOnly,
     menuOpen,
     setMenuOpen,
+    tracks,
+    tracksLoading,
+    tracksError,
     settings,
     updateSettings,
     stats,
@@ -267,7 +306,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     getWeekEntries,
   }), [
     currentScreen, searchQuery, favorites, showFavoritesOnly, menuOpen,
-    settings, stats, mixPresets, journal, streakStats,
+    tracks, tracksLoading, tracksError, settings, stats, mixPresets, journal, streakStats,
     setCurrentScreen, setSearchQuery, toggleFavorite, isFavorite,
     setShowFavoritesOnly, setMenuOpen, updateSettings,
     recordSession, resetStats, saveMixPreset, deleteMixPreset,

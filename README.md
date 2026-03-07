@@ -86,6 +86,14 @@ CORS_ORIGINS="http://localhost:3000"
 LOCALES="en,zh,ja,es"
 ```
 
+For ambient track assets hosted in Azure Blob Storage, also set these in the root `.env`:
+
+```dotenv
+VITE_ASSET_BASE_URL="https://<storage-account>.blob.core.windows.net/<container>"
+AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=<storage-account>;AccountKey=<key>;EndpointSuffix=core.windows.net"
+AZURE_STORAGE_CONTAINER="soundpillow-assets"
+```
+
 ### 3. Generate today's stories
 
 ```bash
@@ -118,6 +126,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Preview production build |
 | `npm run lint` | TypeScript type checking (`tsc --noEmit`) |
+| `npm run assets:upload` | Upload ambient track audio + downloaded cover images to Azure Blob Storage |
 | `npm run server:dev` | Start backend in watch mode |
 | `npm run server:build` | Compile server TypeScript to `server/dist/` |
 | `npm run server:generate` | Manually trigger story + TTS generation |

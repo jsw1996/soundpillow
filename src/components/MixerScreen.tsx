@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { screenTransition } from '../utils/animations';
-import { TRACKS } from '../constants';
 import { MixerTrack } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useTrackTranslation } from '../i18n';
@@ -71,7 +70,7 @@ export function MixerScreen({
   onSetVolume,
   onLoadPreset,
 }: MixerScreenProps) {
-  const { mixPresets, saveMixPreset, deleteMixPreset } = useAppContext();
+  const { mixPresets, saveMixPreset, deleteMixPreset, tracks } = useAppContext();
   const { t } = useTranslation();
   const tt = useTrackTranslation();
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -96,7 +95,7 @@ export function MixerScreen({
     const activeMixerTracks = mixerTracks.filter((t) => t.isActive);
     if (activeMixerTracks.length === 0) return;
     const trackNames = activeMixerTracks
-      .map((mt) => { const tr = TRACKS.find((t) => t.id === mt.trackId); return tr ? tt(tr).title : ''; })
+      .map((mt) => { const tr = tracks.find((t) => t.id === mt.trackId); return tr ? tt(tr).title : ''; })
       .filter(Boolean)
       .join(' + ');
     const name = trackNames || t('mix');
@@ -116,7 +115,7 @@ export function MixerScreen({
       {/* Track grid */}
       <section className="px-6">
         <div className="grid grid-cols-2 gap-3">
-          {TRACKS.map((track) => {
+          {tracks.map((track) => {
             const mt = mixerTracks.find((m) => m.trackId === track.id);
             const isActive = mt?.isActive ?? false;
             const volume = mt?.volume ?? 70;

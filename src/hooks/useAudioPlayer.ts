@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Track } from '../types';
 
 export function useAudioPlayer(tracks: Track[]) {
-  const [currentTrack, setCurrentTrack] = useState<Track>(tracks[0]);
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(tracks[0] ?? null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(75);
@@ -33,10 +33,23 @@ export function useAudioPlayer(tracks: Track[]) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keep the selected track in sync when the catalog is refreshed from the server.
+  useEffect(() => {
+    if (!tracks.length) return;
+    setCurrentTrack((prev) => prev ? (tracks.find((track) => track.id === prev.id) ?? tracks[0]) : tracks[0]);
+  }, [tracks]);
+
   // Handle track changes + play/pause in a single effect to avoid race conditions
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    if (!currentTrack) {
+      audio.pause();
+      audio.src = '';
+      loadedTrackIdRef.current = null;
+      return;
+    }
 
     // Compare by track ID to avoid resolved-URL vs relative-URL mismatch
     const trackChanged = loadedTrackIdRef.current !== currentTrack.id;
@@ -74,18 +87,20 @@ export function useAudioPlayer(tracks: Track[]) {
   }, []);
 
   const skipNext = useCallback(() => {
+    if (!tracks.length || !currentTrack) return;
     const idx = tracks.findIndex((t) => t.id === currentTrack.id);
     const next = tracks[(idx + 1) % tracks.length];
     setCurrentTrack(next);
     setIsPlaying(true);
-  }, [tracks, currentTrack.id]);
+  }, [tracks, currentTrack?.id]);
 
   const skipPrev = useCallback(() => {
+    if (!tracks.length || !currentTrack) return;
     const idx = tracks.findIndex((t) => t.id === currentTrack.id);
     const prev = tracks[(idx - 1 + tracks.length) % tracks.length];
     setCurrentTrack(prev);
     setIsPlaying(true);
-  }, [tracks, currentTrack.id]);
+  }, [tracks, currentTrack?.id]);
 
   const seek = useCallback((percent: number) => {
     const audio = audioRef.current;

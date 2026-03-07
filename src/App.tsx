@@ -1,9 +1,9 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { TRACKS, DEFAULT_MIXES } from './constants';
+import { TRACKS } from './constants';
 import { MixPreset } from './types';
 import { AppProvider, useAppContext } from './context/AppContext';
-import { LanguageProvider, useMixNameTranslation, useTranslation, useTrackTranslation } from './i18n';
+import { LanguageProvider, useMixNameTranslation, useTranslation } from './i18n';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { useSleepTimer } from './hooks/useSleepTimer';
 import { useSoundMixer } from './hooks/useSoundMixer';
@@ -21,18 +21,23 @@ import { MoodCheckIn } from './components/MoodCheckIn';
 import { useMoodCard } from './hooks/useMoodCard';
 
 function AppContent() {
-  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, mixPresets } = useAppContext();
+  const [showStartupOverlay, setShowStartupOverlay] = useState(true);
+
+  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn } = useAppContext();
   const { t, locale } = useTranslation();
-  const tt = useTrackTranslation();
 
   const player = useAudioPlayer(TRACKS);
   const sleepcast = useSleepcast();
   const moodCard = useMoodCard();
 
+  useEffect(() => {
+    console.log('[AppContent] showStartupOverlay changed', showStartupOverlay);
+  }, [showStartupOverlay]);
+
   // Load daily stories from server on mount and when locale changes
   useEffect(() => {
     sleepcast.loadDailyStories(locale);
-  }, [locale, sleepcast.loadDailyStories]);
+  }, [locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Retry loading stories when the app comes back to foreground (e.g. iOS resume)
   useEffect(() => {
@@ -43,7 +48,7 @@ function AppContent() {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [sleepcast.serverAvailable, sleepcast.loadDailyStories, locale]);
+  }, [sleepcast.serverAvailable, locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const timer = useSleepTimer(
     useCallback(() => player.pause(), [player.pause]),
@@ -56,11 +61,31 @@ function AppContent() {
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
 
+  // Mix-aware skip: cycle through active mix tracks without starting single-track playback
+  const handleMixSkipNext = useCallback(() => {
+    const activeIds = mixer.activeTracks.map((t) => t.trackId);
+    if (activeIds.length === 0) return;
+    const idx = activeIds.indexOf(player.currentTrack.id);
+    const nextId = activeIds[(idx + 1) % activeIds.length];
+    const nextTrack = TRACKS.find((t) => t.id === nextId);
+    if (nextTrack) player.setDisplayTrack(nextTrack);
+  }, [mixer.activeTracks, player]);
+
+  const handleMixSkipPrev = useCallback(() => {
+    const activeIds = mixer.activeTracks.map((t) => t.trackId);
+    if (activeIds.length === 0) return;
+    const idx = activeIds.indexOf(player.currentTrack.id);
+    const prevId = activeIds[(idx - 1 + activeIds.length) % activeIds.length];
+    const prevTrack = TRACKS.find((t) => t.id === prevId);
+    if (prevTrack) player.setDisplayTrack(prevTrack);
+  }, [mixer.activeTracks, player]);
+
   // Check for shared mix in URL on mount
   useEffect(() => {
     const shared = getMixFromUrl();
     if (shared) {
       clearMixFromUrl();
+      // Validate that all track IDs exist
       const validTracks = shared.tracks.filter((st) =>
         TRACKS.some((t) => t.id === st.trackId),
       );
@@ -72,6 +97,7 @@ function AppContent() {
         if (firstTrack) player.selectTrack(firstTrack);
         player.pause();
         setCurrentScreen('mixer');
+        // Delay toast to ensure UI is ready
         setTimeout(() => showToast(t('sharedMixLoaded'), 'info'), 500);
       } else {
         setTimeout(() => showToast(t('sharedMixInvalid'), 'error'), 500);
@@ -79,29 +105,19 @@ function AppContent() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Shared side-effect logic for play state changes
-  const onPlayStateChange = useCallback((willPlay: boolean, trackId: string) => {
-    if (willPlay) {
-      setHasEverPlayed(true);
-      timer.start();
-      recordSession(trackId);
-      checkIn(trackId);
-    } else {
-      timer.stop();
-    }
-  }, [timer.start, timer.stop, recordSession, checkIn]);
-
+  // Sync timer with playback state
   const handleTogglePlay = useCallback(() => {
     const willPlay = !player.isPlaying;
     player.togglePlay();
-    onPlayStateChange(willPlay, player.currentTrack.id);
-  }, [player.isPlaying, player.togglePlay, player.currentTrack.id, onPlayStateChange]);
-
-  const handleMixTogglePlay = useCallback(() => {
-    const willPlay = !mixer.isMixPlaying;
-    mixer.toggleMixPlay();
-    onPlayStateChange(willPlay, player.currentTrack.id);
-  }, [mixer.isMixPlaying, mixer.toggleMixPlay, player.currentTrack.id, onPlayStateChange]);
+    if (willPlay) {
+      setHasEverPlayed(true);
+      timer.start();
+      recordSession(player.currentTrack.id);
+      checkIn(player.currentTrack.id);
+    } else {
+      timer.stop();
+    }
+  }, [player, timer, recordSession, checkIn]);
 
   const handleTrackSelect = useCallback(
     (track: typeof TRACKS[number]) => {
@@ -113,7 +129,7 @@ function AppContent() {
       recordSession(track.id);
       checkIn(track.id);
     },
-    [player.selectTrack, mixer.stopAll, timer.start, recordSession, checkIn],
+    [player, mixer, timer, recordSession, checkIn],
   );
 
   const handleMixSelect = useCallback(
@@ -121,41 +137,22 @@ function AppContent() {
       setHasEverPlayed(true);
       mixer.loadPresetTracks(preset.tracks);
       setActiveMix({ id: preset.id, name: preset.name });
+      // Set first track as display track, but pause single player to avoid double audio
       const firstTrack = TRACKS.find((t) => t.id === preset.tracks[0]?.trackId);
       if (firstTrack) player.selectTrack(firstTrack);
       player.pause();
-      timer.start();
       if (firstTrack) {
         recordSession(firstTrack.id);
         checkIn(firstTrack.id);
       }
     },
-    [mixer.loadPresetTracks, player.selectTrack, player.pause, timer.start, recordSession, checkIn],
+    [mixer, player, recordSession, checkIn],
   );
-
-  // Memoize allMixes to avoid recreating on every render
-  const allMixes = useMemo(() => [...DEFAULT_MIXES, ...mixPresets], [mixPresets]);
-  const isSleepcastShowcase = currentScreen === 'sleepcast'
-    && (sleepcast.status === 'idle' || sleepcast.status === 'ready');
-
-  const handleMixSkipNext = useCallback(() => {
-    if (allMixes.length === 0 || !activeMix) return;
-    const idx = allMixes.findIndex((m) => m.id === activeMix.id);
-    const next = allMixes[(idx + 1) % allMixes.length];
-    handleMixSelect(next);
-  }, [allMixes, activeMix, handleMixSelect]);
-
-  const handleMixSkipPrev = useCallback(() => {
-    if (allMixes.length === 0 || !activeMix) return;
-    const idx = allMixes.findIndex((m) => m.id === activeMix.id);
-    const prev = allMixes[(idx - 1 + allMixes.length) % allMixes.length];
-    handleMixSelect(prev);
-  }, [allMixes, activeMix, handleMixSelect]);
 
   const handleMixStop = useCallback(() => {
     mixer.stopAll();
     setActiveMix(null);
-  }, [mixer.stopAll]);
+  }, [mixer]);
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -173,17 +170,13 @@ function AppContent() {
             duration={timer.timerMinutes ? timer.formatDisplay(timer.timerMinutes * 60) : '0:00'}
             timerMinutes={timer.timerMinutes}
             timerSecondsRemaining={timer.secondsRemaining}
-            onTogglePlay={activeMixName ? handleMixTogglePlay : handleTogglePlay}
+            onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
             onBack={() => setCurrentScreen('home')}
             onSetTimer={timer.selectTimer}
             onSkipNext={activeMixName ? handleMixSkipNext : player.skipNext}
             onSkipPrev={activeMixName ? handleMixSkipPrev : player.skipPrev}
             formatTimerDisplay={timer.formatDisplay}
             mixName={activeMixName}
-            mixSubtitle={activeMix ? allMixes.find((m) => m.id === activeMix.id)?.tracks
-              .map((mt) => { const t = TRACKS.find((tr) => tr.id === mt.trackId); return t ? tt(t).title : ''; })
-              .filter(Boolean)
-              .join(', ') ?? null : null}
             onOpenMixer={() => setCurrentScreen('mixer')}
           />
         );
@@ -212,6 +205,7 @@ function AppContent() {
             dailyStories={sleepcast.dailyStories}
             storiesLoading={sleepcast.storiesLoading}
             onStartSleepcast={(theme) => {
+              // Stop any playing audio/mixer before starting sleepcast
               player.pause();
               mixer.stopAll();
               timer.stop();
@@ -225,15 +219,31 @@ function AppContent() {
     }
   };
 
+  if (showStartupOverlay) {
+    return (
+      <div className="max-w-md mx-auto h-dvh relative overflow-hidden bg-bg-dark">
+        <MoodCheckIn
+          requireCheckIn={moodCard.shouldShow}
+          onComplete={(entry) => moodCard.saveMood(entry)}
+          onDismiss={() => {
+            console.log('[AppContent] startup overlay dismissed');
+            if (moodCard.shouldShow) {
+              moodCard.dismiss();
+            }
+            setShowStartupOverlay(false);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className={`max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden ${
-      isSleepcastShowcase ? 'bg-[#edf0f4]' : 'bg-bg-dark'
-    }`}>
-      {currentScreen !== 'home' && !isSleepcastShowcase && <div className="ambient-bg" />}
+    <div className="max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden bg-bg-dark">
+      {currentScreen !== 'home' && <div className="ambient-bg" />}
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>
-      {hasEverPlayed && sleepcast.status === 'idle' && currentScreen !== 'sleepcast' && (
+      {hasEverPlayed && sleepcast.status === 'idle' && (
         <MiniPlayer
           track={player.currentTrack}
           isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}
@@ -246,7 +256,7 @@ function AppContent() {
       <AnimatePresence>
         {moodCard.shouldShow && (
           <MoodCheckIn
-            onComplete={moodCard.saveMood}
+            onComplete={(entry) => moodCard.saveMood(entry)}
             onDismiss={moodCard.dismiss}
           />
         )}

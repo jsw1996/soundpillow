@@ -83,14 +83,14 @@ const es: Record<string, string> = {
   themeLight: 'Claro',
 
   // Track titles
-  track_1_title: 'Lluvia Tropical',
+  track_1_title: 'Lluvia Intensa',
   track_2_title: 'Bosque de Medianoche',
   track_3_title: 'Olas del Mar',
   track_4_title: 'Ronroneo de Gato',
   track_5_title: 'Neblina Matutina',
-  track_6_title: 'Nieve Silenciosa',
+  track_6_title: 'Viento Aullador',
   track_7_title: 'Fogata en el Bosque',
-  track_8_title: 'Bosque Ventoso',
+  track_8_title: 'Viento Susurrante',
   track_9_title: 'Cuenco Tibetano',
   track_10_title: 'Campanillas de Viento',
   track_11_title: 'Río Tranquilo',
@@ -116,11 +116,11 @@ const es: Record<string, string> = {
 
   // Track descriptions
   track_1_desc: 'Lluvia suave cayendo sobre hojas tropicales.',
-  track_2_desc: 'Los sonidos pacíficos de un bosque por la noche.',
+  track_2_desc: 'Los sonidos pacíficos de un bosque.',
   track_3_desc: 'Olas rítmicas rompiendo en la orilla arenosa.',
   track_4_desc: 'La vibración reconfortante de un gato feliz.',
   track_5_desc: 'Sonidos etéreos de una mañana brumosa.',
-  track_6_desc: 'El suave silencio de un paisaje nevado.',
+  track_6_desc: 'El sonido del viento aullando entre los árboles.',
   track_7_desc: 'El reconfortante crepitar de una fogata en el bosque.',
   track_8_desc: 'El sonido del viento soplando entre los árboles.',
   track_9_desc: 'Tonos resonantes de un cuenco tibetano para meditación profunda.',

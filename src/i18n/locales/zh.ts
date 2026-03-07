@@ -83,14 +83,14 @@ const zh: Record<string, string> = {
   themeLight: '浅色',
 
   // Track titles
-  track_1_title: '热带雨声',
+  track_1_title: '大雨倾盆',
   track_2_title: '午夜森林',
   track_3_title: '海浪',
   track_4_title: '猫咪呼噜',
   track_5_title: '晨间薄雾',
-  track_6_title: '静谧雪景',
+  track_6_title: '狂风呼啸',
   track_7_title: '森林篝火',
-  track_8_title: '风吹森林',
+  track_8_title: '沙沙风声',
   track_9_title: '颂钵',
   track_10_title: '风铃',
   track_11_title: '潺潺溪流',
@@ -116,11 +116,11 @@ const zh: Record<string, string> = {
 
   // Track descriptions
   track_1_desc: '热带树叶上轻柔的雨声。',
-  track_2_desc: '夜晚森林中宁静的声音。',
+  track_2_desc: '森林中宁静的声音。',
   track_3_desc: '有节奏的海浪拍打沙滩。',
   track_4_desc: '一只幸福猫咪舒缓的呼噜声。',
   track_5_desc: '薄雾弥漫的清晨空灵之声。',
-  track_6_desc: '雪景中静谧的低语。',
+  track_6_desc: '狂风呼啸穿过树林的声音。',
   track_7_desc: '森林中篝火令人安心的噼啪声。',
   track_8_desc: '风吹过森林树木的声音。',
   track_9_desc: '藏族颂钵深沉的共鸣音，用于深度冥想。',

@@ -8,7 +8,7 @@ function PaperBackdrop({ theme }: { theme: SleepcastTheme }) {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,#f8f1d7_0%,#f7f2e6_44%,#fff8f0_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#e8f3fa_0%,#eef6fc_44%,#f5f9fd_100%)]" />
       <div
         className="absolute inset-x-6 top-28 h-40 rounded-[3rem] opacity-70 blur-3xl"
         style={{ background: `radial-gradient(circle, ${visual.haze} 0%, transparent 72%)` }}
@@ -41,7 +41,7 @@ export function ScreenFrame({
   bottomPadding?: string;
 }) {
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[#fbf5ea] text-[#17181c]">
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[#eef6fc] text-[#17181c]">
       <PaperBackdrop theme={theme} />
       <div
         className="relative z-10 flex min-h-0 flex-1 flex-col px-5"

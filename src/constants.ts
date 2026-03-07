@@ -11,11 +11,11 @@ export const CATEGORIES: Category[] = [
 export const TRACKS: Track[] = [
   {
     id: '1',
-    title: 'Tropical Rain',
+    title: 'Heavy Rain',
     artist: 'Nature Sounds',
     duration: '45 mins',
     category: 'Nature',
-    imageUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1616871154852-e4ba46e8b413?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/rain_heavy_quiet_interior.ogg`,
     description: 'Gentle rain falling on tropical leaves.'
   },
@@ -25,9 +25,9 @@ export const TRACKS: Track[] = [
     artist: 'Deep Sleep',
     duration: '60 mins',
     category: 'Nature',
-    imageUrl: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1514735555661-d3278da9d5ca?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/forest_night.ogg`,
-    description: 'The peaceful sounds of a forest at night.'
+    description: 'The peaceful sounds of a forest.'
   },
   {
     id: '3',
@@ -55,19 +55,19 @@ export const TRACKS: Track[] = [
     artist: 'Focus & Calm',
     duration: '40 mins',
     category: 'Nature',
-    imageUrl: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1570554797963-c9e212bc8e60?q=80&w=1364&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/morning_birds.ogg`,
     description: 'Ethereal sounds of a misty morning.'
   },
   {
     id: '6',
-    title: 'Silent Snow',
+    title: 'Wind Howling',
     artist: 'Pure Relaxation',
     duration: '50 mins',
     category: 'Nature',
-    imageUrl: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1694433847591-ad261b35e38e?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/wind_howling.ogg`,
-    description: 'The quiet hush of a snowy landscape.'
+    description: 'The sound of wind howling through the trees.'
   },
   {
     id: '7',
@@ -81,11 +81,11 @@ export const TRACKS: Track[] = [
   },
   {
     id: '8',
-    title: 'Windy Forest',
+    title: 'Rustling Wind',
     artist: 'Nature Sounds',
     duration: '40 mins',
     category: 'Nature',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1656340998995-336456a573ef?q=80&w=1015&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/windy_forrest.ogg`,
     description: 'The sound of wind blowing through the trees in a forest.'
   },
@@ -127,7 +127,7 @@ export const TRACKS: Track[] = [
     artist: 'Inner Peace',
     duration: '40 mins',
     category: 'Meditation',
-    imageUrl: 'https://images.unsplash.com/photo-1501999635878-71cb5379c2d8?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/rain_on_window.ogg`,
     description: 'Soft rain pattering against a windowpane.'
   },
@@ -137,7 +137,7 @@ export const TRACKS: Track[] = [
     artist: 'Binaural Beats',
     duration: '30 mins',
     category: 'Meditation',
-    imageUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://plus.unsplash.com/premium_photo-1679785652664-5893d9829aed?q=80&w=1090&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/binaural_theta.wav`,
     description: 'Theta binaural beats for deep relaxation and meditation.'
   },
@@ -147,7 +147,7 @@ export const TRACKS: Track[] = [
     artist: 'Deep Sleep Binaural',
     duration: '45 mins',
     category: 'Meditation',
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1621975081039-c814938ea869?q=80&w=1041&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     audioUrl: `${import.meta.env.BASE_URL}audio_normalized/binaural_delta.wav`,
     description: 'Delta binaural beats to guide you into deep sleep.'
   }

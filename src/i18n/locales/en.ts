@@ -83,14 +83,14 @@ const en = {
   themeLight: 'Light',
 
   // Track titles
-  track_1_title: 'Tropical Rain',
+  track_1_title: 'Heavy Rain',
   track_2_title: 'Midnight Forest',
   track_3_title: 'Ocean Waves',
   track_4_title: 'Purring Cat',
   track_5_title: 'Morning Mist',
-  track_6_title: 'Silent Snow',
+  track_6_title: 'Wind Howling',
   track_7_title: 'Forest Bonfire',
-  track_8_title: 'Windy Forest',
+  track_8_title: 'Rustling Wind',
   track_9_title: 'Singing Bowl',
   track_10_title: 'Wind Chimes',
   track_11_title: 'Gentle River',
@@ -116,11 +116,11 @@ const en = {
 
   // Track descriptions
   track_1_desc: 'Gentle rain falling on tropical leaves.',
-  track_2_desc: 'The peaceful sounds of a forest at night.',
+  track_2_desc: 'The peaceful sounds of a forest.',
   track_3_desc: 'Rhythmic waves crashing on a sandy shore.',
   track_4_desc: 'The soothing vibration of a happy cat.',
   track_5_desc: 'Ethereal sounds of a misty morning.',
-  track_6_desc: 'The quiet hush of a snowy landscape.',
+  track_6_desc: 'The sound of wind howling through the trees.',
   track_7_desc: 'The comforting crackle of a campfire in the woods.',
   track_8_desc: 'The sound of wind blowing through the trees in a forest.',
   track_9_desc: 'Resonant tones of a Tibetan singing bowl for deep meditation.',

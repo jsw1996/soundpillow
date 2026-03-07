@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Share2, Check } from 'lucide-react';
 import { MOODS, getMoodMessage, type MoodConfig } from '../data/moodMessages';
+import { TRACKS } from '../constants';
 import type { MoodLevel, MoodEntry } from '../types';
 import { useTranslation } from '../i18n';
 import { fetchMoodMessage } from '../services/api';
@@ -10,6 +11,7 @@ import { formatDateLabel } from '../utils/date';
 interface Props {
   onComplete: (entry: MoodEntry) => void;
   onDismiss: () => void;
+  requireCheckIn?: boolean;
 }
 
 // ─── Canvas share image ───────────────────────────────────────────────────────
@@ -498,7 +500,7 @@ function MoodCardSheet({
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export function MoodCheckIn({ onComplete, onDismiss }: Props) {
+export function MoodCheckIn({ onComplete, onDismiss, requireCheckIn = true }: Props) {
   const { locale } = useTranslation();
   const [pendingMood, setPendingMood] = useState<MoodLevel | null>(null); // loading phase
   const [entry, setEntry] = useState<MoodEntry | null>(null);
@@ -506,7 +508,20 @@ export function MoodCheckIn({ onComplete, onDismiss }: Props) {
   const [hoveredMood, setHoveredMood] = useState<MoodLevel | null>(null);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [dismissing, setDismissing] = useState(false);
+  const [introComplete, setIntroComplete] = useState(false);
   const preloadedRef = useRef(false);
+  const splashConfig = useMemo<MoodConfig>(() => {
+    const fallback = MOODS[2];
+    const images = TRACKS.map((track) => track.imageUrl).filter(Boolean);
+    const imageUrl = images.length > 0
+      ? images[Math.floor(Math.random() * images.length)]
+      : fallback.imageUrl;
+
+    return {
+      ...fallback,
+      imageUrl,
+    };
+  }, []);
 
   // Preload all mood images on mount
   useEffect(() => {
@@ -518,6 +533,24 @@ export function MoodCheckIn({ onComplete, onDismiss }: Props) {
       img.src = m.imageUrl;
     });
   }, []);
+
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setLoadedImages((prev) => new Set(prev).add(splashConfig.imageUrl));
+    img.src = splashConfig.imageUrl;
+  }, [splashConfig.imageUrl]);
+
+  useEffect(() => {
+    const introTimer = setTimeout(() => {
+      setIntroComplete(true);
+
+      if (!requireCheckIn) {
+        setDismissing(true);
+      }
+    }, 2000);
+
+    return () => clearTimeout(introTimer);
+  }, [requireCheckIn]);
 
   // Graceful dismiss: trigger fade-out, then call parent onDismiss
   const handleDismiss = useCallback(() => {
@@ -569,8 +602,6 @@ export function MoodCheckIn({ onComplete, onDismiss }: Props) {
   }, [entry]);
 
   const step = entry ? 'card' : pendingMood ? 'loading' : 'select';
-  // Background always uses the default image (okay); only used for hover preview in select step
-  const bgConfig = MOODS[2]; // okay — stable background
   const activeConfig = entry
     ? MOODS.find((m) => m.level === entry.mood)
     : pendingMood
@@ -587,14 +618,19 @@ export function MoodCheckIn({ onComplete, onDismiss }: Props) {
       }}
     >
       {/* Select & Loading: backdrop overlay + bottom drawer */}
-      {(step === 'select' || step === 'loading' || step === 'card') && !dismissing && (
+      {!dismissing && (
         <motion.div
           key="drawer-backdrop"
-          initial={false}
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-end bg-black"
-          onClick={(e) => { if (e.target === e.currentTarget && step === 'select') handleDismiss(); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && introComplete && step === 'select' && requireCheckIn) {
+              handleDismiss();
+            }
+          }}
         >
           {/* Fullscreen background image behind drawer */}
           <motion.div
@@ -604,34 +640,56 @@ export function MoodCheckIn({ onComplete, onDismiss }: Props) {
             transition={{ duration: 0.6 }}
           >
             <MoodBackground
-              config={bgConfig}
-              imageLoaded={loadedImages.has(bgConfig.imageUrl)}
+              config={splashConfig}
+              imageLoaded={loadedImages.has(splashConfig.imageUrl)}
               hideGradient
             >
               <div />
             </MoodBackground>
           </motion.div>
 
-          <div className="relative z-10 w-full">
-            <AnimatePresence mode="wait">
-              {step === 'select' && (
-                <MoodSelectSheet key="select" onSelect={handleSelect} onDismiss={handleDismiss} hovered={hoveredMood} onHover={setHoveredMood} />
-              )}
-              {step === 'loading' && pendingMood && (
-                <LoadingSheet key="loading" mood={pendingMood} />
-              )}
-              {step === 'card' && entry && activeConfig && (
-                <MoodCardSheet
-                  key="card"
-                  entry={entry}
-                  config={activeConfig}
-                  onShare={handleShare}
-                  onDone={handleDismiss}
-                  sharing={sharing}
-                />
-              )}
-            </AnimatePresence>
-          </div>
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-black/35"
+            initial={{ opacity: 0.55 }}
+            animate={{ opacity: introComplete ? 0.82 : 0.6 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          />
+
+          <AnimatePresence mode="wait">
+            {!introComplete && (
+              <motion.div
+                key="startup-image-only"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="relative z-10 flex flex-1"
+              />
+            )}
+          </AnimatePresence>
+
+          {introComplete && requireCheckIn && (
+            <div className="relative z-10 w-full">
+              <AnimatePresence mode="wait">
+                {step === 'select' && (
+                  <MoodSelectSheet key="select" onSelect={handleSelect} onDismiss={handleDismiss} hovered={hoveredMood} onHover={setHoveredMood} />
+                )}
+                {step === 'loading' && pendingMood && (
+                  <LoadingSheet key="loading" mood={pendingMood} />
+                )}
+                {step === 'card' && entry && activeConfig && (
+                  <MoodCardSheet
+                    key="card"
+                    entry={entry}
+                    config={activeConfig}
+                    onShare={handleShare}
+                    onDone={handleDismiss}
+                    sharing={sharing}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

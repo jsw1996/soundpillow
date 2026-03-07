@@ -5,14 +5,13 @@ import { SLEEPCAST_THEMES } from '../../data/sleepcastThemes';
 import { useTranslation } from '../../i18n';
 import type { GeneratedSleepcast, SleepcastTheme } from '../../types';
 import { screenTransition } from '../../utils/animations';
-import { HeaderBadge, ScreenFrame, ThemeArtwork } from './SleepcastShared';
+import { HeaderBadge, ScreenFrame } from './SleepcastShared';
 import { type ThemeFilter } from './types';
 import {
   formatCardDate,
   getFilterLabel,
   getSceneVisual,
   getThemeName,
-  THEME_EMOJIS,
 } from './utils';
 
 export function ThemeGrid({
@@ -156,13 +155,7 @@ export function ThemeGrid({
                 const displayTitle = story?.title ?? getThemeName(t, theme);
                 const displayMeta = story
                   ? `${story.paragraphs.length} ${t('sleepcastParagraphs')}`
-                  : t('sleepcastTapToGenerate');
-                const statusLabel = story
-                  ? t('sleepcastAvailableNow')
-                  : themeCanSelect
-                  ? t('sleepcastGenerateNow')
-                  : t('sleepcastOffline');
-                const emojis = THEME_EMOJIS[theme.id] ?? ['✨', '🌙', '🎧'];
+                  : null;
 
                 return (
                   <motion.button
@@ -179,12 +172,11 @@ export function ThemeGrid({
                         onSelect(theme);
                       }
                     }}
-                    className={`relative overflow-hidden rounded-[2.4rem] px-5 py-5 text-left transition-all ${isActive ? 'scale-[1.01]' : ''} ${themeCanSelect || !isActive ? '' : 'cursor-not-allowed'}`}
+                    className={`group relative overflow-hidden rounded-[2.4rem] px-5 py-5 text-left transition-all ${isActive ? 'scale-[1.01]' : ''} ${themeCanSelect || !isActive ? '' : 'cursor-not-allowed'}`}
                     style={{
-                      background: visual.card,
                       minHeight: 248,
                       boxShadow: isActive
-                        ? `0 26px 50px ${visual.shadow}`
+                        ? `0 26px 50px rgba(0,0,0,0.3)`
                         : '0 18px 34px rgba(23,24,28,0.10)',
                       transform: isActive
                         ? 'rotate(-1deg)'
@@ -195,59 +187,35 @@ export function ThemeGrid({
                         : 'rotate(-0.35deg)',
                     }}
                   >
-                    <div
-                      className="absolute inset-0 opacity-25"
-                      style={{
-                        backgroundImage: 'radial-gradient(currentColor 0.8px, transparent 0.8px)',
-                        backgroundSize: '12px 12px',
-                        color: visual.cardInk,
-                      }}
-                    />
+                    <div className="absolute inset-0">
+                      <img
+                        src={theme.imageUrl}
+                        alt=""
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-active:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/20 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    </div>
 
-                    <div className="relative z-10 flex h-full max-w-[58%] flex-col">
+                    <div className="relative z-10 flex h-full flex-col justify-between text-white">
                       <div>
-                        <div className="text-[2.25rem] font-black leading-none tracking-[-0.08em] opacity-35" style={{ color: visual.cardInk }}>
+                        <div className="text-[2.25rem] font-black leading-none tracking-[-0.08em] text-white/90">
                           {cardDate.day}
                         </div>
-                        <div className="mt-1 text-sm font-bold opacity-45" style={{ color: visual.cardInk }}>
+                        <div className="mt-1 text-sm font-bold text-white/80">
                           {cardDate.stamp}
                         </div>
                       </div>
 
-                      <div className="mt-6">
-                        <h2 className="max-w-[11rem] text-[2rem] font-black leading-[0.95] tracking-[-0.06em]" style={{ color: visual.cardInk }}>
+                      <div className="mb-2">
+                        <h2 className="max-w-[14rem] text-[2rem] font-black leading-[0.95] tracking-[-0.06em]">
                           {displayTitle}
                         </h2>
-                        <p className="mt-2 text-base opacity-72" style={{ color: visual.cardInk }}>
-                          {displayMeta}
-                        </p>
+                        {displayMeta && (
+                          <p className="mt-2 text-base text-white/80">
+                            {displayMeta}
+                          </p>
+                        )}
                       </div>
-
-                      <div className="mt-auto flex items-center gap-2 pt-6">
-                        {emojis.map((emoji) => (
-                          <span
-                            key={emoji}
-                            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/80 bg-white/88 text-lg shadow-[0_8px_18px_rgba(17,18,23,0.08)]"
-                          >
-                            {emoji}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <ThemeArtwork
-                      theme={theme}
-                      visual={visual}
-                      title={displayTitle}
-                      statusLabel={statusLabel}
-                    />
-
-                    <div className="absolute bottom-5 right-5 rounded-full border border-black/8 bg-white/78 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#17181c] shadow-[0_10px_20px_rgba(17,18,23,0.08)]">
-                      {isActive
-                        ? themeCanSelect
-                          ? t('sleepcastTapToGenerate')
-                          : t('sleepcastOffline')
-                        : getThemeName(t, theme)}
                     </div>
                   </motion.button>
                 );

@@ -83,14 +83,14 @@ const ja: Record<string, string> = {
   themeLight: 'ライト',
 
   // Track titles
-  track_1_title: 'トロピカルレイン',
+  track_1_title: 'ヘビーレイン',
   track_2_title: '真夜中の森',
   track_3_title: '波の音',
   track_4_title: '猫のゴロゴロ',
   track_5_title: '朝もやの音',
-  track_6_title: '静かな雪景色',
+  track_6_title: '風の唸り声',
   track_7_title: '森の焚き火',
-  track_8_title: '風の森',
+  track_8_title: '葉のざわめき',
   track_9_title: 'シンギングボウル',
   track_10_title: '風鈴',
   track_11_title: '穏やかな川',
@@ -116,11 +116,11 @@ const ja: Record<string, string> = {
 
   // Track descriptions
   track_1_desc: '熱帯の葉に降り注ぐ優しい雨の音。',
-  track_2_desc: '夜の森の穏やかな音。',
+  track_2_desc: '森の穏やかな音。',
   track_3_desc: '砂浜に打ち寄せるリズミカルな波の音。',
   track_4_desc: '幸せな猫の心地よいゴロゴロ音。',
   track_5_desc: '霧の立ち込める朝の幻想的な音。',
-  track_6_desc: '雪景色の静かな囁き。',
+  track_6_desc: '木々の間を吹き抜ける風の唸り声。',
   track_7_desc: '森の中の焚き火の心地よいパチパチ音。',
   track_8_desc: '森の木々を吹き抜ける風の音。',
   track_9_desc: 'チベタンシンギングボウルの深い共鳴音。',

@@ -22,7 +22,7 @@ from pyogg import OpusFile
 
 AUDIO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public", "audio")
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public", "audio_normalized")
-TARGET_DBFS = -20.0
+TARGET_DBFS = -30.0
 MAX_GAIN_DB = 65.0
 PEAK_CEILING = 0.95
 SOFT_CLIP_KNEE = 0.6   # start soft clipping above this

@@ -39,7 +39,7 @@ All hooks return `useMemo`-wrapped objects for stable references and wrap their 
 ### Backend (server/)
 
 npm workspace at `server/`. Express 5 app that:
-- Generates daily AI stories via OpenRouter LLM (cron at 4 AM UTC)
+- Generates AI stories on demand via OpenRouter LLM
 - Synthesizes TTS audio via Azure Speech Services
 - Serves stories and audio files via REST API
 - Stores generated content in `server/data/` (gitignored)

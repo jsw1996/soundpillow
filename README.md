@@ -38,7 +38,7 @@ soundpillow/
 │   └── types.ts                # TypeScript interfaces
 ├── server/                     # Express backend (npm workspace)
 │   ├── src/
-│   │   ├── index.ts            # Server entry (Express + cron scheduler)
+│   │   ├── index.ts            # Server entry (Express API)
 │   │   ├── config.ts           # Environment configuration
 │   │   ├── generate.ts         # AI story generation pipeline
 │   │   ├── tts.ts              # Azure Speech TTS synthesis module
@@ -242,7 +242,7 @@ curl "https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net/a
 ### Story Generation Pipeline
 
 ```
-Cron (8:00 PM UTC, pre-generates the next UTC day) or manual trigger
+Manual trigger
   → For each theme × locale:
       1. Generate story text via OpenRouter LLM
       2. Synthesize TTS audio for each paragraph (Azure Speech)
@@ -311,7 +311,6 @@ Required app settings on Azure:
 | `OPENROUTER_API_KEY` | — | **Required.** OpenRouter API key |
 | `AZURE_SPEECH_KEY` | — | **Required.** Azure Speech Services key |
 | `AZURE_SPEECH_REGION` | `southeastasia` | Azure Speech region |
-| `CRON_SCHEDULE` | `0 20 * * *` | Daily pre-generation cron expression for the next UTC day |
 | `LOCALES` | `en,zh,ja,es` | Comma-separated locales to generate |
 | `CORS_ORIGINS` | `http://localhost:3000` | Comma-separated allowed origins |
 | `DATA_DIR` | `data/stories` | Story storage directory |

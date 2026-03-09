@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, Clock, Play, Sparkles, Star, TrendingUp } from 'lucide-react';
+import { BookOpen, Building2, Clock, PawPrint, Play, Sparkles, Star, TrendingUp } from 'lucide-react';
 import { motion } from 'motion/react';
 import { SLEEPCAST_THEMES } from '../../data/sleepcastThemes';
 import {
@@ -45,6 +45,21 @@ const CATEGORY_CARD_STYLES: Record<string, typeof DEFAULT_CATEGORY_CARD_STYLE> =
 
 function getCategoryCardStyle(categoryId: string) {
   return CATEGORY_CARD_STYLES[categoryId] ?? DEFAULT_CATEGORY_CARD_STYLE;
+}
+
+function renderCategoryIcon(categoryId: string, className = 'h-5 w-5') {
+  switch (categoryId) {
+    case 'all':
+      return <BookOpen className={className} />;
+    case 'fairy-tale':
+      return <Sparkles className={className} />;
+    case 'animal-friends':
+      return <PawPrint className={className} />;
+    case 'city-life':
+      return <Building2 className={className} />;
+    default:
+      return <BookOpen className={className} />;
+  }
 }
 
 /* ─── Trending Carousel ─── */
@@ -96,9 +111,6 @@ function TrendingCard({ story, onPlay }: { story: MockStory; onPlay: () => void 
         <h3 className="text-xl font-extrabold leading-tight tracking-tight text-white">
           {story.title}
         </h3>
-        <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-white/65">
-          {story.subtitle}
-        </p>
         <div className="mt-3 flex items-center gap-3 text-[11px] font-semibold text-white/50">
           <span className="flex items-center gap-1">
             <Clock size={11} />
@@ -148,10 +160,10 @@ function StoryListCard({
       <div className="relative px-4 pb-3 pt-4">
         <div className="flex items-start gap-2.5">
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1.15rem] border border-white/70 bg-white/55 text-[1.15rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.88)]"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1.15rem] border border-white/70 bg-white/55 text-black/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.88)]"
             style={{ boxShadow: `inset 0 1px 0 rgba(255,255,255,0.88), 0 12px 24px ${cardStyle.glow}` }}
           >
-            {category.emoji}
+            {renderCategoryIcon(category.id)}
           </div>
 
           <div className="min-w-0 flex-1 pt-px">
@@ -473,17 +485,6 @@ export function ThemeGrid({
             paddingBottom: 'calc(4.75rem + env(safe-area-inset-bottom))',
           }}
         >
-          {/* ── Header (fixed) ── */}
-          <div className="shrink-0 px-5 pt-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-black/35">
-              {t('sleepcastCollectionLabel')}
-            </p>
-            <h1 className="mt-2 text-[2rem] font-black leading-[1.05] tracking-[-0.04em] text-[#111217]">
-              Bedtime Stories
-              <span className="ml-1.5 inline-block text-[1.6rem]">🌙</span>
-            </h1>
-          </div>
-
           {/* ── Trending / Today's Pick Carousel (fixed) ── */}
           <div className="mt-4 shrink-0">
             <div className="flex items-center gap-2 px-5">
@@ -513,7 +514,7 @@ export function ThemeGrid({
                 handleCategoryChange(category.id);
               }}
               getLabel={(category) => category.label}
-              getLeading={(category) => <span>{category.emoji}</span>}
+              getLeading={(category) => renderCategoryIcon(category.id, 'h-3.5 w-3.5')}
               containerClassName="overflow-x-auto no-scrollbar px-5"
               listClassName="flex min-w-max gap-2 pr-5"
             />

@@ -24,7 +24,6 @@ export function LoadingView({ theme }: { theme: SleepcastTheme }) {
           <p className="text-sm font-medium text-black/45">{t('sleepcastGreetingSubline')}</p>
           <h1 className="mt-3 text-[3.1rem] font-black italic leading-[0.9] tracking-[-0.08em] text-[#111217]">
             {t('sleepcastTraceTitle')}
-            <span className="ml-2 align-top text-[2rem] not-italic">✨</span>
           </h1>
         </div>
 

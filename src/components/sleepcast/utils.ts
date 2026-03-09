@@ -83,15 +83,6 @@ const SCENE_VISUALS: Record<string, SceneVisual> = {
   },
 };
 
-export const THEME_EMOJIS: Record<string, string[]> = {
-  'cabin-rain': ['🔥', '🌧️', '🪵'],
-  'ocean-voyage': ['🌊', '⛵️', '💫'],
-  'enchanted-forest': ['🌿', '🪲', '✨'],
-  'zen-garden': ['🍵', '🪨', '🌸'],
-  stargazing: ['🌙', '⭐️', '🛸'],
-  'snow-lodge': ['❄️', '☕️', '🧣'],
-};
-
 export function getSceneVisual(themeId: string): SceneVisual {
   return SCENE_VISUALS[themeId] ?? DEFAULT_VISUAL;
 }

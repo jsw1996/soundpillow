@@ -26,14 +26,13 @@ export interface MockStory {
 export interface StoryCategory {
   id: string;
   label: string;
-  emoji: string;
 }
 
 export const STORY_CATEGORIES: StoryCategory[] = [
-  { id: 'all', label: '全部', emoji: '✨' },
-  { id: 'fairy-tale', label: '童话故事', emoji: '🏰' },
-  { id: 'animal-friends', label: '动物伙伴', emoji: '🐾' },
-  { id: 'city-life', label: '都市生活', emoji: '🌃' },
+  { id: 'all', label: '全部' },
+  { id: 'fairy-tale', label: '童话故事' },
+  { id: 'animal-friends', label: '动物伙伴' },
+  { id: 'city-life', label: '都市生活' },
 ];
 
 export const MOCK_STORIES: MockStory[] = [

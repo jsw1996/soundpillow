@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
-import { fetchAudios } from '../services/api';
+import { fetchAudios, fetchStoryCatalog } from '../services/api';
 import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats, Track } from '../types';
 import { getDateString, getYesterday } from '../utils/date';
 import { loadFromStorage } from '../utils/storage';
+import type { Story } from '../data/stories';
 
 interface AppContextValue {
   currentScreen: Screen;
@@ -19,6 +20,7 @@ interface AppContextValue {
   tracks: Track[];
   tracksLoading: boolean;
   tracksError: string | null;
+  catalogStories: Story[];
   settings: UserSettings;
   updateSettings: (patch: Partial<UserSettings>) => void;
   stats: ListeningStats;
@@ -79,6 +81,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [tracksLoading, setTracksLoading] = useState(true);
   const [tracksError, setTracksError] = useState<string | null>(null);
+  const [catalogStories, setCatalogStories] = useState<Story[]>([]);
   const [settings, setSettings] = useState<UserSettings>(() =>
     loadFromStorage(SETTINGS_KEY, DEFAULT_SETTINGS, (v) => ({ ...DEFAULT_SETTINGS, ...v })),
   );
@@ -146,10 +149,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const loadCatalogStories = useCallback(async () => {
+    try {
+      const stories = await fetchStoryCatalog();
+      if (stories.length > 0) setCatalogStories(stories as Story[]);
+    } catch (error) {
+      console.warn('Failed to load story catalog, using local fallback:', error);
+    }
+  }, []);
+
   // Load tracks on mount
   useEffect(() => {
     loadTracks();
   }, [loadTracks]);
+
+  // Load story catalog on mount
+  useEffect(() => {
+    loadCatalogStories();
+  }, [loadCatalogStories]);
 
   // Retry loading tracks when app returns to foreground if they failed
   useEffect(() => {
@@ -301,6 +318,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     tracks,
     tracksLoading,
     tracksError,
+    catalogStories,
     settings,
     updateSettings,
     stats,
@@ -316,7 +334,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     getWeekEntries,
   }), [
     currentScreen, searchQuery, favorites, showFavoritesOnly, menuOpen,
-    tracks, tracksLoading, tracksError, settings, stats, mixPresets, journal, streakStats,
+    tracks, tracksLoading, tracksError, catalogStories, settings, stats, mixPresets, journal, streakStats,
     setCurrentScreen, setSearchQuery, toggleFavorite, isFavorite,
     setShowFavoritesOnly, setMenuOpen, updateSettings,
     recordSession, resetStats, saveMixPreset, deleteMixPreset,

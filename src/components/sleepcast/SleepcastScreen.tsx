@@ -17,6 +17,7 @@ export function SleepcastScreen({
   isConfigured,
   dailyStories,
   storiesLoading,
+  catalogStories,
   onStartSleepcast,
   onStartMockStory,
   onTogglePlay,
@@ -78,6 +79,7 @@ export function SleepcastScreen({
           isConfigured={isConfigured}
           dailyStories={dailyStories}
           storiesLoading={storiesLoading}
+          catalogStories={catalogStories}
           onRetry={onRetry}
         />
       )}

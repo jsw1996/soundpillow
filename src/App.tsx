@@ -18,12 +18,12 @@ import { ToastContainer, showToast } from './components/Toast';
 import { getMixFromUrl, clearMixFromUrl, sharedMixToPreset } from './utils/mixShare';
 import { MoodCheckIn } from './components/MoodCheckIn';
 import { useMoodCard } from './hooks/useMoodCard';
-import { getMockStoryCast, getMockStoryTheme } from './data/mockStories';
+import { getStoryCast, getStoryTheme } from './data/stories';
 
 function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
 
-  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks } = useAppContext();
+  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks, catalogStories } = useAppContext();
   const { t, locale } = useTranslation();
 
   const player = useAudioPlayer(tracks);
@@ -243,6 +243,7 @@ function AppContent() {
             isConfigured={sleepcast.isConfigured}
             dailyStories={sleepcast.dailyStories}
             storiesLoading={sleepcast.storiesLoading}
+            catalogStories={catalogStories}
             onStartSleepcast={(theme) => {
               // Stop any playing audio/mixer before starting sleepcast
               player.pause();
@@ -254,7 +255,7 @@ function AppContent() {
               player.pause();
               mixer.stopAll();
               timer.stop();
-              sleepcast.startPreviewSleepcast(getMockStoryCast(story), getMockStoryTheme(story), locale);
+              sleepcast.startPreviewSleepcast(getStoryCast(story), getStoryTheme(story), locale);
             }}
             onTogglePlay={() => sleepcast.togglePlay(locale)}
             onStop={sleepcast.stop}

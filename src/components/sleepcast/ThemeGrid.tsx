@@ -3,11 +3,9 @@ import { BookOpen, Building2, Clock, PawPrint, Play, Sparkles, Star, TrendingUp 
 import { motion } from 'motion/react';
 import { SLEEPCAST_THEMES } from '../../data/sleepcastThemes';
 import {
-  type MockStory,
+  type Story,
   STORY_CATEGORIES,
-  getTrendingStories,
-  getStoriesByCategory,
-} from '../../data/mockStories';
+} from '../../data/stories';
 import { PillRow } from '../shared/PillRow';
 import { useTranslation } from '../../i18n';
 import type { GeneratedSleepcast, SleepcastTheme } from '../../types';
@@ -64,7 +62,7 @@ function renderCategoryIcon(categoryId: string, className = 'h-5 w-5') {
 
 /* ─── Trending Carousel ─── */
 
-function TrendingCard({ story, onPlay }: { story: MockStory; onPlay: () => void }) {
+function TrendingCard({ story, onPlay }: { story: Story; onPlay: () => void }) {
   const isTodaysPick = story.isTodaysPick;
 
   return (
@@ -130,8 +128,8 @@ function StoryListCard({
   onPlay,
 }: {
   category: typeof STORY_CATEGORIES[number];
-  stories: MockStory[];
-  onPlay: (story: MockStory) => void;
+  stories: Story[];
+  onPlay: (story: Story) => void;
 }) {
   const cardStyle = getCategoryCardStyle(category.id);
 
@@ -258,13 +256,15 @@ export function ThemeGrid({
   isConfigured,
   dailyStories,
   storiesLoading,
+  catalogStories,
   onRetry,
 }: {
   onSelect: (theme: SleepcastTheme) => void;
-  onStartMockStory: (story: MockStory) => void;
+  onStartMockStory: (story: Story) => void;
   isConfigured: boolean;
   dailyStories: GeneratedSleepcast[];
   storiesLoading: boolean;
+  catalogStories: Story[];
   onRetry?: () => void;
 }) {
   const { t } = useTranslation();
@@ -274,14 +274,24 @@ export function ThemeGrid({
   const categoryScrollAnimationRef = useRef<number | null>(null);
   const categoryScrollSyncFrameRef = useRef<number | null>(null);
 
-  const trendingStories = useMemo(() => getTrendingStories(), []);
+  const trendingStories = useMemo((): Story[] => {
+    if (catalogStories.length === 0) return [];
+    // Shuffle using a stable seed (mount-time random) and pick up to 3
+    const shuffled = [...catalogStories].sort(() => Math.random() - 0.5).slice(0, 3);
+    return shuffled.map((s, i) => ({
+      ...s,
+      isTodaysPick: i === 0,
+      isTrending: i > 0,
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalogStories.length]);
 
   const categorizedGroups = useMemo(
     () => STORY_CATEGORIES.filter((category) => category.id !== 'all').map((category) => ({
       category,
-      stories: getStoriesByCategory(category.id),
+      stories: catalogStories.filter((s) => s.category === category.id),
     })),
-    [],
+    [catalogStories],
   );
 
   const animateCategoryScroll = useCallback((
@@ -451,7 +461,7 @@ export function ThemeGrid({
     };
   }, [syncActiveCategoryFromScroll]);
 
-  const handleStoryPlay = useCallback((story: MockStory) => {
+  const handleStoryPlay = useCallback((story: Story) => {
     if (onStartMockStory) {
       onStartMockStory(story);
       return;

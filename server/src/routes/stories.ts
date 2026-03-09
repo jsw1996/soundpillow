@@ -2,8 +2,17 @@ import { Router } from 'express';
 import { loadStories, todayDate, listDates } from '../store.js';
 import { generateDaily } from '../generate.js';
 import type { GeneratedSleepcast } from '../types.js';
+import { getStoryAudioCatalog } from '../audioCatalog.js';
 
 const router = Router();
+
+/**
+ * GET /api/stories
+ * Returns the curated story catalog (static content with resolved asset URLs).
+ */
+router.get('/', (_req, res) => {
+  res.json(getStoryAudioCatalog());
+});
 
 async function loadStoriesForLocale(date: string, locale: string): Promise<GeneratedSleepcast[] | null> {
   const data = await loadStories(date);

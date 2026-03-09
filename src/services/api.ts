@@ -19,6 +19,32 @@ export interface DailyStoriesResponse {
   requestedDate?: string;
 }
 
+export interface StoryCatalogItem {
+  id: string;
+  title: string;
+  artist: string;
+  subtitle: string;
+  duration: string;
+  imageUrl: string;
+  imageSourceUrl: string;
+  audioUrl: string;
+  description: string;
+  category: string;
+  themeId: string;
+  storyPreview: string;
+  paragraphCount: number;
+  isTrending?: boolean;
+  isTodaysPick?: boolean;
+}
+
+export async function fetchStoryCatalog(): Promise<StoryCatalogItem[]> {
+  const res = await fetch(`${SERVER_URL}/api/stories`, {
+    signal: AbortSignal.timeout(3000),
+  });
+  if (!res.ok) throw new Error(`Server error: ${res.status}`);
+  return res.json();
+}
+
 export async function fetchAudios(): Promise<Track[]> {
   const res = await fetch(`${SERVER_URL}/api/audios`, {
     signal: AbortSignal.timeout(2000),

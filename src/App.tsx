@@ -64,6 +64,29 @@ function AppContent() {
   const [hasEverPlayed, setHasEverPlayed] = useState(false);
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
+  const isSleepcastScreen = currentScreen === 'sleepcast';
+  const defaultShellColor = settings.theme === 'light' ? '#F1F5F9' : '#1e1c23';
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const { style: bodyStyle } = document.body;
+    const previousBodyBackground = bodyStyle.backgroundColor;
+    const previousHtmlBackground = html.style.backgroundColor;
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    const previousThemeColor = themeColorMeta?.getAttribute('content');
+
+    bodyStyle.backgroundColor = defaultShellColor;
+    html.style.backgroundColor = defaultShellColor;
+    themeColorMeta?.setAttribute('content', defaultShellColor);
+
+    return () => {
+      bodyStyle.backgroundColor = previousBodyBackground;
+      html.style.backgroundColor = previousHtmlBackground;
+      if (previousThemeColor) {
+        themeColorMeta?.setAttribute('content', previousThemeColor);
+      }
+    };
+  }, [defaultShellColor]);
 
   // Mix-aware skip: cycle through active mix tracks without starting single-track playback
   const handleMixSkipNext = useCallback(() => {
@@ -243,8 +266,11 @@ function AppContent() {
   }
 
   return (
-    <div className="max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden bg-bg-dark">
-      {currentScreen !== 'home' && <div className="ambient-bg" />}
+    <div
+      className={`max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden ${isSleepcastScreen ? '' : 'bg-bg-dark'}`}
+      style={isSleepcastScreen ? { background: 'linear-gradient(315deg, #ffffff, #def1ff)' } : undefined}
+    >
+      {currentScreen !== 'home' && !isSleepcastScreen && <div className="ambient-bg" />}
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>

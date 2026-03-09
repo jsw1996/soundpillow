@@ -14,3 +14,6 @@ server/data/
 ios/App/Pods/
 ios/App/App/public/
 ios/App/output/
+
+# Claude Code
+.claude/

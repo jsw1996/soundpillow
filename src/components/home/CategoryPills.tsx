@@ -1,8 +1,8 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Heart, Trees, PawPrint, Wind, Sparkles } from 'lucide-react';
-import { motion, animate } from 'motion/react';
 import { CATEGORIES } from '../../constants';
 import { useCategoryName } from '../../i18n';
+import { PillRow } from '../shared/PillRow';
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   Heart: <Heart size={18} />,
@@ -22,8 +22,6 @@ export function CategoryPills({ activeCategory, onCategoryChange, scrollRootRef 
   const [isCategoryStuck, setIsCategoryStuck] = useState(false);
   const getCategoryName = useCategoryName();
   const stickySentinelRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const pillRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   useEffect(() => {
     const root = scrollRootRef.current;
@@ -38,28 +36,13 @@ export function CategoryPills({ activeCategory, onCategoryChange, scrollRootRef 
     return () => observer.disconnect();
   }, [scrollRootRef]);
 
-  const scrollPillToCenter = useCallback((id: string) => {
-    const container = scrollContainerRef.current;
-    const pill = pillRefs.current.get(id);
-    if (!container || !pill) return;
-    const containerRect = container.getBoundingClientRect();
-    const pillRect = pill.getBoundingClientRect();
-    const target =
-      pill.offsetLeft - container.offsetLeft - containerRect.width / 2 + pillRect.width / 2;
-    animate(container.scrollLeft, target, {
-      duration: 0.5,
-      ease: [0.32, 0.72, 0, 1],
-      onUpdate: (v) => { container.scrollLeft = v; },
-    });
-  }, []);
-
   return (
     <>
       {/* Sentinel — crossing this triggers the sticky backdrop */}
       <div ref={stickySentinelRef} className="h-px" />
 
       <div
-        className="sticky z-10 pt-3 pb-3 relative"
+        className="sticky z-10 pt-3 pb-3"
         style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}
       >
         {/* Sticky backdrop blur */}
@@ -78,37 +61,16 @@ export function CategoryPills({ activeCategory, onCategoryChange, scrollRootRef 
         />
 
         {/* Pills */}
-        <div ref={scrollContainerRef} className="flex gap-3 overflow-x-auto no-scrollbar px-6">
-          {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat.id;
-            return (
-              <motion.button
-                key={cat.id}
-                ref={(el) => { if (el) pillRefs.current.set(cat.id, el); }}
-                onClick={() => {
-                  const next = isActive ? null : cat.id;
-                  onCategoryChange(next);
-                  if (next) scrollPillToCenter(next);
-                }}
-                animate={{
-                  scale: isActive ? 1.06 : 1,
-                  opacity: isActive ? 1 : 0.75,
-                  borderRadius: '100px',
-                }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                whileTap={{ scale: 0.94 }}
-                className={`flex items-center gap-2 px-4 py-1.5 whitespace-nowrap backdrop-blur-md border shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] ${
-                  isActive
-                    ? 'bg-[color-mix(in_srgb,var(--color-primary,#8c2bee)_66%,white_18%)] text-white border-white/35 shadow-[0_0_20px_-5px_var(--glow-4)]'
-                    : 'bg-white/70 text-foreground/80 border-white/25'
-                }`}
-              >
-                {CATEGORY_ICONS[cat.icon]}
-                <span className="text-sm font-semibold">{getCategoryName(cat.id)}</span>
-              </motion.button>
-            );
-          })}
-        </div>
+        <PillRow
+          items={CATEGORIES}
+          activeId={activeCategory}
+          onItemSelect={(category, isActive) => {
+            onCategoryChange(isActive ? null : category.id);
+          }}
+          getLabel={(category) => getCategoryName(category.id)}
+          getLeading={(category) => CATEGORY_ICONS[category.icon]}
+          shouldCenterOnPress={(_, isActive) => !isActive}
+        />
       </div>
     </>
   );

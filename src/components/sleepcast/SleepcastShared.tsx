@@ -3,12 +3,14 @@ import type { SleepcastTheme } from '../../types';
 import { getSceneVisual } from './utils';
 import type { SceneVisual } from './types';
 
+const SLEEPCAST_BACKGROUND = 'linear-gradient(315deg, #ffffff, #def1ff)';
+
 function PaperBackdrop({ theme }: { theme: SleepcastTheme }) {
   const visual = getSceneVisual(theme.id);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,#e8f3fa_0%,#eef6fc_44%,#f5f9fd_100%)]" />
+      <div className="absolute inset-0" style={{ background: SLEEPCAST_BACKGROUND }} />
       <div
         className="absolute inset-x-6 top-28 h-40 rounded-[3rem] opacity-70 blur-3xl"
         style={{ background: `radial-gradient(circle, ${visual.haze} 0%, transparent 72%)` }}
@@ -41,11 +43,12 @@ export function ScreenFrame({
   bottomPadding?: string;
 }) {
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[#eef6fc] text-[#17181c]">
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden text-[#17181c]" style={{ background: SLEEPCAST_BACKGROUND }}>
       <PaperBackdrop theme={theme} />
       <div
         className="relative z-10 flex min-h-0 flex-1 flex-col px-5"
         style={{
+          background: SLEEPCAST_BACKGROUND,
           paddingTop: 'max(1rem, env(safe-area-inset-top))',
           paddingBottom: bottomPadding,
         }}

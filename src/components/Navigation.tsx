@@ -15,6 +15,7 @@ export function BottomNav({ sleepcastActive = false }: { sleepcastActive?: boole
   const { currentScreen, setCurrentScreen } =
     useAppContext();
   const { t } = useTranslation();
+  const isSleepcastScreen = currentScreen === 'sleepcast';
 
   const handleNavClick = (item: typeof NAV_ITEMS[number]) => {
     setCurrentScreen(item.screen);
@@ -29,7 +30,11 @@ export function BottomNav({ sleepcastActive = false }: { sleepcastActive?: boole
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-bg-dark/90 backdrop-blur-xl border-t border-foreground/5 pt-2"
+      className={`fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 backdrop-blur-xl pt-2 ${
+        isSleepcastScreen
+          ? 'bg-[#eef6fc]/92 border-t border-black/6'
+          : 'bg-bg-dark/90 border-t border-foreground/5'
+      }`}
       style={{ paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom) * 0.4)' }}
     >
       <div className="flex items-center justify-around px-2">

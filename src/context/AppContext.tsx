@@ -124,33 +124,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STREAK_KEY, JSON.stringify(streakStats));
   }, [streakStats]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadTracks = async () => {
+  const loadTracks = useCallback(async () => {
+    setTracksLoading(true);
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const nextTracks = await fetchAudios();
-        if (cancelled) return;
         setTracks(nextTracks);
         setTracksError(null);
+        setTracksLoading(false);
+        return;
       } catch (error) {
-        if (cancelled) return;
-        console.error('Failed to load audio catalog:', error);
-        setTracks([]);
-        setTracksError(error instanceof Error ? error.message : 'Failed to load audio catalog');
-      } finally {
-        if (!cancelled) {
+        console.error(`Failed to load audio catalog (attempt ${attempt + 1}/3):`, error);
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        } else {
+          setTracks([]);
+          setTracksError(error instanceof Error ? error.message : 'Failed to load audio catalog');
           setTracksLoading(false);
         }
       }
-    };
-
-    loadTracks();
-
-    return () => {
-      cancelled = true;
-    };
+    }
   }, []);
+
+  // Load tracks on mount
+  useEffect(() => {
+    loadTracks();
+  }, [loadTracks]);
+
+  // Retry loading tracks when app returns to foreground if they failed
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && tracks.length === 0) {
+        loadTracks();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [tracks.length, loadTracks]);
 
   const toggleFavorite = useCallback((trackId: string) => {
     setFavorites((prev) => {

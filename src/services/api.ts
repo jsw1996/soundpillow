@@ -20,7 +20,9 @@ export interface DailyStoriesResponse {
 }
 
 export async function fetchAudios(): Promise<Track[]> {
-  const res = await fetch(`${SERVER_URL}/api/audios`);
+  const res = await fetch(`${SERVER_URL}/api/audios`, {
+    signal: AbortSignal.timeout(2000),
+  });
   if (!res.ok) {
     throw new Error(`Server error: ${res.status}`);
   }

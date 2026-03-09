@@ -73,7 +73,7 @@ export function PillRow<T extends { id: string }>({
                 }
               }}
               animate={{
-                scale: isActive ? 1.06 : 1,
+                scale: 1,
                 opacity: isActive ? 1 : 0.75,
                 borderRadius: '100px',
               }}

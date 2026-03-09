@@ -1,18 +1,26 @@
-/**
- * Mock story data for sleepcast screen UI development.
- * Replace with real API data when the backend is ready.
- */
+import type { GeneratedSleepcast, SleepcastTheme } from '../types';
+import { SLEEPCAST_THEMES } from './sleepcastThemes';
+
+const ASSET_BASE_URL = (import.meta.env.VITE_ASSET_BASE_URL || '').replace(/\/+$/, '');
+
+function resolveStoryAudioUrl(blobAudioPath: string): string {
+  if (!ASSET_BASE_URL) return blobAudioPath;
+  return `${ASSET_BASE_URL}/${blobAudioPath}`;
+}
 
 export interface MockStory {
   id: string;
   title: string;
   subtitle: string;
-  duration: string;       // e.g. "12 min"
+  duration: string;
   imageUrl: string;
   category: string;
+  themeId: SleepcastTheme['id'];
+  blobAudioPath: string;
+  paragraphCount: number;
+  storyPreview: string;
   isTrending?: boolean;
   isTodaysPick?: boolean;
-  paragraphCount: number;
 }
 
 export interface StoryCategory {
@@ -22,473 +30,115 @@ export interface StoryCategory {
 }
 
 export const STORY_CATEGORIES: StoryCategory[] = [
-  { id: 'all', label: 'All', emoji: '✨' },
-  { id: 'adventure', label: 'Adventure', emoji: '🧭' },
-  { id: 'fantasy', label: 'Fantasy', emoji: '🧙' },
-  { id: 'nature', label: 'Nature', emoji: '🌿' },
-  { id: 'meditation', label: 'Meditation', emoji: '🧘' },
-  { id: 'fairy-tale', label: 'Fairy Tale', emoji: '🏰' },
-  { id: 'ocean', label: 'Ocean', emoji: '🌊' },
+  { id: 'all', label: '全部', emoji: '✨' },
+  { id: 'fairy-tale', label: '童话故事', emoji: '🏰' },
+  { id: 'animal-friends', label: '动物伙伴', emoji: '🐾' },
+  { id: 'city-life', label: '都市生活', emoji: '🌃' },
 ];
 
 export const MOCK_STORIES: MockStory[] = [
-  // Adventure
   {
-    id: 's1',
-    title: 'The Lantern Trail',
-    subtitle: 'A hiker follows glowing lanterns through a misty mountain pass',
-    duration: '14 min',
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-    category: 'adventure',
+    id: 'story-1',
+    title: '周末的跳蚤市场',
+    subtitle: '旧物摊位、温柔对话和阳光斜照的周末午后。',
+    duration: '12 min',
+    imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80',
+    category: 'city-life',
+    themeId: 'cabin-rain',
+    blobAudioPath: 'audios/stories/01_周末的跳蚤市场.wav',
+    paragraphCount: 1,
+    storyPreview: '在热闹而放松的周末跳蚤市场里，人们交换旧物，也交换彼此生活里最柔软的小故事。',
     isTrending: true,
-    paragraphCount: 12,
   },
   {
-    id: 's2',
-    title: 'Midnight Express',
-    subtitle: 'A sleepy train journey across snow-covered mountains',
-    duration: '18 min',
-    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80',
-    category: 'adventure',
-    paragraphCount: 15,
-  },
-  {
-    id: 's3',
-    title: 'The Quiet Lighthouse',
-    subtitle: 'A keeper tends the last lighthouse on the coast',
+    id: 'story-2',
+    title: '天台上的天文爱好者',
+    subtitle: '在城市屋顶仰望星空，听夜风和望远镜一起变安静。',
     duration: '11 min',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-    category: 'adventure',
-    paragraphCount: 9,
-  },
-  {
-    id: 's19',
-    title: 'Canyon Echoes',
-    subtitle: 'Wandering through a red-rock canyon at sunset',
-    duration: '15 min',
-    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80',
-    category: 'adventure',
-    paragraphCount: 13,
-  },
-  {
-    id: 's20',
-    title: 'The Silk Road Inn',
-    subtitle: 'Resting at an ancient inn along a forgotten trade route',
-    duration: '17 min',
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-    category: 'adventure',
-    paragraphCount: 14,
-  },
-  {
-    id: 's21',
-    title: 'Balloon Over Fields',
-    subtitle: 'A slow hot-air balloon ride over golden wheat fields',
-    duration: '13 min',
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
-    category: 'adventure',
-    paragraphCount: 11,
-  },
-  {
-    id: 's22',
-    title: 'The Map Maker',
-    subtitle: 'An old cartographer draws the edges of the known world',
-    duration: '16 min',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    category: 'adventure',
-    paragraphCount: 13,
-  },
-  {
-    id: 's23',
-    title: 'Night Train to Nowhere',
-    subtitle: 'A mysterious train rolls through endless sleeping towns',
-    duration: '20 min',
-    imageUrl: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=800&q=80',
-    category: 'adventure',
-    paragraphCount: 16,
-  },
-
-  // Fantasy
-  {
-    id: 's4',
-    title: 'The Moonlit Library',
-    subtitle: 'Books whisper stories in a library that only appears at night',
-    duration: '16 min',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    category: 'fantasy',
+    imageUrl: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=800&q=80',
+    category: 'city-life',
+    themeId: 'stargazing',
+    blobAudioPath: 'audios/stories/01_天台上的天文爱好者.wav',
+    paragraphCount: 1,
+    storyPreview: '一位天文爱好者在城市天台架起望远镜，把远处的星光讲成一段适合入睡的夜话。',
     isTodaysPick: true,
-    paragraphCount: 14,
   },
   {
-    id: 's5',
-    title: 'Cloud Shepherds',
-    subtitle: 'Gentle beings who shape clouds into dreams',
-    duration: '13 min',
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
-    category: 'fantasy',
-    isTrending: true,
-    paragraphCount: 11,
-  },
-  {
-    id: 's6',
-    title: 'The Velvet Fox',
-    subtitle: 'A fox made of starlight guides lost travelers home',
+    id: 'story-3',
+    title: '流浪猫的新家',
+    subtitle: '一只小猫慢慢靠近灯光，也慢慢学会相信温暖。',
     duration: '10 min',
-    imageUrl: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=800&q=80',
-    category: 'fantasy',
-    paragraphCount: 8,
-  },
-  {
-    id: 's24',
-    title: 'The Dream Weaver',
-    subtitle: 'A spider spins dreams into silken threads each night',
-    duration: '12 min',
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-    category: 'fantasy',
-    paragraphCount: 10,
-  },
-  {
-    id: 's25',
-    title: 'Hollow Mountain',
-    subtitle: 'Inside a mountain lives a city of gentle crystal folk',
-    duration: '19 min',
-    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80',
-    category: 'fantasy',
-    paragraphCount: 16,
-  },
-  {
-    id: 's26',
-    title: 'The Ink River',
-    subtitle: 'A river of ink flows through a land of living paintings',
-    duration: '14 min',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-    category: 'fantasy',
-    paragraphCount: 12,
-  },
-  {
-    id: 's27',
-    title: 'Feather Falls',
-    subtitle: 'A waterfall made of feathers drifts into a sleeping valley',
-    duration: '11 min',
-    imageUrl: 'https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?auto=format&fit=crop&w=800&q=80',
-    category: 'fantasy',
-    paragraphCount: 9,
-  },
-  {
-    id: 's28',
-    title: 'The Glass Forest',
-    subtitle: 'Trees of blown glass chime softly in the wind',
-    duration: '15 min',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    category: 'fantasy',
-    paragraphCount: 13,
-  },
-
-  // Nature
-  {
-    id: 's7',
-    title: 'Rain on the Rooftop',
-    subtitle: 'Listening to a gentle rain from a cozy attic room',
-    duration: '20 min',
-    imageUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e39a29a?auto=format&fit=crop&w=800&q=80',
-    category: 'nature',
+    imageUrl: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=800&q=80',
+    category: 'animal-friends',
+    themeId: 'cabin-rain',
+    blobAudioPath: 'audios/stories/01_流浪猫的新家.wav',
+    paragraphCount: 1,
+    storyPreview: '一只流浪猫在某个安静的夜晚推开了新生活的门，也找到了属于自己的柔软角落。',
     isTrending: true,
-    paragraphCount: 16,
   },
   {
-    id: 's8',
-    title: 'Autumn Walk',
-    subtitle: 'Crunching through golden leaves in a quiet forest',
-    duration: '15 min',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-    category: 'nature',
-    paragraphCount: 13,
+    id: 'story-4',
+    title: '会唱歌的老橡树',
+    subtitle: '森林里的老橡树一到夜里，就会把风变成摇篮曲。',
+    duration: '13 min',
+    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
+    category: 'fairy-tale',
+    themeId: 'enchanted-forest',
+    blobAudioPath: 'audios/stories/02_会唱歌的老橡树.wav',
+    paragraphCount: 1,
+    storyPreview: '在一片会发光的森林里，一棵古老的橡树唱着缓慢而温柔的歌，让所有路过的心事都安静下来。',
   },
   {
-    id: 's9',
-    title: 'The Hidden Waterfall',
-    subtitle: 'Discovering a secret waterfall deep in the jungle',
+    id: 'story-5',
+    title: '树洞里的邮局',
+    subtitle: '每一封信都藏着森林居民最柔软的秘密和思念。',
     duration: '12 min',
-    imageUrl: 'https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?auto=format&fit=crop&w=800&q=80',
-    category: 'nature',
-    paragraphCount: 10,
+    imageUrl: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80',
+    category: 'fairy-tale',
+    themeId: 'enchanted-forest',
+    blobAudioPath: 'audios/stories/04_树洞里的邮局.wav',
+    paragraphCount: 1,
+    storyPreview: '一间开在树洞深处的小小邮局，替森林里的居民传递想念，也替夜晚保存一份安稳。',
   },
   {
-    id: 's29',
-    title: 'Meadow at Dusk',
-    subtitle: 'Fireflies light up a meadow as the sun sinks low',
-    duration: '14 min',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    category: 'nature',
-    paragraphCount: 12,
-  },
-  {
-    id: 's30',
-    title: 'Snow Falling on Cedars',
-    subtitle: 'Thick snowflakes blanket an ancient cedar grove',
-    duration: '18 min',
-    imageUrl: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=800&q=80',
-    category: 'nature',
-    paragraphCount: 15,
-  },
-  {
-    id: 's31',
-    title: 'The Sleeping Garden',
-    subtitle: 'A walled garden where every flower blooms at moonrise',
-    duration: '13 min',
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-    category: 'nature',
-    paragraphCount: 11,
-  },
-  {
-    id: 's32',
-    title: 'River of Stones',
-    subtitle: 'Following a pebble-bed river through a mossy ravine',
-    duration: '16 min',
-    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80',
-    category: 'nature',
-    paragraphCount: 13,
-  },
-  {
-    id: 's33',
-    title: 'Morning Fog',
-    subtitle: 'Walking through a silent forest wrapped in morning fog',
+    id: 'story-6',
+    title: '唱片店的下午',
+    subtitle: '黑胶缓缓旋转，旧旋律把城市午后染得更柔和。',
     duration: '11 min',
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
-    category: 'nature',
-    paragraphCount: 9,
-  },
-
-  // Meditation
-  {
-    id: 's10',
-    title: 'Temple Bells at Dawn',
-    subtitle: 'Morning meditation in an ancient mountain temple',
-    duration: '22 min',
-    imageUrl: 'https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?auto=format&fit=crop&w=800&q=80',
-    category: 'meditation',
-    isTodaysPick: true,
-    paragraphCount: 18,
-  },
-  {
-    id: 's11',
-    title: 'Breath of the Valley',
-    subtitle: 'A guided breath journey through a peaceful valley',
-    duration: '17 min',
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
-    category: 'meditation',
-    paragraphCount: 14,
-  },
-  {
-    id: 's12',
-    title: 'The Still Lake',
-    subtitle: 'Finding calm at the edge of a glass-like mountain lake',
-    duration: '19 min',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-    category: 'meditation',
-    paragraphCount: 16,
-  },
-  {
-    id: 's34',
-    title: 'Floating Lanterns',
-    subtitle: 'Releasing paper lanterns into a calm night sky',
-    duration: '14 min',
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-    category: 'meditation',
-    paragraphCount: 12,
-  },
-  {
-    id: 's35',
-    title: 'Sand Mandala',
-    subtitle: 'Monks create a sand mandala grain by grain',
-    duration: '20 min',
-    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80',
-    category: 'meditation',
-    paragraphCount: 17,
-  },
-  {
-    id: 's36',
-    title: 'Candlelight Vigil',
-    subtitle: 'A single candle flame in a quiet stone room',
-    duration: '15 min',
-    imageUrl: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=800&q=80',
-    category: 'meditation',
-    paragraphCount: 13,
-  },
-  {
-    id: 's37',
-    title: 'Rain Meditation',
-    subtitle: 'Sitting under a tin roof listening to the rain',
-    duration: '18 min',
-    imageUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e39a29a?auto=format&fit=crop&w=800&q=80',
-    category: 'meditation',
-    paragraphCount: 15,
-  },
-  {
-    id: 's38',
-    title: 'The Bamboo Grove',
-    subtitle: 'Wind whispers through tall bamboo in a mountain clearing',
-    duration: '16 min',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    category: 'meditation',
-    paragraphCount: 14,
-  },
-
-  // Fairy Tale
-  {
-    id: 's13',
-    title: 'The Sleepy Dragon',
-    subtitle: 'A friendly dragon who guards the gates of dreamland',
-    duration: '14 min',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    category: 'fairy-tale',
-    isTrending: true,
-    paragraphCount: 12,
-  },
-  {
-    id: 's14',
-    title: 'The Petal Kingdom',
-    subtitle: 'Tiny beings build a kingdom inside a rose garden',
-    duration: '11 min',
-    imageUrl: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=800&q=80',
-    category: 'fairy-tale',
-    paragraphCount: 9,
-  },
-  {
-    id: 's15',
-    title: 'Stardust Lullaby',
-    subtitle: 'The moon sings a lullaby that tucks the world to sleep',
-    duration: '9 min',
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
-    category: 'fairy-tale',
-    paragraphCount: 7,
-  },
-  {
-    id: 's39',
-    title: 'The Teacup Village',
-    subtitle: 'Tiny folk live inside an old porcelain teacup',
-    duration: '12 min',
-    imageUrl: 'https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?auto=format&fit=crop&w=800&q=80',
-    category: 'fairy-tale',
-    paragraphCount: 10,
-  },
-  {
-    id: 's40',
-    title: 'The Wishing Well',
-    subtitle: 'Every coin dropped tells the well a secret wish',
-    duration: '13 min',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-    category: 'fairy-tale',
-    paragraphCount: 11,
-  },
-  {
-    id: 's41',
-    title: 'Moonbeam Bridge',
-    subtitle: 'A bridge made of moonlight connects two sleeping hills',
-    duration: '10 min',
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-    category: 'fairy-tale',
-    paragraphCount: 8,
-  },
-  {
-    id: 's42',
-    title: 'The Pillow Prince',
-    subtitle: 'A prince who turns clouds into the softest pillows',
-    duration: '15 min',
-    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80',
-    category: 'fairy-tale',
-    paragraphCount: 12,
-  },
-  {
-    id: 's43',
-    title: 'The Lullaby Tree',
-    subtitle: 'A tree whose leaves hum gentle melodies at night',
-    duration: '11 min',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    category: 'fairy-tale',
-    paragraphCount: 9,
-  },
-
-  // Ocean
-  {
-    id: 's16',
-    title: 'Drifting at Sea',
-    subtitle: 'Floating on a warm current under a canopy of stars',
-    duration: '21 min',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-    category: 'ocean',
-    paragraphCount: 17,
-  },
-  {
-    id: 's17',
-    title: 'The Coral Garden',
-    subtitle: 'Diving into a peaceful underwater world of color',
-    duration: '16 min',
-    imageUrl: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-    category: 'ocean',
-    isTrending: true,
-    paragraphCount: 13,
-  },
-  {
-    id: 's18',
-    title: 'Whale Song',
-    subtitle: 'Deep ocean sounds and the gentle songs of whales',
-    duration: '25 min',
-    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80',
-    category: 'ocean',
-    paragraphCount: 20,
-  },
-  {
-    id: 's44',
-    title: 'Tidepools',
-    subtitle: 'Peering into tiny worlds hidden in coastal rock pools',
-    duration: '13 min',
-    imageUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e39a29a?auto=format&fit=crop&w=800&q=80',
-    category: 'ocean',
-    paragraphCount: 11,
-  },
-  {
-    id: 's45',
-    title: 'The Sunken Garden',
-    subtitle: 'An underwater garden swaying gently in the current',
-    duration: '18 min',
-    imageUrl: 'https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?auto=format&fit=crop&w=800&q=80',
-    category: 'ocean',
-    paragraphCount: 15,
-  },
-  {
-    id: 's46',
-    title: 'Moonlit Harbour',
-    subtitle: 'Boats rock gently in a harbour under silver moonlight',
-    duration: '14 min',
-    imageUrl: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=800&q=80',
-    category: 'ocean',
-    paragraphCount: 12,
-  },
-  {
-    id: 's47',
-    title: 'The Pearl Diver',
-    subtitle: 'A free diver descends into a peaceful blue world',
-    duration: '17 min',
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
-    category: 'ocean',
-    paragraphCount: 14,
-  },
-  {
-    id: 's48',
-    title: 'Seaside Cottage',
-    subtitle: 'Falling asleep to the sound of waves outside your window',
-    duration: '22 min',
-    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
-    category: 'ocean',
-    paragraphCount: 18,
+    imageUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=800&q=80',
+    category: 'city-life',
+    themeId: 'zen-garden',
+    blobAudioPath: 'audios/stories/05_唱片店的下午.wav',
+    paragraphCount: 1,
+    storyPreview: '午后的唱片店有轻微的唱针噪音、木头香气和慢下来的时间，像一首适合睡前回味的歌。',
   },
 ];
 
 export function getTrendingStories(): MockStory[] {
-  return MOCK_STORIES.filter((s) => s.isTrending || s.isTodaysPick);
+  return MOCK_STORIES.filter((story) => story.isTrending || story.isTodaysPick);
 }
 
 export function getStoriesByCategory(categoryId: string): MockStory[] {
   if (categoryId === 'all') return MOCK_STORIES;
-  return MOCK_STORIES.filter((s) => s.category === categoryId);
+  return MOCK_STORIES.filter((story) => story.category === categoryId);
+}
+
+export function getMockStoryTheme(story: MockStory): SleepcastTheme {
+  const baseTheme = SLEEPCAST_THEMES.find((theme) => theme.id === story.themeId) ?? SLEEPCAST_THEMES[0];
+  return {
+    ...baseTheme,
+    imageUrl: story.imageUrl,
+  };
+}
+
+export function getMockStoryCast(story: MockStory): GeneratedSleepcast {
+  return {
+    id: story.id,
+    themeId: story.themeId,
+    title: story.title,
+    story: story.storyPreview,
+    paragraphs: [story.storyPreview],
+    audioUrls: [resolveStoryAudioUrl(story.blobAudioPath)],
+    createdAt: Date.now(),
+  };
 }

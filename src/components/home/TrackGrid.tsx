@@ -13,9 +13,20 @@ function TrackCard({ track, onSelect }: TrackCardProps) {
   const tt = useTrackTranslation();
   const translated = tt(track);
 
+  const handleSelect = () => {
+    console.log('[QuickSleep] track card tapped', {
+      id: track.id,
+      title: track.title,
+      translatedTitle: translated.title,
+      audioUrl: track.audioUrl,
+      timestamp: new Date().toISOString(),
+    });
+    onSelect(track);
+  };
+
   return (
     <div
-      onClick={() => onSelect(track)}
+      onClick={handleSelect}
       className="cursor-pointer space-y-2 relative"
     >
       <div className="relative aspect-square rounded-3xl overflow-hidden">

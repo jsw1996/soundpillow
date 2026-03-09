@@ -1,4 +1,5 @@
 import type { GeneratedSleepcast, SleepcastStatus, SleepcastTheme } from '../../types';
+import type { MockStory } from '../../data/mockStories';
 
 export interface SleepcastScreenProps {
   status: SleepcastStatus;
@@ -10,6 +11,7 @@ export interface SleepcastScreenProps {
   dailyStories: GeneratedSleepcast[];
   storiesLoading: boolean;
   onStartSleepcast: (theme: SleepcastTheme) => void;
+  onStartMockStory: (story: MockStory) => void;
   onTogglePlay: () => void;
   onStop: () => void;
   onRetry?: () => void;

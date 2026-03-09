@@ -97,7 +97,9 @@ export function getSceneVisual(themeId: string): SceneVisual {
 }
 
 export function getThemeName(t: ReturnType<typeof useTranslation>['t'], theme: SleepcastTheme) {
-  return t(`sleepcastTheme_${theme.id}` as any) || theme.name;
+  const key = `sleepcastTheme_${theme.id}` as any;
+  const translated = t(key);
+  return translated === key ? theme.name : translated;
 }
 
 export function getThemeSummary(theme: SleepcastTheme) {

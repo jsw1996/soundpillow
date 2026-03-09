@@ -87,6 +87,14 @@ export function useSleepcast() {
     cleanupAudioNodes(bgNodesRef.current);
   }, []);
 
+  const cleanupNarration = useCallback(() => {
+    pausedRef.current = true;
+    if (narrationAudioRef.current) {
+      narrationAudioRef.current.pause();
+      narrationAudioRef.current.src = '';
+    }
+  }, []);
+
   const pauseBgAudio = useCallback(() => {
     bgNodesRef.current.forEach((node) => node.element.pause());
   }, []);
@@ -181,12 +189,15 @@ export function useSleepcast() {
       return;
     }
 
-    setCurrentCast(story);
-    startBgAudio(theme);
-    setStatus('playing');
-    startingRef.current = false;
-
     try {
+      cleanupNarration();
+      stopBgAudio();
+      pausedRef.current = false;
+      paragraphIndexRef.current = 0;
+      setCurrentCast(story);
+      startBgAudio(theme);
+      setStatus('playing');
+      startingRef.current = false;
       await narrateStory(story, locale);
     } catch (err) {
       if (!(err instanceof DOMException && err.name === 'AbortError')) {
@@ -195,7 +206,30 @@ export function useSleepcast() {
         setStatus('error');
       }
     }
-  }, [dailyStories, startBgAudio, narrateStory]);
+  }, [cleanupNarration, dailyStories, narrateStory, startBgAudio, stopBgAudio]);
+
+  const startPreviewSleepcast = useCallback(async (cast: GeneratedSleepcast, theme: SleepcastTheme, locale: string = 'en') => {
+    setError(null);
+    setCurrentTheme(theme);
+    setCurrentCast(cast);
+    setActiveParagraph(-1);
+    cleanupNarration();
+    stopBgAudio();
+    pausedRef.current = false;
+    paragraphIndexRef.current = 0;
+
+    try {
+      startBgAudio(theme);
+      setStatus('playing');
+      await narrateStory(cast, locale);
+    } catch (err) {
+      if (!(err instanceof DOMException && err.name === 'AbortError')) {
+        console.error('Preview narration error:', err);
+        setError(err instanceof Error ? err.message : 'Narration failed');
+        setStatus('error');
+      }
+    }
+  }, [cleanupNarration, narrateStory, startBgAudio, stopBgAudio]);
 
   const play = useCallback(async (locale: string = 'en') => {
     if (status === 'paused' && currentCast) {
@@ -205,14 +239,6 @@ export function useSleepcast() {
       await narrateStory(currentCast, locale, paragraphIndexRef.current);
     }
   }, [status, currentCast, resumeBgAudio, narrateStory]);
-
-  const cleanupNarration = useCallback(() => {
-    pausedRef.current = true;
-    if (narrationAudioRef.current) {
-      narrationAudioRef.current.pause();
-      narrationAudioRef.current.src = '';
-    }
-  }, []);
 
   const pause = useCallback(() => {
     cleanupNarration();
@@ -262,10 +288,11 @@ export function useSleepcast() {
     storiesLoading,
     serverAvailable,
     startSleepcast,
+    startPreviewSleepcast,
     togglePlay,
     pause,
     play,
     stop,
     loadDailyStories,
-  }), [status, currentCast, currentTheme, activeParagraph, error, serverAvailable, dailyStories, storiesLoading, startSleepcast, togglePlay, pause, play, stop, loadDailyStories]);
+  }), [status, currentCast, currentTheme, activeParagraph, error, serverAvailable, dailyStories, storiesLoading, startSleepcast, startPreviewSleepcast, togglePlay, pause, play, stop, loadDailyStories]);
 }

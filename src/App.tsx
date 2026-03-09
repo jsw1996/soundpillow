@@ -18,6 +18,7 @@ import { ToastContainer, showToast } from './components/Toast';
 import { getMixFromUrl, clearMixFromUrl, sharedMixToPreset } from './utils/mixShare';
 import { MoodCheckIn } from './components/MoodCheckIn';
 import { useMoodCard } from './hooks/useMoodCard';
+import { getMockStoryCast, getMockStoryTheme } from './data/mockStories';
 
 function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
@@ -150,6 +151,16 @@ function AppContent() {
 
   const handleTrackSelect = useCallback(
     (track: typeof tracks[number]) => {
+      console.log('[AppContent] handleTrackSelect', {
+        trackId: track.id,
+        title: track.title,
+        audioUrl: track.audioUrl,
+        previousTrackId: player.currentTrack?.id ?? null,
+        currentScreen,
+        activeMixId: activeMix?.id ?? null,
+        mixerActiveTrackIds: mixer.activeTracks.map((item) => item.trackId),
+        timestamp: new Date().toISOString(),
+      });
       setHasEverPlayed(true);
       player.selectTrack(track);
       setActiveMix(null);
@@ -157,7 +168,7 @@ function AppContent() {
       timer.start();
       recordSession(track.id);
     },
-    [player, mixer, timer, recordSession],
+    [activeMix?.id, currentScreen, mixer, player, recordSession, timer],
   );
 
   const handleMixSelect = useCallback(
@@ -238,6 +249,12 @@ function AppContent() {
               mixer.stopAll();
               timer.stop();
               sleepcast.startSleepcast(theme, locale);
+            }}
+            onStartMockStory={(story) => {
+              player.pause();
+              mixer.stopAll();
+              timer.stop();
+              sleepcast.startPreviewSleepcast(getMockStoryCast(story), getMockStoryTheme(story), locale);
             }}
             onTogglePlay={() => sleepcast.togglePlay(locale)}
             onStop={sleepcast.stop}

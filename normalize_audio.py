@@ -1,24 +1,30 @@
 """
-Normalize all audio files in public/audio/ to a consistent loudness level.
+Normalize all ambient audio files in public/audio/ to a consistent loudness level.
 
 Two-stage approach:
-  1. Apply gain to reach target RMS
-  2. Soft-clip peaks using tanh to avoid harsh clipping while preserving RMS
+    1. Apply gain to reach target RMS
+    2. Soft-clip peaks using tanh to avoid harsh clipping while preserving RMS
 
-Opus/OGG files are decoded via pyogg and re-encoded as Vorbis/OGG.
-MP3s are converted to OGG/Vorbis (soundfile can't write MP3).
-WAV files stay as WAV.
+Input formats supported: OGG, MP3, WAV, FLAC.
+Output format: MP3 for every ambient track so the files play on iOS/WebKit.
 
 Original files in public/audio/ are left untouched.
 Normalized files are written to public/audio_normalized/.
 
-Requirements: pip install soundfile numpy pyogg
+Requirements: pip install soundfile numpy imageio-ffmpeg
 """
 
 import os
+import subprocess
+import tempfile
+from typing import Optional
 import numpy as np
 import soundfile as sf
-from pyogg import OpusFile
+
+try:
+    import imageio_ffmpeg
+except ImportError:
+    imageio_ffmpeg = None
 
 AUDIO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public", "audio")
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public", "audio_normalized")
@@ -27,6 +33,13 @@ MAX_GAIN_DB = 65.0
 PEAK_CEILING = 0.95
 SOFT_CLIP_KNEE = 0.6   # start soft clipping above this
 WRITE_CHUNK = 200000
+MP3_BITRATE = 192000
+
+
+def get_ffmpeg_executable() -> Optional[str]:
+    if imageio_ffmpeg is None:
+        return None
+    return imageio_ffmpeg.get_ffmpeg_exe()
 
 
 def rms_dbfs(samples: np.ndarray) -> float:
@@ -57,42 +70,92 @@ def soft_clip(data: np.ndarray, knee: float = SOFT_CLIP_KNEE, ceiling: float = P
 
 
 def read_audio(filepath: str):
-    """Read audio file. Uses pyogg for Opus, soundfile for everything else."""
-    info = sf.info(filepath)
-    if info.subtype == "OPUS":
-        opus = OpusFile(filepath)
-        n_samples = opus.buffer_length // 2
-        raw = np.ctypeslib.as_array(opus.buffer, shape=(n_samples,)).copy()
-        data = raw.astype(np.float64) / 32768.0
-        if opus.channels == 2:
-            data = data.reshape(-1, 2)
-        return data, opus.frequency
-    else:
+    """Read audio with soundfile first, then fall back to ffmpeg for formats like OGG/Opus."""
+    try:
         return sf.read(filepath, dtype="float64")
+    except Exception as exc:
+        ffmpeg = get_ffmpeg_executable()
+        if ffmpeg is None:
+            raise RuntimeError(f"Unable to read {filepath}: {exc}") from exc
+
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+            temp_wav_path = temp_file.name
+
+        try:
+            subprocess.run(
+                [
+                    ffmpeg,
+                    "-y",
+                    "-i",
+                    filepath,
+                    "-vn",
+                    "-acodec",
+                    "pcm_s16le",
+                    temp_wav_path,
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            return sf.read(temp_wav_path, dtype="float64")
+        except subprocess.CalledProcessError as ffmpeg_exc:
+            stderr = ffmpeg_exc.stderr.strip() if ffmpeg_exc.stderr else ""
+            stdout = ffmpeg_exc.stdout.strip() if ffmpeg_exc.stdout else ""
+            details = stderr or stdout or str(ffmpeg_exc)
+            raise RuntimeError(f"Unable to read {filepath}: {details}") from ffmpeg_exc
+        finally:
+            if os.path.exists(temp_wav_path):
+                os.remove(temp_wav_path)
 
 
-def write_ogg_chunked(filepath: str, data: np.ndarray, samplerate: int):
-    """Write OGG/Vorbis in chunks (avoids libsndfile crash on large buffers)."""
+def write_wav_chunked(filepath: str, data: np.ndarray, samplerate: int):
+    """Write WAV in chunks to keep memory usage stable on large buffers."""
     channels = data.shape[1] if data.ndim == 2 else 1
     with sf.SoundFile(filepath, "w", samplerate=samplerate, channels=channels,
-                      format="OGG", subtype="VORBIS") as f:
+                      format="WAV", subtype="PCM_16") as f:
         for i in range(0, len(data), WRITE_CHUNK):
             f.write(data[i:i + WRITE_CHUNK])
 
 
-def write_audio(filepath: str, data: np.ndarray, samplerate: int, original_ext: str) -> str:
-    ext = original_ext.lower()
-    if ext in (".ogg", ".mp3"):
-        out_path = os.path.splitext(filepath)[0] + ".ogg"
-        write_ogg_chunked(out_path, data, samplerate)
+def write_mp3(filepath: str, data: np.ndarray, samplerate: int) -> str:
+    out_path = os.path.splitext(filepath)[0] + ".mp3"
+    ffmpeg = get_ffmpeg_executable()
+
+    if ffmpeg is None:
+        raise RuntimeError(
+            "MP3 export requires imageio-ffmpeg. Install it with `python3 -m pip install --user imageio-ffmpeg`."
+        )
+
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+        temp_wav_path = temp_file.name
+
+    try:
+        write_wav_chunked(temp_wav_path, data, samplerate)
+        subprocess.run(
+            [
+                ffmpeg,
+                "-y",
+                "-i",
+                temp_wav_path,
+                "-codec:a",
+                "libmp3lame",
+                "-b:a",
+                f"{MP3_BITRATE}",
+                out_path,
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
         return out_path
-    elif ext == ".wav":
-        sf.write(filepath, data, samplerate, format="WAV", subtype="PCM_16")
-        return filepath
-    else:
-        out_path = os.path.splitext(filepath)[0] + ".wav"
-        sf.write(out_path, data, samplerate, format="WAV", subtype="PCM_16")
-        return out_path
+    except subprocess.CalledProcessError as exc:
+        stderr = exc.stderr.strip() if exc.stderr else ""
+        stdout = exc.stdout.strip() if exc.stdout else ""
+        details = stderr or stdout or str(exc)
+        raise RuntimeError(f"ffmpeg failed for {out_path}: {details}") from exc
+    finally:
+        if os.path.exists(temp_wav_path):
+            os.remove(temp_wav_path)
 
 
 def normalize(data: np.ndarray, dbfs: float) -> tuple[np.ndarray, float, float]:
@@ -163,11 +226,10 @@ def main():
     for f, data, sr, dbfs, _ in file_data:
         normalized, final_dbfs, peak = normalize(data, dbfs)
 
-        ext = os.path.splitext(f)[1]
-        out_basename = os.path.splitext(f)[0] + (".ogg" if ext.lower() in (".ogg", ".mp3") else ext)
+        out_basename = os.path.splitext(f)[0] + ".mp3"
         out_path = os.path.join(OUTPUT_DIR, out_basename)
 
-        actual_path = write_audio(out_path, normalized, sr, ext)
+        actual_path = write_mp3(out_path, normalized, sr)
         actual_name = os.path.basename(actual_path)
 
         delta = final_dbfs - dbfs
@@ -179,10 +241,10 @@ def main():
 
     print(f"\nDone! {len(file_data)} files normalized into {OUTPUT_DIR}/")
     if renames:
-        print(f"\nFiles that changed extension (MP3 -> OGG):")
+        print(f"\nFiles that changed extension:")
         for old, new in renames:
             print(f"  {old} -> {new}")
-        print(f"\nUpdate src/constants.ts audioUrl references for these files.")
+        print(f"\nUpdate ambient audio asset references to point at the new MP3 files.")
 
 
 if __name__ == "__main__":

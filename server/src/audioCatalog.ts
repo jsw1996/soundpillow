@@ -19,12 +19,13 @@ interface AudioTrackDefinition {
     duration: string;
     category: string;
     imageSourceUrl: string;
-    blobCoverPath: string;
+    blobCoverPath?: string;
+    imageUrl?: string;
     blobAudioPath: string;
     description: string;
 }
 
-const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
+const AMBIENT_TRACK_DEFINITIONS: AudioTrackDefinition[] = [
     {
         id: '1',
         title: 'Heavy Rain',
@@ -33,7 +34,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Nature',
         imageSourceUrl: 'https://images.unsplash.com/photo-1616871154852-e4ba46e8b413?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/heavy-rain.jpg',
-        blobAudioPath: 'audios/tracks/heavy_rain2.ogg',
+        blobAudioPath: 'audios/tracks/heavy_rain2.mp3',
         description: 'Gentle rain falling on tropical leaves.',
     },
     {
@@ -44,7 +45,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Nature',
         imageSourceUrl: 'https://images.unsplash.com/photo-1514735555661-d3278da9d5ca?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/midnight-forest.jpg',
-        blobAudioPath: 'audios/tracks/forest_night2.ogg',
+        blobAudioPath: 'audios/tracks/forest_night2.mp3',
         description: 'The peaceful sounds of a forest.',
     },
     {
@@ -55,7 +56,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Nature',
         imageSourceUrl: 'https://images.unsplash.com/photo-1612387364395-9338e6423547?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/ocean-waves.jpg',
-        blobAudioPath: 'audios/tracks/sea_wave2.ogg',
+        blobAudioPath: 'audios/tracks/sea_wave2.mp3',
         description: 'Rhythmic waves crashing on a sandy shore.',
     },
     {
@@ -66,7 +67,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Animals',
         imageSourceUrl: 'https://images.unsplash.com/photo-1596921825946-d738194fac80?q=80&w=986&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/purring-cat.jpg',
-        blobAudioPath: 'audios/tracks/cat_purr2.ogg',
+        blobAudioPath: 'audios/tracks/cat_purr2.mp3',
         description: 'The soothing vibration of a happy cat.',
     },
     {
@@ -77,7 +78,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Nature',
         imageSourceUrl: 'https://images.unsplash.com/photo-1570554797963-c9e212bc8e60?q=80&w=1364&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/morning-mist.jpg',
-        blobAudioPath: 'audios/tracks/morning_birds.ogg',
+        blobAudioPath: 'audios/tracks/morning_birds.mp3',
         description: 'Ethereal sounds of a misty morning.',
     },
     {
@@ -88,7 +89,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Nature',
         imageSourceUrl: 'https://images.unsplash.com/photo-1694433847591-ad261b35e38e?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/wind-howling.jpg',
-        blobAudioPath: 'audios/tracks/wind_howling.ogg',
+        blobAudioPath: 'audios/tracks/wind_howling.mp3',
         description: 'The sound of wind howling through the trees.',
     },
     {
@@ -99,7 +100,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Nature',
         imageSourceUrl: 'https://images.unsplash.com/photo-1620224027739-3d0e4cc395a5?q=80&w=1035&auto=format&fit=crop&w=800&q=80',
         blobCoverPath: 'audios/covers/forest-bonfire.jpg',
-        blobAudioPath: 'audios/tracks/bonfire2.ogg',
+        blobAudioPath: 'audios/tracks/bonfire2.mp3',
         description: 'The comforting crackle of a campfire in the woods.',
     },
     {
@@ -110,7 +111,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Nature',
         imageSourceUrl: 'https://images.unsplash.com/photo-1656340998995-336456a573ef?q=80&w=1015&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/rustling-wind.jpg',
-        blobAudioPath: 'audios/tracks/rustling_wind2.ogg',
+        blobAudioPath: 'audios/tracks/rustling_wind2.mp3',
         description: 'The sound of wind blowing through the trees in a forest.',
     },
     {
@@ -121,7 +122,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Meditation',
         imageSourceUrl: 'https://images.unsplash.com/photo-1619968747226-67769140323a?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/singing-bowl.jpg',
-        blobAudioPath: 'audios/tracks/singing_bowl.ogg',
+        blobAudioPath: 'audios/tracks/singing_bowl.mp3',
         description: 'Resonant tones of a Tibetan singing bowl for deep meditation.',
     },
     {
@@ -132,7 +133,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Meditation',
         imageSourceUrl: 'https://images.unsplash.com/photo-1765895193943-35550897cc2d?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/wind-chimes.jpg',
-        blobAudioPath: 'audios/tracks/wind_chimes.ogg',
+        blobAudioPath: 'audios/tracks/wind_chimes.mp3',
         description: 'Delicate wind chimes swaying in a gentle breeze.',
     },
     {
@@ -143,7 +144,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Meditation',
         imageSourceUrl: 'https://images.unsplash.com/photo-1506318039632-e5626c0c1394?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/gentle-river.jpg',
-        blobAudioPath: 'audios/tracks/river.ogg',
+        blobAudioPath: 'audios/tracks/river.mp3',
         description: 'A calm river flowing through a peaceful valley.',
     },
     {
@@ -154,7 +155,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Meditation',
         imageSourceUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80',
         blobCoverPath: 'audios/covers/rain-on-window.jpg',
-        blobAudioPath: 'audios/tracks/calming_rain2.ogg', 
+        blobAudioPath: 'audios/tracks/calming_rain2.mp3', 
         description: 'Soft rain pattering against a windowpane.',
     },
     {
@@ -165,7 +166,7 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Meditation',
         imageSourceUrl: 'https://plus.unsplash.com/premium_photo-1679785652664-5893d9829aed?q=80&w=1090&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/theta-waves.jpg',
-        blobAudioPath: 'audios/tracks/binaural_theta.wav',
+        blobAudioPath: 'audios/tracks/binaural_theta.mp3',
         description: 'Theta binaural beats for deep relaxation and meditation.',
     },
     {
@@ -176,8 +177,77 @@ const TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Meditation',
         imageSourceUrl: 'https://images.unsplash.com/photo-1621975081039-c814938ea869?q=80&w=1041&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         blobCoverPath: 'audios/covers/delta-waves.jpg',
-        blobAudioPath: 'audios/tracks/binaural_delta.wav',
+        blobAudioPath: 'audios/tracks/binaural_delta.mp3',
         description: 'Delta binaural beats to guide you into deep sleep.',
+    },
+];
+
+const STORY_DEFINITIONS: AudioTrackDefinition[] = [
+    {
+        id: 'story-1',
+        title: '周末的跳蚤市场',
+        artist: 'SoundPillow Stories',
+        duration: '12 mins',
+        category: '都市生活',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80',
+        blobAudioPath: 'audios/stories/01_周末的跳蚤市场.wav',
+        description: '在热闹又温柔的周末市集里，跟着旧物与陌生人的小故事慢慢入睡。',
+    },
+    {
+        id: 'story-2',
+        title: '天台上的天文爱好者',
+        artist: 'SoundPillow Stories',
+        duration: '11 mins',
+        category: '都市生活',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=800&q=80',
+        blobAudioPath: 'audios/stories/01_天台上的天文爱好者.wav',
+        description: '在城市屋顶抬头看星星，听一位天文爱好者分享夜空与安静。',
+    },
+    {
+        id: 'story-3',
+        title: '流浪猫的新家',
+        artist: 'SoundPillow Stories',
+        duration: '10 mins',
+        category: '动物伙伴',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=800&q=80',
+        blobAudioPath: 'audios/stories/01_流浪猫的新家.wav',
+        description: '一只流浪猫慢慢学会信任，也在灯光温暖的小屋里找到归属。',
+    },
+    {
+        id: 'story-4',
+        title: '会唱歌的老橡树',
+        artist: 'SoundPillow Stories',
+        duration: '13 mins',
+        category: '童话故事',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
+        blobAudioPath: 'audios/stories/02_会唱歌的老橡树.wav',
+        description: '森林深处的老橡树会在夜里轻声歌唱，把每个愿望都变成摇篮曲。',
+    },
+    {
+        id: 'story-5',
+        title: '树洞里的邮局',
+        artist: 'SoundPillow Stories',
+        duration: '12 mins',
+        category: '童话故事',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80',
+        blobAudioPath: 'audios/stories/04_树洞里的邮局.wav',
+        description: '一间藏在树洞里的邮局，替森林居民传递最轻柔的思念与秘密。',
+    },
+    {
+        id: 'story-6',
+        title: '唱片店的下午',
+        artist: 'SoundPillow Stories',
+        duration: '11 mins',
+        category: '都市生活',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=800&q=80',
+        blobAudioPath: 'audios/stories/05_唱片店的下午.wav',
+        description: '午后的唱片店里，黑胶缓缓转动，旧时光像音乐一样安静流淌。',
     },
 ];
 
@@ -185,16 +255,32 @@ function resolveAssetUrl(assetPath: string): string {
     return `${config.assetBaseUrl.replace(/\/+$/, '')}/${assetPath}`;
 }
 
-export function getAudioCatalog(): AudioTrack[] {
-    return TRACK_DEFINITIONS.map((track) => ({
+function resolveImageUrl(track: AudioTrackDefinition): string {
+    if (track.blobCoverPath) {
+        return resolveAssetUrl(track.blobCoverPath);
+    }
+
+    return track.imageUrl ?? track.imageSourceUrl;
+}
+
+function mapTrackDefinition(track: AudioTrackDefinition): AudioTrack {
+    return {
         id: track.id,
         title: track.title,
         artist: track.artist,
         duration: track.duration,
         category: track.category,
-        imageUrl: resolveAssetUrl(track.blobCoverPath),
+        imageUrl: resolveImageUrl(track),
         imageSourceUrl: track.imageSourceUrl,
         audioUrl: resolveAssetUrl(track.blobAudioPath),
         description: track.description,
-    }));
+    };
+}
+
+export function getAudioCatalog(): AudioTrack[] {
+    return AMBIENT_TRACK_DEFINITIONS.map(mapTrackDefinition);
+}
+
+export function getStoryAudioCatalog(): AudioTrack[] {
+    return STORY_DEFINITIONS.map(mapTrackDefinition);
 }

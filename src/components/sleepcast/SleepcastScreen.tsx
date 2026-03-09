@@ -18,6 +18,7 @@ export function SleepcastScreen({
   dailyStories,
   storiesLoading,
   onStartSleepcast,
+  onStartMockStory,
   onTogglePlay,
   onStop,
   onRetry,
@@ -73,6 +74,7 @@ export function SleepcastScreen({
         <ThemeGrid
           key="grid"
           onSelect={onStartSleepcast}
+          onStartMockStory={onStartMockStory}
           isConfigured={isConfigured}
           dailyStories={dailyStories}
           storiesLoading={storiesLoading}

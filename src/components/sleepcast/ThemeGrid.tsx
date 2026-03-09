@@ -23,37 +23,19 @@ const DEFAULT_CATEGORY_CARD_STYLE = {
 };
 
 const CATEGORY_CARD_STYLES: Record<string, typeof DEFAULT_CATEGORY_CARD_STYLE> = {
-  adventure: {
-    glow: 'rgba(251, 191, 36, 0.34)',
-    tint: 'radial-gradient(circle at top right, rgba(251,191,36,0.24) 0%, transparent 52%)',
-    accent: 'rgba(255, 214, 107, 0.22)',
-    badge: 'rgba(251, 191, 36, 0.18)',
-  },
-  fantasy: {
-    glow: 'rgba(168, 85, 247, 0.34)',
-    tint: 'radial-gradient(circle at top right, rgba(192,132,252,0.24) 0%, transparent 54%)',
-    accent: 'rgba(216, 180, 254, 0.22)',
-    badge: 'rgba(192, 132, 252, 0.18)',
-  },
-  nature: {
-    glow: 'rgba(74, 222, 128, 0.30)',
-    tint: 'radial-gradient(circle at top right, rgba(74,222,128,0.22) 0%, transparent 54%)',
-    accent: 'rgba(187, 247, 208, 0.18)',
-    badge: 'rgba(74, 222, 128, 0.16)',
-  },
-  meditation: {
-    glow: 'rgba(56, 189, 248, 0.28)',
-    tint: 'radial-gradient(circle at top right, rgba(125,211,252,0.22) 0%, transparent 54%)',
-    accent: 'rgba(186, 230, 253, 0.18)',
-    badge: 'rgba(125, 211, 252, 0.15)',
-  },
   'fairy-tale': {
     glow: 'rgba(244, 114, 182, 0.28)',
     tint: 'radial-gradient(circle at top right, rgba(244,114,182,0.22) 0%, transparent 54%)',
     accent: 'rgba(251, 207, 232, 0.18)',
     badge: 'rgba(244, 114, 182, 0.15)',
   },
-  ocean: {
+  'animal-friends': {
+    glow: 'rgba(245, 158, 11, 0.30)',
+    tint: 'radial-gradient(circle at top right, rgba(251,191,36,0.22) 0%, transparent 54%)',
+    accent: 'rgba(253, 230, 138, 0.18)',
+    badge: 'rgba(251, 191, 36, 0.16)',
+  },
+  'city-life': {
     glow: 'rgba(59, 130, 246, 0.30)',
     tint: 'radial-gradient(circle at top right, rgba(96,165,250,0.24) 0%, transparent 54%)',
     accent: 'rgba(191, 219, 254, 0.18)',
@@ -260,12 +242,14 @@ function StoryListCard({
 
 export function ThemeGrid({
   onSelect,
+  onStartMockStory,
   isConfigured,
   dailyStories,
   storiesLoading,
   onRetry,
 }: {
   onSelect: (theme: SleepcastTheme) => void;
+  onStartMockStory: (story: MockStory) => void;
   isConfigured: boolean;
   dailyStories: GeneratedSleepcast[];
   storiesLoading: boolean;
@@ -455,10 +439,15 @@ export function ThemeGrid({
     };
   }, [syncActiveCategoryFromScroll]);
 
-  const handleStoryPlay = () => {
-    // Mock: pick the first theme and start the sleepcast
-    onSelect(SLEEPCAST_THEMES[0]);
-  };
+  const handleStoryPlay = useCallback((story: MockStory) => {
+    if (onStartMockStory) {
+      onStartMockStory(story);
+      return;
+    }
+
+    const fallbackTheme = SLEEPCAST_THEMES.find((theme) => theme.id === story.themeId) ?? SLEEPCAST_THEMES[0];
+    onSelect(fallbackTheme);
+  }, [onSelect, onStartMockStory]);
 
   return (
     <motion.div
@@ -508,7 +497,7 @@ export function ThemeGrid({
                   <TrendingCard
                     key={story.id}
                     story={story}
-                    onPlay={handleStoryPlay}
+                    onPlay={() => handleStoryPlay(story)}
                   />
                 ))}
               </div>

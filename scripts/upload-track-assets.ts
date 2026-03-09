@@ -16,6 +16,7 @@ if (!containerName) {
 }
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const audioOnly = process.argv.includes('--audio-only');
 
 function contentTypeFor(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
@@ -64,6 +65,10 @@ async function main(): Promise<void> {
     const audioBuffer = await fs.readFile(localAudioPath);
     await uploadBuffer(containerClient, asset.blobAudioPath, audioBuffer, contentTypeFor(localAudioPath));
     console.log(`Uploaded audio for track ${trackId}: ${asset.blobAudioPath}`);
+
+    if (audioOnly) {
+      continue;
+    }
 
     const imageResponse = await fetch(asset.sourceImageUrl);
     if (!imageResponse.ok) {

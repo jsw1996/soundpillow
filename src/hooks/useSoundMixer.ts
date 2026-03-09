@@ -41,7 +41,9 @@ export function useSoundMixer(tracks: Track[]) {
       if (mt.isActive) {
         if (!node) {
           const ctx = getOrCreateAudioContext(audioCtxRef);
-          const element = new Audio(track.audioUrl);
+          const element = new Audio();
+          element.crossOrigin = 'anonymous';
+          element.src = track.audioUrl;
           element.loop = true;
           const source = ctx.createMediaElementSource(element);
           const gain = ctx.createGain();

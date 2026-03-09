@@ -35,6 +35,7 @@ export function useSleepcast() {
   const getNarrationAudio = useCallback(() => {
     if (!narrationAudioRef.current) {
       narrationAudioRef.current = new Audio();
+      narrationAudioRef.current.crossOrigin = 'anonymous';
     }
     return narrationAudioRef.current;
   }, []);
@@ -68,7 +69,9 @@ export function useSleepcast() {
       const track = tracks.find((t) => t.id === trackId);
       if (!track) return;
 
-      const element = new Audio(track.audioUrl);
+      const element = new Audio();
+      element.crossOrigin = 'anonymous';
+      element.src = track.audioUrl;
       element.loop = true;
       const source = ctx.createMediaElementSource(element);
       const gain = ctx.createGain();

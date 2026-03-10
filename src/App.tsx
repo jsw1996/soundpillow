@@ -20,6 +20,7 @@ import { getMixFromUrl, clearMixFromUrl, sharedMixToPreset } from './utils/mixSh
 import { MoodCheckIn } from './components/MoodCheckIn';
 import { useMoodCard } from './hooks/useMoodCard';
 import { getStoryCast, getStoryTheme } from './data/stories';
+import { getThemeName } from './components/sleepcast/utils';
 
 function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
@@ -51,7 +52,7 @@ function AppContent() {
   const wasMixPlayingRef = useRef(false);
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
-  const isSleepcastScreen = currentScreen === 'sleepcast';
+  const isSleepcastGrid = currentScreen === 'sleepcast' && (sleepcast.status === 'idle' || sleepcast.status === 'ready' || sleepcast.status === 'generating' || sleepcast.status === 'error');
   const defaultShellColor = settings.theme === 'light' ? '#F1F5F9' : '#1e1c23';
   const availableMixes = useMemo(() => [...DEFAULT_MIXES, ...mixPresets], [mixPresets]);
 
@@ -218,7 +219,46 @@ function AppContent() {
         );
       case 'profile':
         return <ProfileScreen key="profile" />;
-      case 'sleepcast':
+      case 'sleepcast': {
+        const isSleepcastPlaying = sleepcast.status === 'playing' || sleepcast.status === 'paused';
+        if (isSleepcastPlaying && sleepcast.currentCast && sleepcast.currentTheme) {
+          const cast = sleepcast.currentCast;
+          const theme = sleepcast.currentTheme;
+          const paragraphProgress = cast.paragraphs.length > 0
+            ? ((sleepcast.activeParagraph + 1) / cast.paragraphs.length) * 100
+            : 0;
+          const virtualTrack = {
+            id: `sleepcast-${theme.id}`,
+            title: cast.title,
+            artist: getThemeName(t, theme),
+            duration: '',
+            category: 'sleepcast',
+            imageUrl: theme.imageUrl,
+            audioUrl: '',
+          };
+          return (
+            <PlayerScreen
+              key="sleepcast-player"
+              track={virtualTrack}
+              isPlaying={sleepcast.status === 'playing'}
+              progress={paragraphProgress}
+              currentTime={`${Math.max(0, sleepcast.activeParagraph + 1)}`}
+              duration={`${cast.paragraphs.length}`}
+              timerMinutes={timer.timerMinutes}
+              timerSecondsRemaining={timer.secondsRemaining}
+              onTogglePlay={() => sleepcast.togglePlay()}
+              onBack={() => sleepcast.stop()}
+              onSetTimer={timer.selectTimer}
+              onSkipNext={() => {}}
+              onSkipPrev={() => {}}
+              formatTimerDisplay={timer.formatDisplay}
+              sleepcastMode={{
+                onStop: sleepcast.stop,
+                headerLabel: sleepcast.status === 'playing' ? t('sleepcastPlaying') : t('sleepcastPaused'),
+              }}
+            />
+          );
+        }
         return (
           <SleepcastScreen
             key="sleepcast"
@@ -238,6 +278,7 @@ function AppContent() {
             onStop={sleepcast.stop}
           />
         );
+      }
     }
   };
 
@@ -261,10 +302,10 @@ function AppContent() {
 
   return (
     <div
-      className={`max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden ${isSleepcastScreen ? '' : 'bg-bg-dark'}`}
-      style={isSleepcastScreen ? { background: 'linear-gradient(315deg, #ffffff, #def1ff)' } : undefined}
+      className={`max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden ${isSleepcastGrid ? '' : 'bg-bg-dark'}`}
+      style={isSleepcastGrid ? { background: 'linear-gradient(315deg, #ffffff, #def1ff)' } : undefined}
     >
-      {currentScreen !== 'home' && !isSleepcastScreen && <div className="ambient-bg" />}
+      {currentScreen !== 'home' && !isSleepcastGrid && <div className="ambient-bg" />}
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>

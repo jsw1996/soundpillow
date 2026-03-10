@@ -335,8 +335,7 @@ export function ThemeGrid({
             </section>
           ) : null}
 
-          <div className="sticky top-0 z-20 -mx-5 mt-5 pb-4 pt-4">
-            <div className="absolute inset-0  backdrop-blur-xl" />
+          <div className="sticky z-20 -mx-5 mt-5 pb-4 pt-4" style={{ top: 'env(safe-area-inset-top)' }}>
             <div className="relative">
               <PillRow
                 items={STORY_CATEGORIES}

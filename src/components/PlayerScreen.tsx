@@ -7,6 +7,7 @@ import {
   Heart,
   Sliders,
   Moon,
+  Square,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlayPauseButton } from './PlayPauseButton';
@@ -32,6 +33,11 @@ interface PlayerScreenProps {
   mixName?: string | null;
   mixSubtitle?: string | null;
   onOpenMixer?: () => void;
+  /** When provided, the player renders in sleepcast mode */
+  sleepcastMode?: {
+    onStop: () => void;
+    headerLabel: string;
+  };
 }
 
 export function PlayerScreen({
@@ -51,6 +57,7 @@ export function PlayerScreen({
   mixName,
   mixSubtitle,
   onOpenMixer,
+  sleepcastMode,
 }: PlayerScreenProps) {
   const { isFavorite, toggleFavorite } = useAppContext();
   const { t } = useTranslation();
@@ -106,28 +113,39 @@ export function PlayerScreen({
           transition={{ delay: 0.3 }}
           className="text-[10px] uppercase tracking-[0.3em] font-semibold text-white/40"
         >
-          {mixName ? t('playingMix') : t('nowPlaying')}
+          {sleepcastMode ? sleepcastMode.headerLabel : mixName ? t('playingMix') : t('nowPlaying')}
         </motion.p>
 
         <div className="flex items-center gap-1">
-          {mixName && onOpenMixer && (
+          {sleepcastMode ? (
             <button
-              onClick={onOpenMixer}
+              onClick={sleepcastMode.onStop}
               className="p-2.5 rounded-full liquid-glass-sm active:scale-90 transition-transform"
             >
-              <Sliders size={18} className="text-white/80" />
+              <Square size={18} className="text-white/80" fill="currentColor" />
             </button>
+          ) : (
+            <>
+              {mixName && onOpenMixer && (
+                <button
+                  onClick={onOpenMixer}
+                  className="p-2.5 rounded-full liquid-glass-sm active:scale-90 transition-transform"
+                >
+                  <Sliders size={18} className="text-white/80" />
+                </button>
+              )}
+              <button
+                onClick={() => toggleFavorite(track.id)}
+                className="p-2.5 rounded-full liquid-glass-sm active:scale-90 transition-transform"
+              >
+                <Heart
+                  size={20}
+                  className={`transition-colors duration-300 ${isFavorite(track.id) ? 'text-primary' : 'text-white/70'}`}
+                  fill={isFavorite(track.id) ? 'currentColor' : 'none'}
+                />
+              </button>
+            </>
           )}
-          <button
-            onClick={() => toggleFavorite(track.id)}
-            className="p-2.5 rounded-full liquid-glass-sm active:scale-90 transition-transform"
-          >
-            <Heart
-              size={20}
-              className={`transition-colors duration-300 ${isFavorite(track.id) ? 'text-primary' : 'text-white/70'}`}
-              fill={isFavorite(track.id) ? 'currentColor' : 'none'}
-            />
-          </button>
         </div>
       </header>
 
@@ -194,21 +212,25 @@ export function PlayerScreen({
           </button>
 
           <div className="flex items-center gap-10">
-            <button
-              onClick={onSkipPrev}
-              className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"
-            >
-              <SkipBack size={20} fill="currentColor" />
-            </button>
+            {!sleepcastMode && (
+              <button
+                onClick={onSkipPrev}
+                className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"
+              >
+                <SkipBack size={20} fill="currentColor" />
+              </button>
+            )}
 
             <PlayPauseButton isPlaying={isPlaying} onToggle={onTogglePlay} />
 
-            <button
-              onClick={onSkipNext}
-              className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"
-            >
-              <SkipForward size={20} fill="currentColor" />
-            </button>
+            {!sleepcastMode && (
+              <button
+                onClick={onSkipNext}
+                className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"
+              >
+                <SkipForward size={20} fill="currentColor" />
+              </button>
+            )}
           </div>
 
           {/* Timer countdown display */}

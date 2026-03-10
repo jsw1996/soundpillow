@@ -8,11 +8,13 @@ import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { useSleepTimer } from './hooks/useSleepTimer';
 import { useSoundMixer } from './hooks/useSoundMixer';
 import { useSleepcast } from './hooks/useSleepcast';
+import { useMediaSession, UseMediaSessionProps } from './hooks/useMediaSession';
 import { HomeScreen } from './components/HomeScreen';
 import { PlayerScreen } from './components/PlayerScreen';
 import { MixerScreen } from './components/MixerScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SleepcastScreen } from './components/SleepcastScreen';
+import { SleepcastPlayer } from './components/SleepcastPlayer';
 import { MiniPlayer } from './components/MiniPlayer';
 import { BottomNav } from './components/Navigation';
 import { ToastContainer, showToast } from './components/Toast';
@@ -21,7 +23,6 @@ import { MoodCheckIn } from './components/MoodCheckIn';
 import { useMoodCard } from './hooks/useMoodCard';
 import { getStoryCast, getStoryTheme } from './data/stories';
 import { getThemeName } from './components/sleepcast/utils';
-import { formatTime } from './utils/time';
 
 function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
@@ -29,8 +30,15 @@ function AppContent() {
   const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks, catalogStories, mixPresets } = useAppContext();
   const { t } = useTranslation();
 
-  const player = useAudioPlayer(tracks);
-  const sleepcast = useSleepcast();
+  const playerRef = useRef<{ pause: () => void }>({ pause() {} });
+  const timer = useSleepTimer(
+    useCallback(() => playerRef.current.pause(), []),
+    settings.defaultTimerMinutes,
+  );
+
+  const player = useAudioPlayer(tracks, timer.fadeMultiplier);
+  playerRef.current = player;
+  const sleepcast = useSleepcast(timer.fadeMultiplier);
   const moodCard = useMoodCard();
 
   useEffect(() => {
@@ -42,18 +50,15 @@ function AppContent() {
     checkIn();
   }, [checkIn]);
 
-  const timer = useSleepTimer(
-    useCallback(() => player.pause(), [player.pause]),
-    settings.defaultTimerMinutes,
-  );
-
-  const mixer = useSoundMixer(tracks);
+  const mixer = useSoundMixer(tracks, timer.fadeMultiplier);
   const [activeMix, setActiveMix] = useState<{ id: string; name: string } | null>(null);
   const [hasEverPlayed, setHasEverPlayed] = useState(false);
   const wasMixPlayingRef = useRef(false);
+  const [sleepcastView, setSleepcastView] = useState<'grid' | 'player'>('grid');
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
-  const isSleepcastGrid = currentScreen === 'sleepcast' && (sleepcast.status === 'idle' || sleepcast.status === 'ready' || sleepcast.status === 'generating' || sleepcast.status === 'error');
+  const showSleepcastPlayer = sleepcastView === 'player' && (sleepcast.status === 'playing' || sleepcast.status === 'paused') && !!sleepcast.currentCast;
+  const isSleepcastGrid = currentScreen === 'sleepcast' && !showSleepcastPlayer;
   const defaultShellColor = settings.theme === 'light' ? '#F1F5F9' : '#1e1c23';
   const availableMixes = useMemo(() => [...DEFAULT_MIXES, ...mixPresets], [mixPresets]);
 
@@ -89,6 +94,7 @@ function AppContent() {
 
   const playMix = useCallback((preset: MixPreset) => {
     setHasEverPlayed(true);
+    sleepcast.stop();
     mixer.loadPresetTracks(preset.tracks);
     setActiveMix({ id: preset.id, name: preset.name });
     const firstTrack = tracks.find((t) => t.id === preset.tracks[0]?.trackId);
@@ -97,7 +103,7 @@ function AppContent() {
     if (firstTrack) {
       recordSession(firstTrack.id);
     }
-  }, [mixer, player, recordSession, tracks]);
+  }, [mixer, player, recordSession, sleepcast, tracks]);
 
   const handleMixSkipNext = useCallback(() => {
     if (availableMixes.length === 0) return;
@@ -168,10 +174,11 @@ function AppContent() {
       player.selectTrack(track);
       setActiveMix(null);
       mixer.stopAll();
+      sleepcast.stop();
       timer.start();
       recordSession(track.id);
     },
-    [activeMix?.id, currentScreen, mixer, player, recordSession, timer],
+    [activeMix?.id, currentScreen, mixer, player, recordSession, sleepcast, timer],
   );
 
   const handleMixSelect = playMix;
@@ -180,6 +187,89 @@ function AppContent() {
     mixer.stopAll();
     setActiveMix(null);
   }, [mixer]);
+
+  const playStoryAtIndex = useCallback((idx: number) => {
+    const story = catalogStories[idx];
+    if (!story) return;
+    player.pause();
+    mixer.stopAll();
+    timer.stop();
+    setSleepcastView('player');
+    sleepcast.startPreviewSleepcast(getStoryCast(story), getStoryTheme(story));
+  }, [catalogStories, player, mixer, timer, sleepcast]);
+
+  const activeMediaContext = useMemo<UseMediaSessionProps>(() => {
+    // 1. Sleepcast Priority
+    const isSleepcastPlaying = sleepcast.status === 'playing' || sleepcast.status === 'paused';
+    if (isSleepcastPlaying && sleepcast.currentCast && sleepcast.currentTheme) {
+      const matchingStory = catalogStories.find((s) => s.id === sleepcast.currentCast?.id);
+      const currentStoryIdx = catalogStories.findIndex((s) => s.id === sleepcast.currentCast?.id);
+      return {
+        title: sleepcast.currentCast.title,
+        artist: matchingStory?.subtitle ?? getThemeName(t, sleepcast.currentTheme),
+        artwork: sleepcast.currentTheme.imageUrl,
+        isPlaying: sleepcast.status === 'playing',
+        onPlay: sleepcast.play,
+        onPause: sleepcast.pause,
+        onNextTrack: () => playStoryAtIndex((currentStoryIdx + 1) % catalogStories.length),
+        onPrevTrack: () => playStoryAtIndex((currentStoryIdx - 1 + catalogStories.length) % catalogStories.length),
+        duration: sleepcast.audioDuration > 0 ? sleepcast.audioDuration : undefined,
+        position: sleepcast.audioDuration > 0 ? sleepcast.audioCurrentTime : undefined,
+      };
+    }
+
+    // Common timer logic for Mixer and Player
+    let duration: number | undefined;
+    let position: number | undefined;
+    if (timer.timerMinutes) {
+      duration = timer.timerMinutes * 60;
+      position = Math.max(0, Math.min(duration, duration - timer.secondsRemaining));
+    }
+
+    // 2. Mixer Priority
+    if (activeMixName) {
+      const firstActiveTrackId = mixer.activeTracks[0]?.trackId;
+      const firstActiveTrack = tracks.find(t => t.id === firstActiveTrackId);
+      return {
+        title: activeMixName,
+        artist: t('mix'),
+        artwork: firstActiveTrack?.imageUrl,
+        isPlaying: mixer.isMixPlaying,
+        onPlay: mixer.toggleMixPlay,
+        onPause: mixer.toggleMixPlay,
+        onNextTrack: handleMixSkipNext,
+        onPrevTrack: handleMixSkipPrev,
+        duration,
+        position,
+      };
+    }
+
+    // 3. Player Priority
+    if (player.currentTrack) {
+      return {
+        title: player.currentTrack.title,
+        artist: player.currentTrack.artist,
+        artwork: player.currentTrack.imageUrl,
+        isPlaying: player.isPlaying,
+        onPlay: player.togglePlay,
+        onPause: player.togglePlay,
+        onNextTrack: player.skipNext,
+        onPrevTrack: player.skipPrev,
+        duration,
+        position,
+      };
+    }
+
+    return { isPlaying: false };
+  }, [
+    sleepcast.status, sleepcast.currentCast, sleepcast.currentTheme, sleepcast.play, sleepcast.pause, sleepcast.audioDuration, sleepcast.audioCurrentTime,
+    catalogStories, playStoryAtIndex, t,
+    activeMixName, mixer.activeTracks, mixer.isMixPlaying, mixer.toggleMixPlay, handleMixSkipNext, handleMixSkipPrev, tracks,
+    player.currentTrack, player.isPlaying, player.togglePlay, player.skipNext, player.skipPrev,
+    timer.timerMinutes, timer.secondsRemaining
+  ]);
+
+  useMediaSession(activeMediaContext);
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -221,70 +311,21 @@ function AppContent() {
       case 'profile':
         return <ProfileScreen key="profile" />;
       case 'sleepcast': {
-        const isSleepcastPlaying = sleepcast.status === 'playing' || sleepcast.status === 'paused';
-        if (isSleepcastPlaying && sleepcast.currentCast && sleepcast.currentTheme) {
-          const cast = sleepcast.currentCast;
-          const theme = sleepcast.currentTheme;
-          const audioProgress = sleepcast.audioDuration > 0
-            ? (sleepcast.audioCurrentTime / sleepcast.audioDuration) * 100
-            : 0;
-          const matchingStory = catalogStories.find((s) => s.id === cast.id);
-          const virtualTrack = {
-            id: `sleepcast-${theme.id}`,
-            title: cast.title,
-            artist: matchingStory?.subtitle ?? getThemeName(t, theme),
-            duration: '',
-            category: 'sleepcast',
-            imageUrl: theme.imageUrl,
-            audioUrl: '',
-          };
-          const currentStoryIdx = catalogStories.findIndex((s) => s.id === cast.id);
-          const playStoryAtIndex = (idx: number) => {
-            const story = catalogStories[idx];
-            if (!story) return;
-            player.pause();
-            mixer.stopAll();
-            timer.stop();
-            sleepcast.startPreviewSleepcast(getStoryCast(story), getStoryTheme(story));
-          };
-          return (
-            <PlayerScreen
-              key="sleepcast-player"
-              track={virtualTrack}
-              isPlaying={sleepcast.status === 'playing'}
-              progress={Math.min(audioProgress, 100)}
-              currentTime={formatTime(sleepcast.audioCurrentTime)}
-              duration={sleepcast.audioDuration > 0 ? formatTime(sleepcast.audioDuration) : '--:--'}
-              timerMinutes={timer.timerMinutes}
-              timerSecondsRemaining={timer.secondsRemaining}
-              onTogglePlay={() => sleepcast.togglePlay()}
-              onBack={() => sleepcast.stop()}
-              onSetTimer={timer.selectTimer}
-              onSkipNext={() => playStoryAtIndex((currentStoryIdx + 1) % catalogStories.length)}
-              onSkipPrev={() => playStoryAtIndex((currentStoryIdx - 1 + catalogStories.length) % catalogStories.length)}
-              formatTimerDisplay={timer.formatDisplay}
-              sleepcastMode={{
-                headerLabel: sleepcast.status === 'playing' ? t('sleepcastPlaying') : t('sleepcastPaused'),
-              }}
-            />
-          );
-        }
         return (
           <SleepcastScreen
             key="sleepcast"
             status={sleepcast.status}
             currentCast={sleepcast.currentCast}
             currentTheme={sleepcast.currentTheme}
-            activeParagraph={sleepcast.activeParagraph}
             error={sleepcast.error}
             catalogStories={catalogStories}
             onStartMockStory={(story) => {
               player.pause();
               mixer.stopAll();
               timer.stop();
+              setSleepcastView('player');
               sleepcast.startPreviewSleepcast(getStoryCast(story), getStoryTheme(story));
             }}
-            onTogglePlay={() => sleepcast.togglePlay()}
             onStop={sleepcast.stop}
           />
         );
@@ -319,16 +360,66 @@ function AppContent() {
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>
-      {hasEverPlayed && sleepcast.status === 'idle' && player.currentTrack && (
-        <MiniPlayer
-          track={player.currentTrack}
-          isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}
-          progress={timer.timerProgress}
-          onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
-          mixName={activeMixName}
-        />
-      )}
-      <BottomNav sleepcastActive={sleepcast.status !== 'idle' && currentScreen === 'sleepcast'} />
+      <AnimatePresence>
+        {showSleepcastPlayer && sleepcast.currentCast && sleepcast.currentTheme && (
+          <SleepcastPlayer
+            cast={sleepcast.currentCast}
+            theme={sleepcast.currentTheme}
+            status={sleepcast.status}
+            audioCurrentTime={sleepcast.audioCurrentTime}
+            audioDuration={sleepcast.audioDuration}
+            catalogStories={catalogStories}
+            timerMinutes={timer.timerMinutes}
+            timerSecondsRemaining={timer.secondsRemaining}
+            onTogglePlay={() => sleepcast.togglePlay()}
+            onBack={() => setSleepcastView('grid')}
+            onSetTimer={timer.selectTimer}
+            onPlayStory={(story) => {
+              player.pause();
+              mixer.stopAll();
+              timer.stop();
+              sleepcast.startPreviewSleepcast(getStoryCast(story), getStoryTheme(story));
+            }}
+            formatTimerDisplay={timer.formatDisplay}
+          />
+        )}
+      </AnimatePresence>
+      {(() => {
+        const isSleepcastPlaying = sleepcast.status === 'playing' || sleepcast.status === 'paused';
+        if (isSleepcastPlaying && !showSleepcastPlayer) {
+          const matchingStory = catalogStories.find((s) => s.id === sleepcast.currentCast?.id);
+          return (
+            <MiniPlayer
+              track={{
+                id: `sleepcast-${sleepcast.currentTheme?.id ?? ''}`,
+                title: sleepcast.currentCast?.title ?? '',
+                artist: matchingStory?.subtitle ?? '',
+                duration: '',
+                category: 'sleepcast',
+                imageUrl: sleepcast.currentTheme?.imageUrl ?? '',
+                audioUrl: '',
+              }}
+              isPlaying={sleepcast.status === 'playing'}
+              progress={sleepcast.audioDuration > 0 ? (sleepcast.audioCurrentTime / sleepcast.audioDuration) * 100 : 0}
+              onTogglePlay={() => sleepcast.togglePlay()}
+              onTap={() => setSleepcastView('player')}
+            />
+          );
+        }
+        if (hasEverPlayed && !isSleepcastPlaying && player.currentTrack) {
+          return (
+            <MiniPlayer
+              track={player.currentTrack}
+              isPlaying={activeMixName ? mixer.isMixPlaying : player.isPlaying}
+              progress={timer.timerProgress}
+              onTogglePlay={activeMixName ? mixer.toggleMixPlay : handleTogglePlay}
+              mixName={activeMixName}
+            />
+          );
+        }
+        return null;
+      })()}
+      <BottomNav sleepcastActive={showSleepcastPlayer} onSleepcastNav={() => setSleepcastView('grid')} />
       <AnimatePresence>
         {moodCard.shouldShow && (
           <MoodCheckIn

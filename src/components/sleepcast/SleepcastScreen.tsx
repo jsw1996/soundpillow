@@ -4,7 +4,6 @@ import { SLEEPCAST_THEMES } from '../../data/sleepcastThemes';
 import { useTranslation } from '../../i18n';
 import { ErrorView } from './ErrorView';
 import { LoadingView } from './LoadingView';
-import { PlaybackView } from './PlaybackView';
 import { ThemeGrid } from './ThemeGrid';
 import type { SleepcastScreenProps } from './types';
 
@@ -12,11 +11,9 @@ export function SleepcastScreen({
   status,
   currentCast,
   currentTheme,
-  activeParagraph,
   error,
   catalogStories,
   onStartMockStory,
-  onTogglePlay,
   onStop,
 }: SleepcastScreenProps) {
   const { t } = useTranslation();
@@ -37,26 +34,6 @@ export function SleepcastScreen({
         </motion.div>
       )}
 
-      {(status === 'playing' || status === 'paused') && currentCast && currentTheme && (
-        <motion.div
-          key="playback"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.35 }}
-          className="absolute inset-0 flex flex-col"
-        >
-          <PlaybackView
-            cast={currentCast}
-            theme={currentTheme}
-            activeParagraph={activeParagraph}
-            status={status}
-            onTogglePlay={onTogglePlay}
-            onStop={onStop}
-          />
-        </motion.div>
-      )}
-
       {status === 'error' && (
         <ErrorView
           key="error"
@@ -66,7 +43,7 @@ export function SleepcastScreen({
         />
       )}
 
-      {(status === 'idle' || status === 'ready') && (
+      {status !== 'generating' && status !== 'error' && (
         <ThemeGrid
           key="grid"
           onStartMockStory={onStartMockStory}

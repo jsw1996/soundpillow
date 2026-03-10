@@ -5,11 +5,9 @@ export interface SleepcastScreenProps {
   status: SleepcastStatus;
   currentCast: GeneratedSleepcast | null;
   currentTheme: SleepcastTheme | null;
-  activeParagraph: number;
   error: string | null;
   catalogStories: Story[];
   onStartMockStory: (story: Story) => void;
-  onTogglePlay: () => void;
   onStop: () => void;
 }
 

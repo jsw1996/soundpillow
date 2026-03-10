@@ -202,6 +202,9 @@ const zh: Record<string, string> = {
   mood_okay: '还好',
   mood_good: '不错',
   mood_amazing: '超棒',
+  moodTrends: '心情趋势',
+  viewChart: '图表',
+  viewCalendar: '日历',
 };
 
 export default zh;

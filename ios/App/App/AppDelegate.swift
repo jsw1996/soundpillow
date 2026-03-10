@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 import WebKit
+import AVFoundation
 
 // Custom UIScrollView that never cancels touches on input elements
 class NoStealScrollView: UIScrollView {
@@ -16,6 +17,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Configure audio session for background playback
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try audioSession.setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error)")
+        }
+
         // Override point for customization after application launch.
 
         // Fix WKWebView scroll view stealing touch events from range inputs

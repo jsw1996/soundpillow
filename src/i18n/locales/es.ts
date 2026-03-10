@@ -201,6 +201,9 @@ const es: Record<string, string> = {
   mood_okay: 'Bien',
   mood_good: 'Genial',
   mood_amazing: 'Increíble',
+  moodTrends: 'Tendencias de Ánimo',
+  viewChart: 'Gráfico',
+  viewCalendar: 'Calendario',
 };
 
 export default es;

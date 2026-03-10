@@ -11,13 +11,16 @@ const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationK
   { screen: 'profile', icon: User, labelKey: 'navProfile' },
 ];
 
-export function BottomNav({ sleepcastActive = false }: { sleepcastActive?: boolean }) {
+export function BottomNav({ sleepcastActive = false, onSleepcastNav }: { sleepcastActive?: boolean; onSleepcastNav?: () => void }) {
   const { currentScreen, setCurrentScreen } =
     useAppContext();
   const { t } = useTranslation();
   const isSleepcastScreen = currentScreen === 'sleepcast';
 
   const handleNavClick = (item: typeof NAV_ITEMS[number]) => {
+    if (item.screen === 'sleepcast' && onSleepcastNav) {
+      onSleepcastNav();
+    }
     setCurrentScreen(item.screen);
   };
 

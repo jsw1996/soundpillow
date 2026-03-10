@@ -201,6 +201,9 @@ const ja: Record<string, string> = {
   mood_okay: '普通',
   mood_good: '良い',
   mood_amazing: '最高',
+  moodTrends: '気分の傾向',
+  viewChart: 'チャート',
+  viewCalendar: 'カレンダー',
 };
 
 export default ja;

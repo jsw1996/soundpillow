@@ -23,6 +23,7 @@ import { useTranslation, SUPPORTED_LOCALES } from '../i18n';
 import { MOODS } from '../data/moodMessages';
 import { formatTotalTime } from '../utils/time';
 import { loadMoodHistory } from '../utils/mood';
+import { MoodTrends } from './MoodTrends';
 
 const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((mood) => [mood.level, mood.emoji]));
 
@@ -141,6 +142,9 @@ export function ProfileScreen() {
           </div>
         </div>
       </section>
+
+      {/* Mood Trends */}
+      <MoodTrends />
 
       {/* Stats grid */}
       <section className="px-6">

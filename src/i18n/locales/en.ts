@@ -202,6 +202,9 @@ const en = {
   mood_okay: 'Okay',
   mood_good: 'Good',
   mood_amazing: 'Amazing',
+  moodTrends: 'Mood Trends',
+  viewChart: 'Chart',
+  viewCalendar: 'Calendar',
 };
 
 export default en;

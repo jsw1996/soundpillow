@@ -1,14 +1,18 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
-import type { SleepcastTheme, GeneratedSleepcast, SleepcastStatus, WebAudioNode } from '../types';
-import { cleanupAudioNodes, getOrCreateAudioContext, closeAudioContext } from '../utils/audio';
+import type { SleepcastTheme, GeneratedSleepcast, SleepcastStatus } from '../types';
+
+interface BgAudioElement {
+  element: HTMLAudioElement;
+  baseVolume: number;
+}
 
 /**
  * Hook that manages curated sleepcast preview playback:
  * 1. Play narration audio
  * 2. Layer ambient background tracks underneath
  */
-export function useSleepcast() {
+export function useSleepcast(fadeMultiplier: number = 1.0) {
   const { tracks } = useAppContext();
   const [status, setStatus] = useState<SleepcastStatus>('idle');
   const [currentCast, setCurrentCast] = useState<GeneratedSleepcast | null>(null);
@@ -25,8 +29,7 @@ export function useSleepcast() {
 
   // Reusable narration audio element (avoid creating new Audio() per paragraph on iOS)
   const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const bgNodesRef = useRef<Map<string, WebAudioNode>>(new Map());
+  const bgElementsRef = useRef<Map<string, BgAudioElement>>(new Map());
   const paragraphIndexRef = useRef(0);
   const pausedRef = useRef(false);
 
@@ -92,9 +95,14 @@ export function useSleepcast() {
 
   // Start background ambient tracks for a theme
   const startBgAudio = useCallback((theme: SleepcastTheme) => {
-    const ctx = getOrCreateAudioContext(audioCtxRef);
     theme.bgTrackIds.forEach((trackId) => {
-      if (bgNodesRef.current.has(trackId)) return;
+      if (bgElementsRef.current.has(trackId)) {
+        const bg = bgElementsRef.current.get(trackId);
+        if (bg) {
+          bg.element.volume = Math.min(1, Math.max(0, bg.baseVolume * fadeMultiplier));
+        }
+        return;
+      }
       const track = tracks.find((t) => t.id === trackId);
       if (!track) return;
 
@@ -102,18 +110,19 @@ export function useSleepcast() {
       element.crossOrigin = 'anonymous';
       element.src = track.audioUrl;
       element.loop = true;
-      const source = ctx.createMediaElementSource(element);
-      const gain = ctx.createGain();
-      gain.gain.value = 0.25;
-      source.connect(gain);
-      gain.connect(ctx.destination);
+      const baseVolume = 0.25;
+      element.volume = Math.min(1, Math.max(0, baseVolume * fadeMultiplier));
       element.play().catch(() => {});
-      bgNodesRef.current.set(trackId, { element, source, gain });
+      bgElementsRef.current.set(trackId, { element, baseVolume });
     });
-  }, [tracks]);
+  }, [tracks, fadeMultiplier]);
 
   const stopBgAudio = useCallback(() => {
-    cleanupAudioNodes(bgNodesRef.current);
+    bgElementsRef.current.forEach((bg) => {
+      bg.element.pause();
+      bg.element.src = '';
+    });
+    bgElementsRef.current.clear();
   }, []);
 
   const cleanupNarration = useCallback(() => {
@@ -125,13 +134,23 @@ export function useSleepcast() {
   }, []);
 
   const pauseBgAudio = useCallback(() => {
-    bgNodesRef.current.forEach((node) => node.element.pause());
+    bgElementsRef.current.forEach((bg) => bg.element.pause());
   }, []);
 
   const resumeBgAudio = useCallback(() => {
-    getOrCreateAudioContext(audioCtxRef);
-    bgNodesRef.current.forEach((node) => node.element.play().catch(() => {}));
+    bgElementsRef.current.forEach((bg) => bg.element.play().catch(() => {}));
   }, []);
+
+  // Apply fadeout to existing narration audio and bg audio
+  useEffect(() => {
+    if (narrationAudioRef.current) {
+      narrationAudioRef.current.volume = fadeMultiplier;
+    }
+
+    bgElementsRef.current.forEach((bg) => {
+      bg.element.volume = Math.min(1, Math.max(0, bg.baseVolume * fadeMultiplier));
+    });
+  }, [fadeMultiplier]);
 
   // Narrate all paragraphs sequentially using the preview audio URLs.
   const narrateStory = useCallback(async (cast: GeneratedSleepcast, startFrom: number = 0) => {
@@ -241,8 +260,11 @@ export function useSleepcast() {
         narrationAudioRef.current.src = '';
         narrationAudioRef.current = null;
       }
-      cleanupAudioNodes(bgNodesRef.current);
-      closeAudioContext(audioCtxRef);
+      bgElementsRef.current.forEach((bg) => {
+        bg.element.pause();
+        bg.element.src = '';
+      });
+      bgElementsRef.current.clear();
     };
   }, []);
 

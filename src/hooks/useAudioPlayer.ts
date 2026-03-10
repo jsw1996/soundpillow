@@ -36,7 +36,7 @@ function getAudioStateSnapshot(audio: HTMLAudioElement) {
   };
 }
 
-export function useAudioPlayer(tracks: Track[]) {
+export function useAudioPlayer(tracks: Track[], fadeMultiplier: number = 1.0) {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(tracks[0] ?? null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -49,7 +49,7 @@ export function useAudioPlayer(tracks: Track[]) {
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.loop = true;
-      audioRef.current.volume = volume / 100;
+      audioRef.current.volume = (volume / 100) * fadeMultiplier;
       console.log('[AudioPlayer] created audio element', {
         volume: volume / 100,
       });
@@ -200,13 +200,14 @@ export function useAudioPlayer(tracks: Track[]) {
   // Handle volume changes
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = volume / 100;
+      audioRef.current.volume = (volume / 100) * fadeMultiplier;
       console.log('[AudioPlayer] volume changed', {
         volume,
+        fadeMultiplier,
         normalizedVolume: audioRef.current.volume,
       });
     }
-  }, [volume]);
+  }, [volume, fadeMultiplier]);
 
   const togglePlay = useCallback(() => {
     console.log('[AudioPlayer] togglePlay called', {

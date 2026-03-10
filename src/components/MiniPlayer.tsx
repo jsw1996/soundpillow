@@ -10,9 +10,10 @@ interface MiniPlayerProps {
   progress: number;
   onTogglePlay: () => void;
   mixName?: string | null;
+  onTap?: () => void;
 }
 
-export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName }: MiniPlayerProps) {
+export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName, onTap }: MiniPlayerProps) {
   const { currentScreen, setCurrentScreen } = useAppContext();
   const { t } = useTranslation();
   const tt = useTrackTranslation();
@@ -33,7 +34,7 @@ export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName }: MiniPlay
           style={{ bottom: 'calc(3.2rem + 0.75rem + env(safe-area-inset-bottom) * 0.4)' }}
         >
           <div
-            onClick={() => setCurrentScreen('player')}
+            onClick={() => onTap ? onTap() : setCurrentScreen('player')}
             className="glass-panel px-3 py-2 cursor-pointer active:scale-[0.98] transition-transform" style={{ borderRadius: '45px' }}
           >
             <div className="flex items-center gap-3">

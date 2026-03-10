@@ -188,6 +188,7 @@ export function ThemeGrid({
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollSyncFrameRef = useRef<number | null>(null);
+  const programmaticScrollRef = useRef(false);
 
   const highlightStories = useMemo((): Story[] => {
     if (catalogStories.length === 0) return [];
@@ -210,6 +211,7 @@ export function ThemeGrid({
   );
 
   const syncActiveCategoryFromScroll = useCallback(() => {
+    if (programmaticScrollRef.current) return;
     const viewport = scrollViewportRef.current;
     if (!viewport) return;
 
@@ -288,11 +290,18 @@ export function ThemeGrid({
     }
 
     const stickyOffset = 96;
+    programmaticScrollRef.current = true;
     viewport.scrollTo({
       top: Math.max(0, targetSection.offsetTop - stickyOffset),
       behavior: 'smooth',
     });
     setActiveCategory(categoryId);
+
+    // Re-enable scroll sync after the smooth scroll settles
+    const releaseTimer = setTimeout(() => {
+      programmaticScrollRef.current = false;
+    }, 600);
+    return () => clearTimeout(releaseTimer);
   }, []);
 
   return (

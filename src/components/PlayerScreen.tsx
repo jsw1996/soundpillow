@@ -7,7 +7,6 @@ import {
   Heart,
   Sliders,
   Moon,
-  Square,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlayPauseButton } from './PlayPauseButton';
@@ -35,7 +34,6 @@ interface PlayerScreenProps {
   onOpenMixer?: () => void;
   /** When provided, the player renders in sleepcast mode */
   sleepcastMode?: {
-    onStop: () => void;
     headerLabel: string;
   };
 }
@@ -117,35 +115,24 @@ export function PlayerScreen({
         </motion.p>
 
         <div className="flex items-center gap-1">
-          {sleepcastMode ? (
+          {mixName && onOpenMixer && (
             <button
-              onClick={sleepcastMode.onStop}
+              onClick={onOpenMixer}
               className="p-2.5 rounded-full liquid-glass-sm active:scale-90 transition-transform"
             >
-              <Square size={18} className="text-white/80" fill="currentColor" />
+              <Sliders size={18} className="text-white/80" />
             </button>
-          ) : (
-            <>
-              {mixName && onOpenMixer && (
-                <button
-                  onClick={onOpenMixer}
-                  className="p-2.5 rounded-full liquid-glass-sm active:scale-90 transition-transform"
-                >
-                  <Sliders size={18} className="text-white/80" />
-                </button>
-              )}
-              <button
-                onClick={() => toggleFavorite(track.id)}
-                className="p-2.5 rounded-full liquid-glass-sm active:scale-90 transition-transform"
-              >
-                <Heart
-                  size={20}
-                  className={`transition-colors duration-300 ${isFavorite(track.id) ? 'text-primary' : 'text-white/70'}`}
-                  fill={isFavorite(track.id) ? 'currentColor' : 'none'}
-                />
-              </button>
-            </>
           )}
+          <button
+            onClick={() => toggleFavorite(track.id)}
+            className="p-2.5 rounded-full liquid-glass-sm active:scale-90 transition-transform"
+          >
+            <Heart
+              size={20}
+              className={`transition-colors duration-300 ${isFavorite(track.id) ? 'text-primary' : 'text-white/70'}`}
+              fill={isFavorite(track.id) ? 'currentColor' : 'none'}
+            />
+          </button>
         </div>
       </header>
 
@@ -212,25 +199,21 @@ export function PlayerScreen({
           </button>
 
           <div className="flex items-center gap-10">
-            {!sleepcastMode && (
-              <button
-                onClick={onSkipPrev}
-                className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"
-              >
-                <SkipBack size={20} fill="currentColor" />
-              </button>
-            )}
+            <button
+              onClick={onSkipPrev}
+              className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"
+            >
+              <SkipBack size={20} fill="currentColor" />
+            </button>
 
             <PlayPauseButton isPlaying={isPlaying} onToggle={onTogglePlay} />
 
-            {!sleepcastMode && (
-              <button
-                onClick={onSkipNext}
-                className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"
-              >
-                <SkipForward size={20} fill="currentColor" />
-              </button>
-            )}
+            <button
+              onClick={onSkipNext}
+              className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"
+            >
+              <SkipForward size={20} fill="currentColor" />
+            </button>
           </div>
 
           {/* Timer countdown display */}

@@ -21,6 +21,7 @@ import { MoodCheckIn } from './components/MoodCheckIn';
 import { useMoodCard } from './hooks/useMoodCard';
 import { getStoryCast, getStoryTheme } from './data/stories';
 import { getThemeName } from './components/sleepcast/utils';
+import { formatTime } from './utils/time';
 
 function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
@@ -224,36 +225,45 @@ function AppContent() {
         if (isSleepcastPlaying && sleepcast.currentCast && sleepcast.currentTheme) {
           const cast = sleepcast.currentCast;
           const theme = sleepcast.currentTheme;
-          const paragraphProgress = cast.paragraphs.length > 0
-            ? ((sleepcast.activeParagraph + 1) / cast.paragraphs.length) * 100
+          const audioProgress = sleepcast.audioDuration > 0
+            ? (sleepcast.audioCurrentTime / sleepcast.audioDuration) * 100
             : 0;
+          const matchingStory = catalogStories.find((s) => s.id === cast.id);
           const virtualTrack = {
             id: `sleepcast-${theme.id}`,
             title: cast.title,
-            artist: getThemeName(t, theme),
+            artist: matchingStory?.subtitle ?? getThemeName(t, theme),
             duration: '',
             category: 'sleepcast',
             imageUrl: theme.imageUrl,
             audioUrl: '',
+          };
+          const currentStoryIdx = catalogStories.findIndex((s) => s.id === cast.id);
+          const playStoryAtIndex = (idx: number) => {
+            const story = catalogStories[idx];
+            if (!story) return;
+            player.pause();
+            mixer.stopAll();
+            timer.stop();
+            sleepcast.startPreviewSleepcast(getStoryCast(story), getStoryTheme(story));
           };
           return (
             <PlayerScreen
               key="sleepcast-player"
               track={virtualTrack}
               isPlaying={sleepcast.status === 'playing'}
-              progress={paragraphProgress}
-              currentTime={`${Math.max(0, sleepcast.activeParagraph + 1)}`}
-              duration={`${cast.paragraphs.length}`}
+              progress={Math.min(audioProgress, 100)}
+              currentTime={formatTime(sleepcast.audioCurrentTime)}
+              duration={sleepcast.audioDuration > 0 ? formatTime(sleepcast.audioDuration) : '--:--'}
               timerMinutes={timer.timerMinutes}
               timerSecondsRemaining={timer.secondsRemaining}
               onTogglePlay={() => sleepcast.togglePlay()}
               onBack={() => sleepcast.stop()}
               onSetTimer={timer.selectTimer}
-              onSkipNext={() => {}}
-              onSkipPrev={() => {}}
+              onSkipNext={() => playStoryAtIndex((currentStoryIdx + 1) % catalogStories.length)}
+              onSkipPrev={() => playStoryAtIndex((currentStoryIdx - 1 + catalogStories.length) % catalogStories.length)}
               formatTimerDisplay={timer.formatDisplay}
               sleepcastMode={{
-                onStop: sleepcast.stop,
                 headerLabel: sleepcast.status === 'playing' ? t('sleepcastPlaying') : t('sleepcastPaused'),
               }}
             />

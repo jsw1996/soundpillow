@@ -16,6 +16,13 @@ export function useSleepcast() {
   const [activeParagraph, setActiveParagraph] = useState(-1);
   const [error, setError] = useState<string | null>(null);
 
+  // Audio time tracking
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);  // elapsed seconds into entire story
+  const [audioDuration, setAudioDuration] = useState(0);        // estimated total duration of all paragraphs
+  const elapsedBeforeParagraphRef = useRef(0); // cumulative seconds of completed paragraphs
+  const paragraphDurationsRef = useRef<number[]>([]);            // known durations per paragraph
+  const timeUpdateFrameRef = useRef<number | null>(null);
+
   // Reusable narration audio element (avoid creating new Audio() per paragraph on iOS)
   const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -38,7 +45,37 @@ export function useSleepcast() {
       if (pausedRef.current) { cleanup?.(); resolve(); return; }
 
       const audio = getNarrationAudio();
-      audio.onended = () => { cleanup?.(); resolve(); };
+
+      // Track audio time updates
+      audio.ontimeupdate = () => {
+        if (timeUpdateFrameRef.current !== null) return;
+        timeUpdateFrameRef.current = requestAnimationFrame(() => {
+          timeUpdateFrameRef.current = null;
+          setAudioCurrentTime(elapsedBeforeParagraphRef.current + (audio.currentTime || 0));
+        });
+      };
+
+      // When we know this paragraph's duration, update estimated total
+      audio.onloadedmetadata = () => {
+        const idx = paragraphIndexRef.current;
+        if (Number.isFinite(audio.duration) && audio.duration > 0) {
+          paragraphDurationsRef.current[idx] = audio.duration;
+          // Re-estimate total: known durations + average for unknown
+          const known = paragraphDurationsRef.current.filter((d) => d > 0);
+          const avg = known.reduce((a, b) => a + b, 0) / known.length;
+          const totalParagraphs = paragraphDurationsRef.current.length;
+          const estimatedTotal = known.reduce((a, b) => a + b, 0) + (totalParagraphs - known.length) * avg;
+          setAudioDuration(estimatedTotal);
+        }
+      };
+
+      audio.onended = () => {
+        // Accumulate this paragraph's actual duration
+        if (Number.isFinite(audio.duration) && audio.duration > 0) {
+          elapsedBeforeParagraphRef.current += audio.duration;
+        }
+        cleanup?.(); resolve();
+      };
       audio.onerror = () => {
         cleanup?.();
         if (pausedRef.current) resolve();
@@ -99,6 +136,10 @@ export function useSleepcast() {
   // Narrate all paragraphs sequentially using the preview audio URLs.
   const narrateStory = useCallback(async (cast: GeneratedSleepcast, startFrom: number = 0) => {
     paragraphIndexRef.current = startFrom;
+    // Initialize paragraph durations array on first call
+    if (paragraphDurationsRef.current.length !== cast.paragraphs.length) {
+      paragraphDurationsRef.current = new Array(cast.paragraphs.length).fill(0);
+    }
 
     for (let i = startFrom; i < cast.paragraphs.length; i++) {
       if (pausedRef.current) break;
@@ -129,6 +170,10 @@ export function useSleepcast() {
     setCurrentTheme(theme);
     setCurrentCast(cast);
     setActiveParagraph(-1);
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
+    elapsedBeforeParagraphRef.current = 0;
+    paragraphDurationsRef.current = new Array(cast.paragraphs.length).fill(0);
     cleanupNarration();
     stopBgAudio();
     pausedRef.current = false;
@@ -177,12 +222,20 @@ export function useSleepcast() {
     setCurrentCast(null);
     setCurrentTheme(null);
     setActiveParagraph(-1);
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
+    elapsedBeforeParagraphRef.current = 0;
+    paragraphDurationsRef.current = [];
     paragraphIndexRef.current = 0;
   }, [cleanupNarration, stopBgAudio]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (timeUpdateFrameRef.current !== null) {
+        cancelAnimationFrame(timeUpdateFrameRef.current);
+        timeUpdateFrameRef.current = null;
+      }
       if (narrationAudioRef.current) {
         narrationAudioRef.current.pause();
         narrationAudioRef.current.src = '';
@@ -199,10 +252,12 @@ export function useSleepcast() {
     currentTheme,
     activeParagraph,
     error,
+    audioCurrentTime,
+    audioDuration,
     startPreviewSleepcast,
     togglePlay,
     pause,
     play,
     stop,
-  }), [status, currentCast, currentTheme, activeParagraph, error, startPreviewSleepcast, togglePlay, pause, play, stop]);
+  }), [status, currentCast, currentTheme, activeParagraph, error, audioCurrentTime, audioDuration, startPreviewSleepcast, togglePlay, pause, play, stop]);
 }

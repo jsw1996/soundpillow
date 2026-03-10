@@ -109,12 +109,20 @@ export function useTrackTranslation() {
   const { t } = useTranslation();
 
   return useCallback(
-    (track: Track): Track => ({
-      ...track,
-      title: t(`track_${track.id}_title` as TranslationKeys) ?? track.title,
-      artist: t(`track_${track.id}_artist` as TranslationKeys) ?? track.artist,
-      description: t(`track_${track.id}_desc` as TranslationKeys) ?? track.description,
-    }),
+    (track: Track): Track => {
+      const titleKey = `track_${track.id}_title` as TranslationKeys;
+      const artistKey = `track_${track.id}_artist` as TranslationKeys;
+      const descKey = `track_${track.id}_desc` as TranslationKeys;
+      const translatedTitle = t(titleKey);
+      const translatedArtist = t(artistKey);
+      const translatedDesc = t(descKey);
+      return {
+        ...track,
+        title: translatedTitle !== titleKey ? translatedTitle : track.title,
+        artist: translatedArtist !== artistKey ? translatedArtist : track.artist,
+        description: translatedDesc !== descKey ? translatedDesc : track.description,
+      };
+    },
     [t],
   );
 }

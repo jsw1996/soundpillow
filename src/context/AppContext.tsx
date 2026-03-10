@@ -45,7 +45,6 @@ const STREAK_KEY = 'sleepyhub-streak';
 
 const DEFAULT_SETTINGS: UserSettings = {
   defaultTimerMinutes: 30,
-  autoPlay: true,
   theme: 'light',
 };
 

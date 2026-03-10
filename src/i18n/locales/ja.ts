@@ -59,7 +59,6 @@ const ja: Record<string, string> = {
   settings: '設定',
   defaultSleepTimer: 'デフォルトスリープタイマー',
   timerOff: 'オフ',
-  autoPlayOnSelect: '選択時に自動再生',
   lastSession: '前回のセッション',
   resetAllStats: 'すべての統計をリセット',
   resetConfirm: 'すべてのリスニング統計をリセットしますか？',

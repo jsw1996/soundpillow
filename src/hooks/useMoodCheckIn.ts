@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import type { MoodLevel, MoodEntry } from '../types';
 import { useTranslation } from '../i18n';
 import { fetchMoodMessage } from '../services/api';
-import { formatDateLabel } from '../utils/date';
+import { formatDateLabel, getDateString } from '../utils/date';
 import { generateShareImage } from '../utils/moodShareImage';
 
 export type MoodStep = 'select' | 'loading' | 'card';
@@ -101,7 +101,7 @@ export function useMoodCheckIn({
       const llmMessage = await fetchMoodMessage(mood, locale);
       const message = llmMessage ?? getMoodMessage(mood, locale);
       const newEntry: MoodEntry = {
-        date: new Date().toISOString().split('T')[0],
+        date: getDateString(),
         mood,
         message,
       };

@@ -33,7 +33,6 @@ export type Theme = 'dark' | 'light';
 
 export interface UserSettings {
   defaultTimerMinutes: number | null;
-  autoPlay: boolean;
   theme: Theme;
 }
 

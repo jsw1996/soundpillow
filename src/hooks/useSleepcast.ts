@@ -1,14 +1,12 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import type { SleepcastTheme, GeneratedSleepcast, SleepcastStatus, WebAudioNode } from '../types';
-import { fetchTodayStories, checkServerHealth, resolveAudioUrl } from '../services/api';
 import { cleanupAudioNodes, getOrCreateAudioContext, closeAudioContext } from '../utils/audio';
 
 /**
- * Hook that manages sleepcast lifecycle:
- * 1. Fetch pre-generated story from server
- * 2. Play pre-generated narration audio
- * 3. Layer ambient background tracks underneath
+ * Hook that manages curated sleepcast preview playback:
+ * 1. Play narration audio
+ * 2. Layer ambient background tracks underneath
  */
 export function useSleepcast() {
   const { tracks } = useAppContext();
@@ -18,18 +16,12 @@ export function useSleepcast() {
   const [activeParagraph, setActiveParagraph] = useState(-1);
   const [error, setError] = useState<string | null>(null);
 
-  // Daily stories fetched from the server
-  const [dailyStories, setDailyStories] = useState<GeneratedSleepcast[]>([]);
-  const [storiesLoading, setStoriesLoading] = useState(false);
-  const [serverAvailable, setServerAvailable] = useState(true);
-
   // Reusable narration audio element (avoid creating new Audio() per paragraph on iOS)
   const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const bgNodesRef = useRef<Map<string, WebAudioNode>>(new Map());
   const paragraphIndexRef = useRef(0);
   const pausedRef = useRef(false);
-  const startingRef = useRef(false);
 
   // Get or create the reusable narration audio element
   const getNarrationAudio = useCallback(() => {
@@ -104,7 +96,7 @@ export function useSleepcast() {
     bgNodesRef.current.forEach((node) => node.element.play().catch(() => {}));
   }, []);
 
-  // Narrate all paragraphs sequentially using pre-generated audio.
+  // Narrate all paragraphs sequentially using the preview audio URLs.
   const narrateStory = useCallback(async (cast: GeneratedSleepcast, startFrom: number = 0) => {
     paragraphIndexRef.current = startFrom;
 
@@ -117,7 +109,7 @@ export function useSleepcast() {
       if (!audioUrl) {
         throw new Error('Narration audio unavailable for this sleepcast.');
       }
-      await playNarrationAudio(resolveAudioUrl(audioUrl));
+      await playNarrationAudio(audioUrl);
 
       // Brief pause between paragraphs
       if (!pausedRef.current) {
@@ -131,77 +123,6 @@ export function useSleepcast() {
       stopBgAudio();
     }
   }, [playNarrationAudio, stopBgAudio]);
-
-  const loadDailyStories = useCallback(async (locale: string = 'en') => {
-    setStoriesLoading(true);
-    try {
-      const healthy = await checkServerHealth();
-      setServerAvailable(healthy);
-      if (!healthy) {
-        setStoriesLoading(false);
-        return;
-      }
-      const data = await fetchTodayStories(locale);
-      setDailyStories(data.stories);
-    } catch (err) {
-      console.error('Failed to load daily stories:', err);
-      setServerAvailable(false);
-    } finally {
-      setStoriesLoading(false);
-    }
-  }, []);
-
-  const startSleepcast = useCallback(async (theme: SleepcastTheme, locale: string = 'en') => {
-    // Guard against concurrent starts
-    if (startingRef.current) return;
-    startingRef.current = true;
-
-    setError(null);
-    setCurrentTheme(theme);
-    setActiveParagraph(-1);
-    pausedRef.current = false;
-
-    let story = dailyStories.find((s) => s.themeId === theme.id);
-
-    if (!story) {
-      setStatus('generating');
-      try {
-        const data = await fetchTodayStories(locale);
-        setDailyStories(data.stories);
-        story = data.stories.find((s) => s.themeId === theme.id);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load story');
-        setStatus('error');
-        startingRef.current = false;
-        return;
-      }
-    }
-
-    if (!story) {
-      setError('No story available for this theme today. Please try again later.');
-      setStatus('error');
-      startingRef.current = false;
-      return;
-    }
-
-    try {
-      cleanupNarration();
-      stopBgAudio();
-      pausedRef.current = false;
-      paragraphIndexRef.current = 0;
-      setCurrentCast(story);
-      startBgAudio(theme);
-      setStatus('playing');
-      startingRef.current = false;
-      await narrateStory(story);
-    } catch (err) {
-      if (!(err instanceof DOMException && err.name === 'AbortError')) {
-        console.error('Narration error:', err);
-        setError(err instanceof Error ? err.message : 'Narration failed');
-        setStatus('error');
-      }
-    }
-  }, [cleanupNarration, dailyStories, narrateStory, startBgAudio, stopBgAudio]);
 
   const startPreviewSleepcast = useCallback(async (cast: GeneratedSleepcast, theme: SleepcastTheme) => {
     setError(null);
@@ -278,16 +199,10 @@ export function useSleepcast() {
     currentTheme,
     activeParagraph,
     error,
-    isConfigured: serverAvailable,
-    dailyStories,
-    storiesLoading,
-    serverAvailable,
-    startSleepcast,
     startPreviewSleepcast,
     togglePlay,
     pause,
     play,
     stop,
-    loadDailyStories,
-  }), [status, currentCast, currentTheme, activeParagraph, error, serverAvailable, dailyStories, storiesLoading, startSleepcast, startPreviewSleepcast, togglePlay, pause, play, stop, loadDailyStories]);
+  }), [status, currentCast, currentTheme, activeParagraph, error, startPreviewSleepcast, togglePlay, pause, play, stop]);
 }

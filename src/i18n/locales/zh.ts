@@ -59,7 +59,6 @@ const zh: Record<string, string> = {
   settings: '设置',
   defaultSleepTimer: '默认睡眠定时器',
   timerOff: '关闭',
-  autoPlayOnSelect: '选择后自动播放',
   lastSession: '上次播放',
   resetAllStats: '重置所有数据',
   resetConfirm: '确定要重置所有收听统计吗？',

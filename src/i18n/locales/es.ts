@@ -59,7 +59,6 @@ const es: Record<string, string> = {
   settings: 'Configuración',
   defaultSleepTimer: 'Temporizador predeterminado',
   timerOff: 'Apagado',
-  autoPlayOnSelect: 'Reproducir al seleccionar',
   lastSession: 'Última sesión',
   resetAllStats: 'Restablecer estadísticas',
   resetConfirm: '¿Restablecer todas las estadísticas?',

@@ -14,15 +14,10 @@ export function SleepcastScreen({
   currentTheme,
   activeParagraph,
   error,
-  isConfigured,
-  dailyStories,
-  storiesLoading,
   catalogStories,
-  onStartSleepcast,
   onStartMockStory,
   onTogglePlay,
   onStop,
-  onRetry,
 }: SleepcastScreenProps) {
   const { t } = useTranslation();
   const fallbackTheme = currentTheme ?? SLEEPCAST_THEMES[0];
@@ -74,13 +69,8 @@ export function SleepcastScreen({
       {(status === 'idle' || status === 'ready') && (
         <ThemeGrid
           key="grid"
-          onSelect={onStartSleepcast}
           onStartMockStory={onStartMockStory}
-          isConfigured={isConfigured}
-          dailyStories={dailyStories}
-          storiesLoading={storiesLoading}
           catalogStories={catalogStories}
-          onRetry={onRetry}
         />
       )}
     </AnimatePresence>

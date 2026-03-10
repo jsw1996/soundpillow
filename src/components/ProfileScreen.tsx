@@ -207,30 +207,6 @@ export function ProfileScreen() {
           </div>
         </div>
 
-        {/* Auto-play toggle */}
-        <div className="glass-panel rounded-2xl p-4">
-          <button
-            onClick={() => updateSettings({ autoPlay: !settings.autoPlay })}
-            className="w-full flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <Moon size={18} className="text-primary/60" />
-              <span className="text-sm font-semibold">{t('autoPlayOnSelect')}</span>
-            </div>
-            <div
-              className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${
-                settings.autoPlay ? 'bg-primary' : 'bg-foreground/10'
-              }`}
-            >
-              <div
-                className={`w-5 h-5 rounded-full bg-foreground transition-transform shadow-sm ${
-                  settings.autoPlay ? 'translate-x-4' : 'translate-x-0'
-                }`}
-              />
-            </div>
-          </button>
-        </div>
-
         {/* Favorites count */}
         <div className="glass-panel rounded-2xl p-4">
           <div className="flex items-center justify-between">

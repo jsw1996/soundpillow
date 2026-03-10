@@ -59,7 +59,6 @@ const en = {
   settings: 'Settings',
   defaultSleepTimer: 'Default Sleep Timer',
   timerOff: 'Off',
-  autoPlayOnSelect: 'Auto-play on select',
   lastSession: 'Last session',
   resetAllStats: 'Reset All Stats',
   resetConfirm: 'Reset all listening stats?',

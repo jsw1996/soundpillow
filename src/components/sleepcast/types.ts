@@ -7,15 +7,10 @@ export interface SleepcastScreenProps {
   currentTheme: SleepcastTheme | null;
   activeParagraph: number;
   error: string | null;
-  isConfigured: boolean;
-  dailyStories: GeneratedSleepcast[];
-  storiesLoading: boolean;
   catalogStories: Story[];
-  onStartSleepcast: (theme: SleepcastTheme) => void;
   onStartMockStory: (story: Story) => void;
   onTogglePlay: () => void;
   onStop: () => void;
-  onRetry?: () => void;
 }
 
 export interface SceneVisual {

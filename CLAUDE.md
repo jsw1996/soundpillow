@@ -10,15 +10,13 @@ npm run build            # Production build -> dist/
 npm run lint             # TypeScript type check (tsc --noEmit); no test suite
 npm run server:dev       # Start Express backend on :3001 (tsx watch)
 npm run server:build     # Compile server TypeScript -> server/dist/
-npm run server:generate  # Generate today's stories + narration audio
-npm run server:tts       # Regenerate narration audio for existing stories
 npm run assets:upload    # Upload ambient track audio + cover images to Azure Blob
 npm run ios:run          # Build frontend, sync Capacitor, run iOS target
 ```
 
 ## Architecture
 
-**SoundPillow** - a sleep and relaxation app with ambient audio playback, a sound mixer, AI-generated sleepcasts, and a daily mood check-in flow. Mobile-first web app (`max-w-md` shell), also shipped to iOS via Capacitor.
+**SoundPillow** - a sleep and relaxation app with ambient audio playback, a sound mixer, curated sleepcast previews, and a daily mood check-in flow. Mobile-first web app (`max-w-md` shell), also shipped to iOS via Capacitor.
 
 **Stack:** React 19, TypeScript 5.8, Vite 6, Tailwind CSS 4.1 (using `@theme` / `@layer` in `src/index.css`), Motion (`motion/react`), Lucide icons, Express 5 backend, Capacitor 8.
 
@@ -39,7 +37,7 @@ Three separate audio subsystems:
 
 - **`useAudioPlayer`** - Single looping `HTMLAudioElement` for ambient track playback. Uses a loaded track ID ref to detect track changes instead of comparing URLs.
 - **`useSoundMixer`** - Web Audio API (`AudioContext` + `GainNode`) for up to 5 simultaneous ambient tracks. Volume changes use `setTargetAtTime(...)`.
-- **`useSleepcast`** - Fetches pre-generated stories from the server, layers 2 ambient background tracks, and plays pre-generated paragraph audio sequentially through a reusable `Audio` element. There is no runtime `/api/tts` fallback.
+- **`useSleepcast`** - Plays curated sleepcast preview audio sequentially through a reusable `Audio` element while layering 2 ambient background tracks underneath.
 
 ### Backend (`server/`)
 
@@ -47,12 +45,10 @@ Three separate audio subsystems:
 
 - serves ambient track metadata at `/api/audios`
 - serves curated story catalog data at `/api/stories`
-- serves generated daily sleepcast JSON at `/api/stories/today`, `/api/stories/:date`, and `/api/stories/dates`
-- serves generated narration files from local `data/audio` via `/api/audio/...`
 - exposes a runtime mood-message endpoint at `/api/mood/message`
-- does **not** expose runtime story-generation or runtime TTS endpoints; generation and narration synthesis are CLI workflows (`server:generate`, `server:tts`)
+- does **not** expose runtime story-generation or runtime TTS endpoints
 
-Ambient track metadata and curated story assets resolve to Azure Blob URLs via `ASSET_BASE_URL`. Generated sleepcast narration is stored under `server/data/audio` and served by the backend.
+Ambient track metadata and curated story assets resolve to Azure Blob URLs via `ASSET_BASE_URL`.
 
 ### i18n
 
@@ -70,7 +66,7 @@ Common translation key patterns:
 - **Opening the app counts as a daily check-in.** `App.tsx` calls `checkIn()` on mount before normal playback interactions.
 - **Theme is document-level state.** The current theme is mirrored through `[data-theme]`, and `App.tsx` also updates the document `theme-color` meta tag for the app shell.
 - **Tracks are server-driven.** There are currently 14 ambient tracks defined in `server/src/audioCatalog.ts`, 5 default mixes in `src/constants.ts`, and 6 sleepcast themes in `src/data/sleepcastThemes.ts`.
-- **Sleepcast UI combines two content sources.** `dailyStories` comes from the generated backend feed, while `catalogStories` powers curated preview/mock playback in the sleepcast screen.
+- **Sleepcast UI is catalog-driven.** `catalogStories` powers curated preview playback in the sleepcast screen.
 - **Shared utilities** in `src/utils/` include `audio.ts`, `date.ts`, `storage.ts`, `time.ts`, `mixShare.ts`, `mood.ts`, and `moodShareImage.ts`.
 - **Do not assume every hook returns a memoized object.** Major hooks like `useAudioPlayer`, `useSoundMixer`, `useSleepTimer`, and `useSleepcast` do, but others such as `useMoodCard` do not. Check the hook implementation before relying on object identity in dependency arrays.
 - **Styling** uses Tailwind `@theme` in `src/index.css` plus custom classes such as `.glass-panel`, `.liquid-glass*`, `.soft-glow`, and sleepcast-specific shell/card classes.

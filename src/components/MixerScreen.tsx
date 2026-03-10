@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { screenTransition } from '../utils/animations';
-import { MixerTrack } from '../types';
+import { MixerTrack, MixPreset } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useTrackTranslation } from '../i18n';
 import { shareAndNotify } from '../utils/mixShare';
@@ -61,7 +61,7 @@ interface MixerScreenProps {
   mixerTracks: MixerTrack[];
   onToggleTrack: (trackId: string) => void;
   onSetVolume: (trackId: string, volume: number) => void;
-  onLoadPreset: (tracks: MixerTrack[]) => void;
+  onLoadPreset: (preset: MixPreset) => void;
 }
 
 export function MixerScreen({
@@ -235,7 +235,7 @@ export function MixerScreen({
               className="glass-panel rounded-2xl p-4 flex items-center justify-between"
             >
               <button
-                onClick={() => onLoadPreset(preset.tracks)}
+                onClick={() => onLoadPreset(preset)}
                 className="flex-1 text-left min-w-0"
               >
                 <p className="text-sm font-bold truncate">{preset.name}</p>

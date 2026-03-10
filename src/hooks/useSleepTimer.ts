@@ -54,9 +54,15 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
 
   const selectTimer = useCallback((mins: number | null) => {
     setTimerMinutes(mins);
+    if (mins === null) {
+      setIsActive(false);
+    }
   }, []);
 
-  const start = useCallback(() => setIsActive(true), []);
+  const start = useCallback(() => {
+    if (timerMinutes === null) return;
+    setIsActive(true);
+  }, [timerMinutes]);
   const stop = useCallback(() => setIsActive(false), []);
 
   const formatDisplay = formatTime;

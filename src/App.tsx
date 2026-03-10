@@ -1,6 +1,7 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef, useMemo } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { MixPreset } from './types';
+import { DEFAULT_MIXES } from './constants';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { LanguageProvider, useMixNameTranslation, useTranslation } from './i18n';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
@@ -23,8 +24,8 @@ import { getStoryCast, getStoryTheme } from './data/stories';
 function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
 
-  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks, catalogStories } = useAppContext();
-  const { t, locale } = useTranslation();
+  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks, catalogStories, mixPresets } = useAppContext();
+  const { t } = useTranslation();
 
   const player = useAudioPlayer(tracks);
   const sleepcast = useSleepcast();
@@ -39,22 +40,6 @@ function AppContent() {
     checkIn();
   }, [checkIn]);
 
-  // Load daily stories from server on mount and when locale changes
-  useEffect(() => {
-    sleepcast.loadDailyStories(locale);
-  }, [locale]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Retry loading stories when the app comes back to foreground (e.g. iOS resume)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !sleepcast.serverAvailable) {
-        sleepcast.loadDailyStories(locale);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [sleepcast.serverAvailable, locale]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const timer = useSleepTimer(
     useCallback(() => player.pause(), [player.pause]),
     settings.defaultTimerMinutes,
@@ -63,10 +48,12 @@ function AppContent() {
   const mixer = useSoundMixer(tracks);
   const [activeMix, setActiveMix] = useState<{ id: string; name: string } | null>(null);
   const [hasEverPlayed, setHasEverPlayed] = useState(false);
+  const wasMixPlayingRef = useRef(false);
   const getMixName = useMixNameTranslation();
   const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
   const isSleepcastScreen = currentScreen === 'sleepcast';
   const defaultShellColor = settings.theme === 'light' ? '#F1F5F9' : '#1e1c23';
+  const availableMixes = useMemo(() => [...DEFAULT_MIXES, ...mixPresets], [mixPresets]);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -89,26 +76,40 @@ function AppContent() {
     };
   }, [defaultShellColor]);
 
-  // Mix-aware skip: cycle through active mix tracks without starting single-track playback
+  useEffect(() => {
+    if (mixer.isMixPlaying) {
+      timer.start();
+    } else if (wasMixPlayingRef.current) {
+      timer.stop();
+    }
+    wasMixPlayingRef.current = mixer.isMixPlaying;
+  }, [mixer.isMixPlaying, timer.start, timer.stop]);
+
+  const playMix = useCallback((preset: MixPreset) => {
+    setHasEverPlayed(true);
+    mixer.loadPresetTracks(preset.tracks);
+    setActiveMix({ id: preset.id, name: preset.name });
+    const firstTrack = tracks.find((t) => t.id === preset.tracks[0]?.trackId);
+    if (firstTrack) player.selectTrack(firstTrack);
+    player.pause();
+    if (firstTrack) {
+      recordSession(firstTrack.id);
+    }
+  }, [mixer, player, recordSession, tracks]);
+
   const handleMixSkipNext = useCallback(() => {
-    if (!player.currentTrack) return;
-    const activeIds = mixer.activeTracks.map((t) => t.trackId);
-    if (activeIds.length === 0) return;
-    const idx = activeIds.indexOf(player.currentTrack.id);
-    const nextId = activeIds[(idx + 1) % activeIds.length];
-    const nextTrack = tracks.find((t) => t.id === nextId);
-    if (nextTrack) player.setDisplayTrack(nextTrack);
-  }, [mixer.activeTracks, player, tracks]);
+    if (availableMixes.length === 0) return;
+    const idx = activeMix ? availableMixes.findIndex((mix) => mix.id === activeMix.id) : -1;
+    const nextMix = idx === -1 ? availableMixes[0] : availableMixes[(idx + 1) % availableMixes.length];
+    playMix(nextMix);
+  }, [activeMix, availableMixes, playMix]);
 
   const handleMixSkipPrev = useCallback(() => {
-    if (!player.currentTrack) return;
-    const activeIds = mixer.activeTracks.map((t) => t.trackId);
-    if (activeIds.length === 0) return;
-    const idx = activeIds.indexOf(player.currentTrack.id);
-    const prevId = activeIds[(idx - 1 + activeIds.length) % activeIds.length];
-    const prevTrack = tracks.find((t) => t.id === prevId);
-    if (prevTrack) player.setDisplayTrack(prevTrack);
-  }, [mixer.activeTracks, player, tracks]);
+    if (availableMixes.length === 0) return;
+    const idx = activeMix ? availableMixes.findIndex((mix) => mix.id === activeMix.id) : -1;
+    const prevMix = idx === -1 ? availableMixes[availableMixes.length - 1] : availableMixes[(idx - 1 + availableMixes.length) % availableMixes.length];
+    playMix(prevMix);
+  }, [activeMix, availableMixes, playMix]);
 
   // Check for shared mix in URL on mount
   useEffect(() => {
@@ -171,21 +172,7 @@ function AppContent() {
     [activeMix?.id, currentScreen, mixer, player, recordSession, timer],
   );
 
-  const handleMixSelect = useCallback(
-    (preset: MixPreset) => {
-      setHasEverPlayed(true);
-      mixer.loadPresetTracks(preset.tracks);
-      setActiveMix({ id: preset.id, name: preset.name });
-      // Set first track as display track, but pause single player to avoid double audio
-      const firstTrack = tracks.find((t) => t.id === preset.tracks[0]?.trackId);
-      if (firstTrack) player.selectTrack(firstTrack);
-      player.pause();
-      if (firstTrack) {
-        recordSession(firstTrack.id);
-      }
-    },
-    [mixer, player, recordSession, tracks],
-  );
+  const handleMixSelect = playMix;
 
   const handleMixStop = useCallback(() => {
     mixer.stopAll();
@@ -226,7 +213,7 @@ function AppContent() {
             mixerTracks={mixer.mixerTracks}
             onToggleTrack={mixer.toggleTrack}
             onSetVolume={mixer.setTrackVolume}
-            onLoadPreset={mixer.loadPresetTracks}
+            onLoadPreset={handleMixSelect}
           />
         );
       case 'profile':
@@ -240,17 +227,7 @@ function AppContent() {
             currentTheme={sleepcast.currentTheme}
             activeParagraph={sleepcast.activeParagraph}
             error={sleepcast.error}
-            isConfigured={sleepcast.isConfigured}
-            dailyStories={sleepcast.dailyStories}
-            storiesLoading={sleepcast.storiesLoading}
             catalogStories={catalogStories}
-            onStartSleepcast={(theme) => {
-              // Stop any playing audio/mixer before starting sleepcast
-              player.pause();
-              mixer.stopAll();
-              timer.stop();
-              sleepcast.startSleepcast(theme, locale);
-            }}
             onStartMockStory={(story) => {
               player.pause();
               mixer.stopAll();
@@ -259,7 +236,6 @@ function AppContent() {
             }}
             onTogglePlay={() => sleepcast.togglePlay()}
             onStop={sleepcast.stop}
-            onRetry={() => sleepcast.loadDailyStories(locale)}
           />
         );
     }

@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, Building2, Clock, PawPrint, Play, Sparkles, Star, TrendingUp } from 'lucide-react';
 import { motion } from 'motion/react';
-import { SLEEPCAST_THEMES } from '../../data/sleepcastThemes';
 import {
   type Story,
   STORY_CATEGORIES,
 } from '../../data/stories';
 import { PillRow } from '../shared/PillRow';
 import { useTranslation } from '../../i18n';
-import type { GeneratedSleepcast, SleepcastTheme } from '../../types';
 import { screenTransition } from '../../utils/animations';
 
 const SLEEPCAST_BACKGROUND = 'linear-gradient(315deg, #ffffff, #def1ff)';
@@ -251,21 +249,11 @@ function StoryListCard({
 /* ─── Main ThemeGrid (redesigned) ─── */
 
 export function ThemeGrid({
-  onSelect,
   onStartMockStory,
-  isConfigured,
-  dailyStories,
-  storiesLoading,
   catalogStories,
-  onRetry,
 }: {
-  onSelect: (theme: SleepcastTheme) => void;
   onStartMockStory: (story: Story) => void;
-  isConfigured: boolean;
-  dailyStories: GeneratedSleepcast[];
-  storiesLoading: boolean;
   catalogStories: Story[];
-  onRetry?: () => void;
 }) {
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState('all');
@@ -462,14 +450,8 @@ export function ThemeGrid({
   }, [syncActiveCategoryFromScroll]);
 
   const handleStoryPlay = useCallback((story: Story) => {
-    if (onStartMockStory) {
-      onStartMockStory(story);
-      return;
-    }
-
-    const fallbackTheme = SLEEPCAST_THEMES.find((theme) => theme.id === story.themeId) ?? SLEEPCAST_THEMES[0];
-    onSelect(fallbackTheme);
-  }, [onSelect, onStartMockStory]);
+    onStartMockStory(story);
+  }, [onStartMockStory]);
 
   return (
     <motion.div

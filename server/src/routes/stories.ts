@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { loadStories, todayDate, listDates } from '../store.js';
-import { generateDaily } from '../generate.js';
 import type { GeneratedSleepcast } from '../types.js';
 import { getStoryAudioCatalog } from '../audioCatalog.js';
 
@@ -90,31 +89,6 @@ router.get('/:date', async (req, res) => {
   }
 
   res.json({ date, locale, stories });
-});
-
-/**
- * POST /api/stories/generate
- * Manually trigger generation for today (or a specific date).
- * Body: { date?: "2026-03-01" }
- * Protected in production by a simple bearer token.
- */
-router.post('/generate', async (req, res) => {
-  const adminToken = process.env.ADMIN_TOKEN;
-  if (adminToken) {
-    const auth = req.headers.authorization;
-    if (auth !== `Bearer ${adminToken}`) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-  }
-
-  const date = (req.body as { date?: string })?.date;
-  try {
-    const result = await generateDaily(date);
-    res.json({ ok: true, ...result });
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
-  }
 });
 
 export default router;

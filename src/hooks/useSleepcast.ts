@@ -1,13 +1,13 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import type { SleepcastTheme, GeneratedSleepcast, SleepcastStatus, WebAudioNode } from '../types';
-import { fetchTodayStories, checkServerHealth, fetchTts, resolveAudioUrl } from '../services/api';
+import { fetchTodayStories, checkServerHealth, resolveAudioUrl } from '../services/api';
 import { cleanupAudioNodes, getOrCreateAudioContext, closeAudioContext } from '../utils/audio';
 
 /**
  * Hook that manages sleepcast lifecycle:
  * 1. Fetch pre-generated story from server
- * 2. Narrate using Azure Speech TTS (server-side)
+ * 2. Play pre-generated narration audio
  * 3. Layer ambient background tracks underneath
  */
 export function useSleepcast() {
@@ -104,8 +104,8 @@ export function useSleepcast() {
     bgNodesRef.current.forEach((node) => node.element.play().catch(() => {}));
   }, []);
 
-  // Narrate all paragraphs sequentially using pre-generated audio or fallback TTS
-  const narrateStory = useCallback(async (cast: GeneratedSleepcast, locale: string, startFrom: number = 0) => {
+  // Narrate all paragraphs sequentially using pre-generated audio.
+  const narrateStory = useCallback(async (cast: GeneratedSleepcast, startFrom: number = 0) => {
     paragraphIndexRef.current = startFrom;
 
     for (let i = startFrom; i < cast.paragraphs.length; i++) {
@@ -113,16 +113,11 @@ export function useSleepcast() {
       paragraphIndexRef.current = i;
       setActiveParagraph(i);
 
-      if (cast.audioUrls && cast.audioUrls[i]) {
-        await playNarrationAudio(resolveAudioUrl(cast.audioUrls[i]));
-      } else {
-        // On-demand TTS fallback
-        if (pausedRef.current) break;
-        const blob = await fetchTts(cast.paragraphs[i], locale);
-        if (pausedRef.current) break;
-        const blobUrl = URL.createObjectURL(blob);
-        await playNarrationAudio(blobUrl, () => URL.revokeObjectURL(blobUrl));
+      const audioUrl = cast.audioUrls?.[i];
+      if (!audioUrl) {
+        throw new Error('Narration audio unavailable for this sleepcast.');
       }
+      await playNarrationAudio(resolveAudioUrl(audioUrl));
 
       // Brief pause between paragraphs
       if (!pausedRef.current) {
@@ -198,7 +193,7 @@ export function useSleepcast() {
       startBgAudio(theme);
       setStatus('playing');
       startingRef.current = false;
-      await narrateStory(story, locale);
+      await narrateStory(story);
     } catch (err) {
       if (!(err instanceof DOMException && err.name === 'AbortError')) {
         console.error('Narration error:', err);
@@ -208,7 +203,7 @@ export function useSleepcast() {
     }
   }, [cleanupNarration, dailyStories, narrateStory, startBgAudio, stopBgAudio]);
 
-  const startPreviewSleepcast = useCallback(async (cast: GeneratedSleepcast, theme: SleepcastTheme, locale: string = 'en') => {
+  const startPreviewSleepcast = useCallback(async (cast: GeneratedSleepcast, theme: SleepcastTheme) => {
     setError(null);
     setCurrentTheme(theme);
     setCurrentCast(cast);
@@ -221,7 +216,7 @@ export function useSleepcast() {
     try {
       startBgAudio(theme);
       setStatus('playing');
-      await narrateStory(cast, locale);
+      await narrateStory(cast);
     } catch (err) {
       if (!(err instanceof DOMException && err.name === 'AbortError')) {
         console.error('Preview narration error:', err);
@@ -231,12 +226,12 @@ export function useSleepcast() {
     }
   }, [cleanupNarration, narrateStory, startBgAudio, stopBgAudio]);
 
-  const play = useCallback(async (locale: string = 'en') => {
+  const play = useCallback(async () => {
     if (status === 'paused' && currentCast) {
       pausedRef.current = false;
       setStatus('playing');
       resumeBgAudio();
-      await narrateStory(currentCast, locale, paragraphIndexRef.current);
+      await narrateStory(currentCast, paragraphIndexRef.current);
     }
   }, [status, currentCast, resumeBgAudio, narrateStory]);
 
@@ -246,11 +241,11 @@ export function useSleepcast() {
     setStatus('paused');
   }, [cleanupNarration, pauseBgAudio]);
 
-  const togglePlay = useCallback(async (locale: string = 'en') => {
+  const togglePlay = useCallback(async () => {
     if (status === 'playing') {
       pause();
     } else if (status === 'paused') {
-      await play(locale);
+      await play();
     }
   }, [status, pause, play]);
 

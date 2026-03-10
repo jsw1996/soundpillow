@@ -255,9 +255,9 @@ function AppContent() {
               player.pause();
               mixer.stopAll();
               timer.stop();
-              sleepcast.startPreviewSleepcast(getStoryCast(story), getStoryTheme(story), locale);
+              sleepcast.startPreviewSleepcast(getStoryCast(story), getStoryTheme(story));
             }}
-            onTogglePlay={() => sleepcast.togglePlay(locale)}
+            onTogglePlay={() => sleepcast.togglePlay()}
             onStop={sleepcast.stop}
             onRetry={() => sleepcast.loadDailyStories(locale)}
           />

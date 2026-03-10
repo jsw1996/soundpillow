@@ -136,19 +136,3 @@ export async function fetchMoodMessage(mood: string, locale: string = 'en'): Pro
     return null;
   }
 }
-
-/**
- * Convert text to speech via the server's Azure Speech endpoint.
- * Returns an audio Blob (mp3).
- */
-export async function fetchTts(text: string, locale: string = 'en'): Promise<Blob> {
-  const res = await fetch(`${SERVER_URL}/api/tts`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, locale }),
-  });
-  if (!res.ok) {
-    throw new Error(`TTS error: ${res.status}`);
-  }
-  return res.blob();
-}

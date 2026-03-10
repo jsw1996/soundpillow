@@ -44,7 +44,7 @@ soundpillow/
 │   │   ├── tts.ts              # Azure Speech TTS synthesis module
 │   │   ├── store.ts            # JSON file-based story storage
 │   │   ├── themes.ts           # Sleepcast theme definitions
-│   │   └── routes/             # API route handlers (stories, tts)
+│   │   └── routes/             # API route handlers (audios, stories, mood)
 │   └── data/                   # Generated stories + audio (gitignored)
 ├── ios/                        # Capacitor iOS project
 ├── public/audio/               # Static ambient sound files
@@ -193,18 +193,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    - Test pause/resume — narration and background should pause/resume together
    - Test stop — should cleanly stop all audio without errors
 
-5. **Test on-demand TTS fallback:**
-
-   ```bash
-   curl -s -X POST "http://localhost:3001/api/tts" \
-     -H "Content-Type: application/json" \
-     -d '{"text":"Hello, goodnight.","locale":"en"}' \
-     --output test.mp3
-
-   # Play the file to verify audio quality
-   afplay test.mp3   # macOS
-   ```
-
 ### iOS simulator
 
 ```bash
@@ -234,7 +222,6 @@ curl "https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net/a
 | GET | `/api/stories/today?locale=en` | Get today's stories for a locale |
 | GET | `/api/stories/:date?locale=en` | Get stories for a specific date |
 | GET | `/api/stories/dates` | List available dates (last 7 days) |
-| POST | `/api/tts` | On-demand TTS (body: `{ text, locale }`) → `audio/mpeg` |
 | GET | `/api/audio/:date/:file.mp3` | Serve pre-generated TTS audio files |
 
 ## Architecture
@@ -258,7 +245,6 @@ User taps sleepcast theme
   → Fetch pre-generated story from /api/stories/today
   → Start background ambient audio (Web Audio API)
   → Play pre-generated TTS audio for each paragraph sequentially
-  → Fall back to on-demand /api/tts if pre-generated audio is unavailable
 ```
 
 ## Deployment

@@ -6,53 +6,72 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev              # Start Vite dev server on :3000
-npm run build            # Production build → dist/
-npm run lint             # TypeScript type check (tsc --noEmit) — no test suite
-npm run server:dev       # Start Express backend on :3001 (watch mode)
-npm run server:generate  # Manually generate today's stories + TTS audio
-npm run ios:run          # Build frontend, sync Capacitor, run iOS simulator
+npm run build            # Production build -> dist/
+npm run lint             # TypeScript type check (tsc --noEmit); no test suite
+npm run server:dev       # Start Express backend on :3001 (tsx watch)
+npm run server:build     # Compile server TypeScript -> server/dist/
+npm run server:generate  # Generate today's stories + narration audio
+npm run server:tts       # Regenerate narration audio for existing stories
+npm run assets:upload    # Upload ambient track audio + cover images to Azure Blob
+npm run ios:run          # Build frontend, sync Capacitor, run iOS target
 ```
 
 ## Architecture
 
-**SoundPillow** — a sleep & relaxation ambient audio player with AI-generated bedtime stories. Mobile-first web app (max-w-md), also deployed to iOS via Capacitor.
+**SoundPillow** - a sleep and relaxation app with ambient audio playback, a sound mixer, AI-generated sleepcasts, and a daily mood check-in flow. Mobile-first web app (`max-w-md` shell), also shipped to iOS via Capacitor.
 
-**Stack:** React 19, TypeScript 5.8, Vite 6, Tailwind CSS 4.1 (using `@theme`/`@layer`, not tailwind.config), Motion (framer-motion), Lucide icons, Express 5 backend.
+**Stack:** React 19, TypeScript 5.8, Vite 6, Tailwind CSS 4.1 (using `@theme` / `@layer` in `src/index.css`), Motion (`motion/react`), Lucide icons, Express 5 backend, Capacitor 8.
 
 ### Routing
 
-No React Router. Screen routing is driven by `AppContext.currentScreen` state (`home | player | mixer | sleepcast | profile`). `App.tsx` renders the active screen inside `AnimatePresence`.
+No React Router. Screen routing is driven by `AppContext.currentScreen` state (`home | player | mixer | sleepcast | profile`). `App.tsx` renders the active screen inside `AnimatePresence`. App launch also shows the `MoodCheckIn` startup overlay before normal navigation.
 
 ### State Management
 
-Single `AppContext` (React Context) manages all global state: favorites, settings, listening stats, mix presets, journal entries, streak tracking. All persisted to localStorage via `loadFromStorage` utility. No Redux or external state library.
+- `AppContext` manages screen state, search/favorites UI, fetched track catalog + loading/error state, fetched curated story catalog, settings, listening stats, mix presets, journal entries, and streak tracking.
+- `LanguageProvider` owns locale state (`en | zh | ja | es`) and persists it separately to localStorage.
+- Mood check-in UI state lives in `useMoodCard` / `useMoodCheckIn`, not in `AppContext`.
+- Persisted state is split between `loadFromStorage(...)` helpers and direct localStorage writes. Fetched track/story catalogs are not persisted.
 
 ### Audio System
 
 Three separate audio subsystems:
-- **`useAudioPlayer`** — Single `HTMLAudioElement` with looping for ambient track playback. Uses track ID ref to detect changes (not URL comparison).
-- **`useSoundMixer`** — Web Audio API (`AudioContext` + `GainNode`) for up to 5 simultaneous tracks. Volume changes use `setTargetAtTime` to avoid audio pops.
-- **`useSleepcast`** — Fetches pre-generated stories from server, layers 2 ambient background tracks, plays TTS audio sequentially per paragraph. Reuses a single Audio element for narration.
 
-All hooks return `useMemo`-wrapped objects for stable references and wrap their returns in `useMemo` to prevent cascading re-renders.
+- **`useAudioPlayer`** - Single looping `HTMLAudioElement` for ambient track playback. Uses a loaded track ID ref to detect track changes instead of comparing URLs.
+- **`useSoundMixer`** - Web Audio API (`AudioContext` + `GainNode`) for up to 5 simultaneous ambient tracks. Volume changes use `setTargetAtTime(...)`.
+- **`useSleepcast`** - Fetches pre-generated stories from the server, layers 2 ambient background tracks, and plays pre-generated paragraph audio sequentially through a reusable `Audio` element. There is no runtime `/api/tts` fallback.
 
-### Backend (server/)
+### Backend (`server/`)
 
-npm workspace at `server/`. Express 5 app that:
-- Generates AI stories on demand via OpenRouter LLM
-- Synthesizes TTS audio via Azure Speech Services
-- Serves stories and audio files via REST API
-- Stores generated content in `server/data/` (gitignored)
+`server/` is an npm workspace with an Express 5 app that:
+
+- serves ambient track metadata at `/api/audios`
+- serves curated story catalog data at `/api/stories`
+- serves generated daily sleepcast JSON at `/api/stories/today`, `/api/stories/:date`, and `/api/stories/dates`
+- serves generated narration files from local `data/audio` via `/api/audio/...`
+- exposes a runtime mood-message endpoint at `/api/mood/message`
+- does **not** expose runtime story-generation or runtime TTS endpoints; generation and narration synthesis are CLI workflows (`server:generate`, `server:tts`)
+
+Ambient track metadata and curated story assets resolve to Azure Blob URLs via `ASSET_BASE_URL`. Generated sleepcast narration is stored under `server/data/audio` and served by the backend.
 
 ### i18n
 
-Custom i18n system in `src/i18n/`. Four locales: `en`, `zh`, `ja`, `es`. Track/category translations use `track_${id}_title` key convention. Locale saved to localStorage.
+Custom i18n system in `src/i18n/`. Four locales: `en`, `zh`, `ja`, `es`. Locale is saved to localStorage.
+
+Common translation key patterns:
+
+- `track_${id}_title`, `track_${id}_artist`, `track_${id}_desc`
+- `mix_default_${n}`
+- category keys such as `catNature`, `catMeditation`
 
 ## Key Conventions
 
-- **iOS is the primary target.** Use `100dvh` not `100vh`. AudioContext requires user gesture to resume. Avoid heavy CSS filters (`blur > 20px`). No `.ogg` audio support on iOS Safari (assets are `.ogg` — known issue requiring conversion).
-- **Shared utilities** in `src/utils/`: `audio.ts` (AudioContext lifecycle), `date.ts` (date string formatting), `storage.ts` (localStorage with JSON parsing), `time.ts` (formatTime), `mixShare.ts` (URL-based mix sharing).
-- **All custom hooks** return `useMemo`-wrapped objects. `useCallback` deps should reference stable destructured properties (e.g., `player.pause`) not whole hook objects.
-- **14 ambient tracks** defined in `src/constants.ts` (IDs "1"–"14"), plus 5 default mix presets and 6 sleepcast themes in `src/data/sleepcastThemes.ts`.
-- **Styling** uses Tailwind `@theme` block in `index.css` for CSS custom properties. Dark/light themes switch via `[data-theme]` attribute. Custom classes: `.glass-panel`, `.liquid-glass*`, `.soft-glow`.
-- **Animation** uses Motion library. Prefer CSS transitions over infinite Motion animations on iOS for GPU performance.
+- **iOS is the primary target.** Prefer `100dvh` / `h-dvh`, preserve safe-area handling, and assume `AudioContext` may need a user gesture to resume.
+- **Opening the app counts as a daily check-in.** `App.tsx` calls `checkIn()` on mount before normal playback interactions.
+- **Theme is document-level state.** The current theme is mirrored through `[data-theme]`, and `App.tsx` also updates the document `theme-color` meta tag for the app shell.
+- **Tracks are server-driven.** There are currently 14 ambient tracks defined in `server/src/audioCatalog.ts`, 5 default mixes in `src/constants.ts`, and 6 sleepcast themes in `src/data/sleepcastThemes.ts`.
+- **Sleepcast UI combines two content sources.** `dailyStories` comes from the generated backend feed, while `catalogStories` powers curated preview/mock playback in the sleepcast screen.
+- **Shared utilities** in `src/utils/` include `audio.ts`, `date.ts`, `storage.ts`, `time.ts`, `mixShare.ts`, `mood.ts`, and `moodShareImage.ts`.
+- **Do not assume every hook returns a memoized object.** Major hooks like `useAudioPlayer`, `useSoundMixer`, `useSleepTimer`, and `useSleepcast` do, but others such as `useMoodCard` do not. Check the hook implementation before relying on object identity in dependency arrays.
+- **Styling** uses Tailwind `@theme` in `src/index.css` plus custom classes such as `.glass-panel`, `.liquid-glass*`, `.soft-glow`, and sleepcast-specific shell/card classes.
+- **Animation** uses Motion plus CSS keyframes. Preserve the existing visual language instead of introducing new routing/state frameworks or divergent interaction patterns.

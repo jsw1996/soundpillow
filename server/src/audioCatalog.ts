@@ -17,6 +17,7 @@ export interface StoryCatalogItem extends AudioTrack {
     themeId: string;
     storyPreview: string;
     paragraphCount: number;
+    backgroundMusic: string | undefined;
     isTrending?: boolean;
     isTodaysPick?: boolean;
 }
@@ -37,6 +38,7 @@ interface AudioTrackDefinition {
     themeId?: string;
     storyPreview?: string;
     paragraphCount?: number;
+    backgroundMusic?: string;
     isTrending?: boolean;
     isTodaysPick?: boolean;
 }
@@ -224,6 +226,7 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         imageSourceUrl: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=800&q=80',
         imageUrl: 'audios/covers/天台.jpg',
         blobAudioPath: 'audios/stories/01_天台上的天文爱好者.wav',
+        backgroundMusic: 'audios/music/Moavii - We Are (freetouse.com).mp3',
         description: '在城市屋顶抬头看星星，听一位天文爱好者分享夜空与安静。',
         subtitle: '在城市屋顶仰望星空，听夜风和望远镜一起变安静。',
         themeId: 'stargazing',
@@ -240,6 +243,7 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         imageSourceUrl: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=800&q=80',
         imageUrl: 'audios/covers/流浪猫.jpg',
         blobAudioPath: 'audios/stories/01_流浪猫的新家.wav',
+        backgroundMusic: 'audios/music/the_mountain-calm-cinematic-piano-149913.mp3',
         description: '一只流浪猫慢慢学会信任，也在灯光温暖的小屋里找到归属。',
         subtitle: '一只小猫慢慢靠近灯光，也慢慢学会相信温暖。',
         themeId: 'cabin-rain',
@@ -340,6 +344,7 @@ export function getStoryAudioCatalog(): StoryCatalogItem[] {
             themeId: track.themeId,
             storyPreview: track.storyPreview,
             paragraphCount: track.paragraphCount,
+            backgroundMusic: track.backgroundMusic ? resolveAssetUrl(track.backgroundMusic) : undefined,
             isTrending: track.isTrending,
             isTodaysPick: track.isTodaysPick,
         }));

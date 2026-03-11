@@ -95,6 +95,26 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
 
   // Start background ambient tracks for a theme
   const startBgAudio = useCallback((theme: SleepcastTheme) => {
+    if (theme.backgroundMusic) {
+      if (bgElementsRef.current.has('story-bg-music')) {
+        const bg = bgElementsRef.current.get('story-bg-music');
+        if (bg) {
+          bg.element.volume = Math.min(1, Math.max(0, bg.baseVolume * fadeMultiplier));
+        }
+        return;
+      }
+
+      const element = new Audio();
+      element.crossOrigin = 'anonymous';
+      element.src = theme.backgroundMusic;
+      element.loop = true;
+      const baseVolume = 0.25;
+      element.volume = Math.min(1, Math.max(0, baseVolume * fadeMultiplier));
+      element.play().catch(() => {});
+      bgElementsRef.current.set('story-bg-music', { element, baseVolume });
+      return;
+    }
+
     theme.bgTrackIds.forEach((trackId) => {
       if (bgElementsRef.current.has(trackId)) {
         const bg = bgElementsRef.current.get(trackId);

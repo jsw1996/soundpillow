@@ -66,6 +66,7 @@ export interface SleepcastTheme {
   icon: string;
   prompt: string;
   imageUrl: string;
+  backgroundMusic?: string;
   bgTrackIds: string[];  // ambient tracks to layer underneath narration
 }
 

@@ -9,6 +9,7 @@ export interface Story {
   imageUrl: string;
   category: string;
   themeId: SleepcastTheme['id'];
+  backgroundMusic: string | undefined;
   audioUrl?: string;       // resolved URL from server
   blobAudioPath?: string;  // local fallback blob path
   paragraphCount: number;
@@ -34,6 +35,7 @@ export function getStoryTheme(story: Story): SleepcastTheme {
   return {
     ...baseTheme,
     imageUrl: story.imageUrl,
+    backgroundMusic: story.backgroundMusic,
   };
 }
 

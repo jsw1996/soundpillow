@@ -19,6 +19,7 @@ export interface StoryCatalogItem {
   themeId: string;
   storyPreview: string;
   paragraphCount: number;
+  backgroundMusic: string | undefined;
   isTrending?: boolean;
   isTodaysPick?: boolean;
 }

@@ -21,7 +21,6 @@
   --particle-color: rgba(155, 126, 216, 0.3);
   --aurora-1: #9B7ED8;
   --aurora-2: #6B5B95;
-  --aurora-3: #4a3a6b;
 }
 
 :root[data-theme="light"] {
@@ -38,7 +37,6 @@
   --particle-color: rgba(37, 99, 235, 0.2);
   --aurora-1: #3B82F6;
   --aurora-2: #1D4ED8;
-  --aurora-3: #6366F1;
 }
 
 .bg-card-solid {
@@ -241,69 +239,30 @@
     content: '';
     position: absolute;
     border-radius: 50%;
-    filter: blur(90px);
-    opacity: 0.28;
-    animation: aurora 14s ease-in-out infinite alternate;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: aurora 12s ease-in-out infinite alternate;
   }
   .ambient-bg::before {
-    width: 70%;
-    height: 60%;
-    top: -15%;
-    right: -20%;
-    background: radial-gradient(ellipse at 40% 40%, var(--aurora-1) 0%, transparent 65%);
-  }
-  .ambient-bg::after {
     width: 60%;
     height: 50%;
-    bottom: 5%;
+    top: -10%;
+    right: -20%;
+    background: radial-gradient(circle, var(--aurora-1) 0%, transparent 70%);
+  }
+  .ambient-bg::after {
+    width: 50%;
+    height: 40%;
+    bottom: 10%;
     left: -15%;
-    background: radial-gradient(ellipse at 60% 60%, var(--aurora-2) 0%, transparent 62%);
+    background: radial-gradient(circle, var(--aurora-2) 0%, transparent 70%);
     animation-delay: -7s;
     animation-duration: 18s;
   }
 
-  /* Third aurora layer for richer depth */
-  .ambient-bg-rich {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .ambient-bg-rich::before,
-  .ambient-bg-rich::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(110px);
-    pointer-events: none;
-  }
-  .ambient-bg-rich::before {
-    width: 50%;
-    height: 45%;
-    top: 30%;
-    left: 15%;
-    background: radial-gradient(circle, var(--aurora-3) 0%, transparent 65%);
-    opacity: 0.2;
-    animation: aurora-drift 20s ease-in-out infinite alternate;
-  }
-  .ambient-bg-rich::after {
-    width: 40%;
-    height: 35%;
-    bottom: 20%;
-    right: 5%;
-    background: radial-gradient(circle, var(--aurora-1) 0%, transparent 65%);
-    opacity: 0.14;
-    animation: aurora-drift 16s ease-in-out infinite alternate-reverse;
-  }
-
   :root[data-theme="light"] .ambient-bg::before,
   :root[data-theme="light"] .ambient-bg::after {
-    opacity: 0.12;
-  }
-  :root[data-theme="light"] .ambient-bg-rich::before,
-  :root[data-theme="light"] .ambient-bg-rich::after {
-    opacity: 0.07;
+    opacity: 0.08;
   }
 
   .sleepcast-display {
@@ -520,11 +479,7 @@
   100% { transform: translate(-3%, -5%) scale(0.95) rotate(1deg); }
 }
 
-@keyframes aurora-drift {
-  0% { transform: translate(0, 0) scale(1); opacity: 0.12; }
-  50% { transform: translate(8%, -6%) scale(1.15); opacity: 0.18; }
-  100% { transform: translate(-4%, 4%) scale(0.9); opacity: 0.1; }
-}
+
 
 @keyframes card-shimmer-sweep {
   0%, 100% { transform: translateX(-120%); }

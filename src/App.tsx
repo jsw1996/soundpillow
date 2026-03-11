@@ -175,7 +175,6 @@ function AppContent() {
       style={isSleepcastGrid ? { background: 'linear-gradient(315deg, #ffffff, #def1ff)' } : undefined}
     >
       {!isSleepcastGrid && <div className="ambient-bg" />}
-      {!isSleepcastGrid && <div className="ambient-bg-rich" />}
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>

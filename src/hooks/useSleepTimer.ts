@@ -76,13 +76,6 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
     fadeMultiplier = Math.max(0, secondsRemaining / fadeOutSeconds);
   }
 
-  // Debug logging
-  useEffect(() => {
-    if (isActive && timerMinutes !== null && secondsRemaining <= fadeOutSeconds) {
-      console.log(`[useSleepTimer] Fading out: ${secondsRemaining}s left, multiplier: ${fadeMultiplier}`);
-    }
-  }, [isActive, timerMinutes, secondsRemaining, fadeOutSeconds, fadeMultiplier]);
-
   return useMemo(() => ({
     timerMinutes,
     secondsRemaining,

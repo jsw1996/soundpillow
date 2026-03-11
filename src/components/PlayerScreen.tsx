@@ -3,13 +3,13 @@ import {
   ChevronDown,
   SkipBack,
   SkipForward,
-  Timer,
   Heart,
   Sliders,
   Moon,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { PlayPauseButton } from './PlayPauseButton';
+import { TimerSelector } from './shared/TimerSelector';
 import { Track } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useTrackTranslation } from '../i18n';
@@ -227,39 +227,7 @@ export function PlayerScreen({
         </motion.div>
 
         {/* ── Sleep timer drawer ── */}
-        <AnimatePresence>
-          {showTimer && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ type: 'spring', bounce: 0, duration: 0.35 }}
-              className="overflow-hidden"
-            >
-              <div className="flex items-center justify-center gap-2 pb-1">
-                <Timer size={12} className="text-white/30" />
-                <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-white/30">
-                  {t('sleepTimer')}
-                </span>
-              </div>
-              <div className="flex justify-center gap-2.5">
-                {[15, 30, 45, 60].map((mins) => (
-                  <button
-                    key={mins}
-                    onClick={() => onSetTimer(timerMinutes === mins ? null : mins)}
-                    className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 active:scale-95 ${
-                      timerMinutes === mins
-                        ? 'liquid-glass-pill-active text-white'
-                        : 'liquid-glass-pill text-white/50'
-                    }`}
-                  >
-                    {mins}m
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <TimerSelector show={showTimer} timerMinutes={timerMinutes} onSetTimer={onSetTimer} />
       </div>
     </motion.div>
   );

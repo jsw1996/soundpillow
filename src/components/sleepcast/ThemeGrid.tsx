@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { BookOpen, Building2, Clock, PawPrint, Play, Sparkles, TrendingUp } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
@@ -8,6 +8,7 @@ import {
 import { useTranslation } from '../../i18n';
 import { screenTransition } from '../../utils/animations';
 import { PillRow } from '../shared/PillRow';
+import { useScrollSync } from '../../hooks/useScrollSync';
 
 const SLEEPCAST_BACKGROUND = 'linear-gradient(315deg, #ffffff, #def1ff)';
 
@@ -184,11 +185,12 @@ export function ThemeGrid({
   onStartMockStory: (story: Story) => void;
   catalogStories: Story[];
 }) {
-  const [activeCategory, setActiveCategory] = useState('all');
-  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const scrollSyncFrameRef = useRef<number | null>(null);
-  const programmaticScrollRef = useRef(false);
+  const categoryIds = useMemo(
+    () => STORY_CATEGORIES.map((c) => c.id),
+    [],
+  );
+
+  const { activeCategory, scrollViewportRef, setSectionRef, scrollToCategory } = useScrollSync(categoryIds);
 
   const highlightStories = useMemo((): Story[] => {
     if (catalogStories.length === 0) return [];
@@ -210,99 +212,9 @@ export function ThemeGrid({
     [catalogStories],
   );
 
-  const syncActiveCategoryFromScroll = useCallback(() => {
-    if (programmaticScrollRef.current) return;
-    const viewport = scrollViewportRef.current;
-    if (!viewport) return;
-
-    if (viewport.scrollTop < 48) {
-      if (activeCategory !== 'all') {
-        setActiveCategory('all');
-      }
-      return;
-    }
-
-    const anchorTop = viewport.scrollTop + 132;
-    let nextCategory = 'all';
-
-    for (const { category } of categorizedGroups) {
-      const section = sectionRefs.current[category.id];
-      if (!section) continue;
-
-      if (section.offsetTop <= anchorTop) {
-        nextCategory = category.id;
-      }
-    }
-
-    if (nextCategory !== activeCategory) {
-      setActiveCategory(nextCategory);
-    }
-  }, [activeCategory, categorizedGroups]);
-
-  useEffect(() => {
-    const viewport = scrollViewportRef.current;
-    if (!viewport) return undefined;
-
-    const handleScroll = () => {
-      if (scrollSyncFrameRef.current !== null) {
-        cancelAnimationFrame(scrollSyncFrameRef.current);
-      }
-
-      scrollSyncFrameRef.current = requestAnimationFrame(() => {
-        scrollSyncFrameRef.current = null;
-        syncActiveCategoryFromScroll();
-      });
-    };
-
-    viewport.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      viewport.removeEventListener('scroll', handleScroll);
-      if (scrollSyncFrameRef.current !== null) {
-        cancelAnimationFrame(scrollSyncFrameRef.current);
-        scrollSyncFrameRef.current = null;
-      }
-    };
-  }, [syncActiveCategoryFromScroll]);
-
   const handleStoryPlay = useCallback((story: Story) => {
     onStartMockStory(story);
   }, [onStartMockStory]);
-
-  const handleCategoryChange = useCallback((categoryId: string) => {
-    const viewport = scrollViewportRef.current;
-    if (!viewport) {
-      setActiveCategory(categoryId);
-      return;
-    }
-
-    if (categoryId === 'all') {
-      viewport.scrollTo({ top: 0, behavior: 'smooth' });
-      setActiveCategory('all');
-      return;
-    }
-
-    const targetSection = sectionRefs.current[categoryId];
-    if (!targetSection) {
-      setActiveCategory(categoryId);
-      return;
-    }
-
-    const stickyOffset = 96;
-    programmaticScrollRef.current = true;
-    viewport.scrollTo({
-      top: Math.max(0, targetSection.offsetTop - stickyOffset),
-      behavior: 'smooth',
-    });
-    setActiveCategory(categoryId);
-
-    // Re-enable scroll sync after the smooth scroll settles
-    const releaseTimer = setTimeout(() => {
-      programmaticScrollRef.current = false;
-    }, 600);
-    return () => clearTimeout(releaseTimer);
-  }, []);
 
   return (
     <motion.div
@@ -350,7 +262,7 @@ export function ThemeGrid({
                 items={STORY_CATEGORIES}
                 activeId={activeCategory}
                 onItemSelect={(category) => {
-                  handleCategoryChange(category.id);
+                  scrollToCategory(category.id);
                 }}
                 getLabel={(category) => category.label}
                 getLeading={(category) => renderCategoryIcon(category.id, 'h-3.5 w-3.5')}
@@ -368,7 +280,7 @@ export function ThemeGrid({
                 stories={stories}
                 onPlay={handleStoryPlay}
                 innerRef={(node) => {
-                  sectionRefs.current[category.id] = node;
+                  setSectionRef(category.id, node);
                 }}
               />
             ))}

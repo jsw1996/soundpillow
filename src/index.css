@@ -531,6 +531,42 @@
   50% { transform: translateX(120%); }
 }
 
+.animate-spin-slow {
+  animation: spin 12s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Morphing wave border for collapsed player ── */
+.wave-border {
+  border: 2px solid var(--color-primary);
+  pointer-events: none;
+}
+.wave-border-1 {
+  opacity: 0.5;
+  animation: wave-morph-1 4s ease-in-out infinite;
+}
+.wave-border-2 {
+  opacity: 0.25;
+  animation: wave-morph-2 5s ease-in-out infinite;
+}
+
+@keyframes wave-morph-1 {
+  0%   { border-radius: 50% 50% 50% 50%; transform: rotate(0deg) scale(1); }
+  25%  { border-radius: 42% 58% 62% 38%; transform: rotate(45deg) scale(1.04); }
+  50%  { border-radius: 55% 45% 38% 62%; transform: rotate(90deg) scale(1); }
+  75%  { border-radius: 38% 62% 55% 45%; transform: rotate(135deg) scale(1.04); }
+  100% { border-radius: 50% 50% 50% 50%; transform: rotate(180deg) scale(1); }
+}
+@keyframes wave-morph-2 {
+  0%   { border-radius: 50% 50% 50% 50%; transform: rotate(0deg) scale(1); }
+  25%  { border-radius: 60% 40% 45% 55%; transform: rotate(-30deg) scale(1.06); }
+  50%  { border-radius: 40% 60% 55% 45%; transform: rotate(-60deg) scale(1); }
+  75%  { border-radius: 55% 45% 40% 60%; transform: rotate(-90deg) scale(1.06); }
+  100% { border-radius: 50% 50% 50% 50%; transform: rotate(-120deg) scale(1); }
+}
+
 /* ── Audio bars icon ── */
 .audio-bars-icon .audio-bar {
   transition: height 0.3s ease, y 0.3s ease;

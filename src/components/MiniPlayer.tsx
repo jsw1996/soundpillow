@@ -1,5 +1,6 @@
-import { Play, Pause, ChevronUp } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useCallback } from 'react';
+import { Play, Pause, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence, type PanInfo } from 'motion/react';
 import { Track } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation, useTrackTranslation } from '../i18n';
@@ -11,9 +12,11 @@ interface MiniPlayerProps {
   onTogglePlay: () => void;
   mixName?: string | null;
   onTap?: () => void;
+  collapsed: boolean;
+  onCollapse: () => void;
 }
 
-export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName, onTap }: MiniPlayerProps) {
+export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName, onTap, collapsed, onCollapse }: MiniPlayerProps) {
   const { currentScreen, setCurrentScreen } = useAppContext();
   const { t } = useTranslation();
   const tt = useTrackTranslation();
@@ -21,17 +24,25 @@ export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName, onTap }: M
 
   const show = currentScreen !== 'player';
 
+  const handlePanEnd = useCallback((_: unknown, info: PanInfo) => {
+    if (info.offset.y > 30 && info.velocity.y > 0) {
+      onCollapse();
+    }
+  }, [onCollapse]);
+
+  // Only render expanded state; collapsed is rendered inside BottomNav
   return (
     <AnimatePresence>
-      {show && (
+      {show && !collapsed && (
         <motion.div
-          key="mini-player"
+          key="mini-player-expanded"
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
+          exit={{ y: 40, opacity: 0, scale: 0.8 }}
           transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
           className="fixed left-0 right-0 max-w-md mx-auto px-4 z-40"
           style={{ bottom: 'calc(4rem + 0.5rem + env(safe-area-inset-bottom) * 0.4)' }}
+          onPanEnd={handlePanEnd}
         >
           <div
             onClick={() => onTap ? onTap() : setCurrentScreen('player')}
@@ -71,7 +82,15 @@ export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName, onTap }: M
                 {isPlaying ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}
               </button>
 
-              <ChevronUp size={14} className="text-foreground/25" />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCollapse();
+                }}
+                className="p-0.5 text-foreground/25 active:scale-90 transition-transform"
+              >
+                <ChevronDown size={14} />
+              </button>
             </div>
           </div>
         </motion.div>

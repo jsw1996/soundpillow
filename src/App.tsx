@@ -24,6 +24,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 
 function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
+  const [miniPlayerCollapsed, setMiniPlayerCollapsed] = useState(false);
 
   const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks, catalogStories, mixPresets } = useAppContext();
   const { t } = useTranslation();
@@ -216,6 +217,8 @@ function AppContent() {
               progress={sleepcast.audioDuration > 0 ? (sleepcast.audioCurrentTime / sleepcast.audioDuration) * 100 : 0}
               onTogglePlay={() => sleepcast.togglePlay()}
               onTap={() => coordinator.setSleepcastView('player')}
+              collapsed={miniPlayerCollapsed}
+              onCollapse={() => setMiniPlayerCollapsed(true)}
             />
           );
         }
@@ -227,12 +230,49 @@ function AppContent() {
               progress={timer.timerProgress}
               onTogglePlay={coordinator.activeMixName ? mixer.toggleMixPlay : coordinator.handleTogglePlay}
               mixName={coordinator.activeMixName}
+              collapsed={miniPlayerCollapsed}
+              onCollapse={() => setMiniPlayerCollapsed(true)}
             />
           );
         }
         return null;
       })()}
-      <BottomNav sleepcastActive={coordinator.showSleepcastPlayer} onSleepcastNav={() => coordinator.setSleepcastView('grid')} />
+      {(() => {
+        const isSleepcastPlaying = sleepcast.status === 'playing' || sleepcast.status === 'paused';
+        let collapsedPlayer = null;
+        if (miniPlayerCollapsed) {
+          if (isSleepcastPlaying && !coordinator.showSleepcastPlayer) {
+            collapsedPlayer = {
+              track: {
+                id: `sleepcast-${sleepcast.currentTheme?.id ?? ''}`,
+                title: sleepcast.currentCast?.title ?? '',
+                artist: '',
+                duration: '',
+                category: 'sleepcast' as const,
+                imageUrl: sleepcast.currentTheme?.imageUrl ?? '',
+                audioUrl: '',
+              },
+              isPlaying: sleepcast.status === 'playing',
+              onTogglePlay: () => sleepcast.togglePlay(),
+              onExpand: () => setMiniPlayerCollapsed(false),
+            };
+          } else if (coordinator.hasEverPlayed && !isSleepcastPlaying && player.currentTrack) {
+            collapsedPlayer = {
+              track: player.currentTrack,
+              isPlaying: coordinator.activeMixName ? mixer.isMixPlaying : player.isPlaying,
+              onTogglePlay: coordinator.activeMixName ? mixer.toggleMixPlay : coordinator.handleTogglePlay,
+              onExpand: () => setMiniPlayerCollapsed(false),
+            };
+          }
+        }
+        return (
+          <BottomNav
+            sleepcastActive={coordinator.showSleepcastPlayer}
+            onSleepcastNav={() => coordinator.setSleepcastView('grid')}
+            collapsedPlayer={collapsedPlayer}
+          />
+        );
+      })()}
       <AnimatePresence>
         {moodCard.shouldShow && (
           <MoodCheckIn

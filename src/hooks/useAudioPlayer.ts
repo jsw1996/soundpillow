@@ -24,7 +24,11 @@ export function useAudioPlayer(tracks: Track[], fadeMultiplier: number = 1.0) {
       }
     };
 
-    const handleError = () => console.error('[AudioPlayer] error', audio.error);
+    const handleError = () => {
+      // Suppress error when src is cleared during cleanup/track switching
+      if (!audio.currentSrc) return;
+      console.error('[AudioPlayer] error', audio.error);
+    };
 
     audio.addEventListener('timeupdate', updateProgress);
     audio.addEventListener('error', handleError);

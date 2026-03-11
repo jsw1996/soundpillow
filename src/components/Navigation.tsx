@@ -55,7 +55,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
       <motion.button
         key={item.labelKey}
         layout
-        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
         onClick={() => handleNavClick(item)}
         className={`relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl transition-colors duration-300 ${
           active
@@ -75,8 +75,8 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
       style={{ bottom: 'calc(0.5rem + env(safe-area-inset-bottom) * 0.4)' }}
     >
       <motion.div
-        layout
-        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        layout="position"
+        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
         className={`flex items-center justify-around px-1 py-1 rounded-[22px] ${
           isSleepcastScreen
             ? 'sleepcast-flat-pill'
@@ -86,14 +86,15 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
         {leftItems.map(renderNavButton)}
 
         {/* Collapsed mini-player orb in center */}
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {hasCollapsed && collapsedPlayer && (
             <motion.div
               key="nav-collapsed-player"
+              layout
               initial={{ scale: 0, width: 0, opacity: 0 }}
               animate={{ scale: 1, width: 48, opacity: 1 }}
               exit={{ scale: 0, width: 0, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 30 }}
               className="flex items-center justify-center"
             >
               <button

@@ -60,7 +60,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
         className={`relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl transition-colors duration-300 ${
           active
             ? 'text-primary nav-indicator'
-            : isSleepcastScreen ? 'text-[#111217]/40' : 'text-foreground/35'
+            : isSleepcastScreen ? 'text-gray-500' : 'text-gray-500'
         }`}
       >
         <Icon size={20} fill={active ? 'currentColor' : 'none'} strokeWidth={active ? 2 : 1.8} />

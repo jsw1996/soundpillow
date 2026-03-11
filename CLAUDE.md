@@ -71,3 +71,7 @@ Common translation key patterns:
 - **Do not assume every hook returns a memoized object.** Major hooks like `useAudioPlayer`, `useSoundMixer`, `useSleepTimer`, and `useSleepcast` do, but others such as `useMoodCard` do not. Check the hook implementation before relying on object identity in dependency arrays.
 - **Styling** uses Tailwind `@theme` in `src/index.css` plus custom classes such as `.glass-panel`, `.liquid-glass*`, `.soft-glow`, and sleepcast-specific shell/card classes.
 - **Animation** uses Motion plus CSS keyframes. Preserve the existing visual language instead of introducing new routing/state frameworks or divergent interaction patterns.
+
+## Product Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the phased iteration plan (retention → content → social → monetization). When implementing new features, check the roadmap for context on priorities and design rationale.

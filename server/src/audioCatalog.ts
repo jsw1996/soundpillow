@@ -238,7 +238,7 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         duration: '10 min',
         category: 'animal-friends',
         imageSourceUrl: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=800&q=80',
-        imageUrl: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'audios/covers/流浪猫.png',
         blobAudioPath: 'audios/stories/01_流浪猫的新家.wav',
         description: '一只流浪猫慢慢学会信任，也在灯光温暖的小屋里找到归属。',
         subtitle: '一只小猫慢慢靠近灯光，也慢慢学会相信温暖。',

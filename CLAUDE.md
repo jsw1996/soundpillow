@@ -50,6 +50,10 @@ Three separate audio subsystems:
 
 Ambient track metadata and curated story assets resolve to Azure Blob URLs via `ASSET_BASE_URL`.
 
+### Story Assets
+
+All story source files (text and audio) are located at `C:\Users\shengwenjin\Documents\stories`. Reference this directory when working with story content.
+
 ### i18n
 
 Custom i18n system in `src/i18n/`. Four locales: `en`, `zh`, `ja`, `es`. Locale is saved to localStorage.

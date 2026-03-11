@@ -30,28 +30,34 @@ export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName, onTap }: M
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-          className="fixed left-0 right-0 max-w-md mx-auto px-3 pb-2 z-40"
-          style={{ bottom: 'calc(3.2rem + 0.75rem + env(safe-area-inset-bottom) * 0.4)' }}
+          className="fixed left-0 right-0 max-w-md mx-auto px-4 z-40"
+          style={{ bottom: 'calc(4rem + 0.5rem + env(safe-area-inset-bottom) * 0.4)' }}
         >
           <div
             onClick={() => onTap ? onTap() : setCurrentScreen('player')}
-            className="glass-panel px-3 py-2 cursor-pointer active:scale-[0.98] transition-transform" style={{ borderRadius: '45px' }}
+            className="relative glass-dock glass-noise rounded-full px-3.5 py-1.5 cursor-pointer active:scale-[0.97] transition-all duration-200"
           >
             <div className="flex items-center gap-3">
-              {/* Artwork */}
-              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                <img
-                  src={track.imageUrl}
-                  alt={track.title}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
+              {/* Artwork with glow */}
+              <div className="relative w-9 h-9 shrink-0">
+                <div
+                  className="absolute inset-0 rounded-xl blur-md opacity-40"
+                  style={{ backgroundImage: `url(${track.imageUrl})`, backgroundSize: 'cover' }}
                 />
+                <div className="relative w-9 h-9 rounded-xl overflow-hidden ring-1 ring-white/10">
+                  <img
+                    src={track.imageUrl}
+                    alt={track.title}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
               </div>
 
               {/* Track info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate">{mixName || translatedTrack.title}</p>
-                <p className="text-[10px] text-foreground/40 font-medium truncate">{mixName ? t('mixPlaying') : translatedTrack.artist}</p>
+                <p className="text-[13px] font-bold truncate">{mixName || translatedTrack.title}</p>
+                <p className="text-[10px] text-foreground/35 font-medium truncate">{mixName ? t('mixPlaying') : translatedTrack.artist}</p>
               </div>
 
               {/* Controls */}
@@ -60,12 +66,12 @@ export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName, onTap }: M
                   e.stopPropagation();
                   onTogglePlay();
                 }}
-                className="p-2 rounded-full liquid-glass-sm text-white/80 active:scale-90 transition-transform"
+                className="p-2.5 rounded-full liquid-glass-sm text-primary active:scale-90 transition-transform"
               >
-                {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+                {isPlaying ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}
               </button>
 
-              <ChevronUp size={16} className="text-foreground/30" />
+              <ChevronUp size={14} className="text-foreground/25" />
             </div>
           </div>
         </motion.div>

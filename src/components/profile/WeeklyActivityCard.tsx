@@ -12,7 +12,7 @@ export function WeeklyActivityCard({ weekEntries }: { weekEntries: (SleepEntry |
 
   return (
     <section className="px-6">
-      <div className="glass-panel rounded-2xl p-5">
+      <div className="rounded-2xl p-5 border border-surface-border bg-card-solid">
         <div className="flex items-center gap-2 mb-4">
           <BedDouble size={16} className="text-primary/60" />
           <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">

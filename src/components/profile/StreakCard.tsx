@@ -7,7 +7,17 @@ export function StreakCard({ streakStats }: { streakStats: StreakStats }) {
 
   return (
     <section className="px-6">
-      <div className="glass-panel rounded-2xl p-5">
+      <div
+        className="relative rounded-2xl p-5 overflow-hidden border border-surface-border"
+        style={{
+          background: 'linear-gradient(135deg, rgba(251,146,60,0.12) 0%, rgba(155,126,216,0.08) 50%, rgba(59,130,246,0.1) 100%)',
+        }}
+      >
+        {/* Decorative warm glow */}
+        <div
+          className="absolute -top-8 -right-8 w-28 h-28 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.2) 0%, transparent 70%)' }}
+        />
         <div className="flex items-center gap-2 mb-4">
           <Flame size={16} className="text-orange-400" />
           <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">

@@ -49,7 +49,7 @@ export function SettingsPanel({
         </div>
 
         {/* Default timer */}
-        <div className="glass-panel rounded-2xl p-4 space-y-3">
+        <div className="rounded-2xl p-4 space-y-3 border border-surface-border bg-card-solid">
           <div className="flex items-center gap-3">
             <Timer size={18} className="text-primary/60" />
             <span className="text-sm font-semibold">{t('defaultSleepTimer')}</span>
@@ -72,7 +72,7 @@ export function SettingsPanel({
         </div>
 
         {/* Favorites count */}
-        <div className="glass-panel rounded-2xl p-4">
+        <div className="rounded-2xl p-4 border border-surface-border bg-card-solid">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Heart size={18} className="text-primary/60" />
@@ -87,7 +87,7 @@ export function SettingsPanel({
 
         {/* Last played */}
         {stats.lastPlayedAt && (
-          <div className="glass-panel rounded-2xl p-4">
+          <div className="rounded-2xl p-4 border border-surface-border bg-card-solid">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Clock size={18} className="text-primary/60" />
@@ -103,7 +103,7 @@ export function SettingsPanel({
 
       {/* Theme Toggle */}
       <section className="px-6 space-y-3">
-        <div className="glass-panel rounded-2xl p-4 space-y-3">
+        <div className="rounded-2xl p-4 space-y-3 border border-surface-border bg-card-solid">
           <div className="flex items-center gap-3">
             <Palette size={18} className="text-primary/60" />
             <span className="text-sm font-semibold">{t('theme')}</span>
@@ -137,7 +137,7 @@ export function SettingsPanel({
 
       {/* Language Selector */}
       <section className="px-6 space-y-3 pb-4">
-        <div className="glass-panel rounded-2xl p-4 space-y-3">
+        <div className="rounded-2xl p-4 space-y-3 border border-surface-border bg-card-solid">
           <div className="flex items-center gap-3">
             <Globe size={18} className="text-primary/60" />
             <span className="text-sm font-semibold">{t('language')}</span>
@@ -174,7 +174,7 @@ export function SettingsPanel({
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-panel rounded-2xl p-4 space-y-3"
+            className="rounded-2xl p-4 space-y-3 border border-surface-border bg-card-solid"
           >
             <p className="text-sm text-foreground/60 text-center">{t('resetConfirm')}</p>
             <div className="flex gap-2">

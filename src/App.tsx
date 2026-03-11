@@ -173,7 +173,8 @@ function AppContent() {
       className={`max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden ${isSleepcastGrid ? '' : 'bg-bg-dark'}`}
       style={isSleepcastGrid ? { background: 'linear-gradient(315deg, #ffffff, #def1ff)' } : undefined}
     >
-      {currentScreen !== 'home' && !isSleepcastGrid && <div className="ambient-bg" />}
+      {!isSleepcastGrid && <div className="ambient-bg" />}
+      {!isSleepcastGrid && <div className="ambient-bg-rich" />}
       <AnimatePresence mode="wait">
         {renderScreen()}
       </AnimatePresence>

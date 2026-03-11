@@ -32,15 +32,17 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav }: { sleepca
   if (currentScreen === 'player' || sleepcastActive) return null;
 
   return (
-    <nav 
-      className={`fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 backdrop-blur-xl pt-2 ${
-        isSleepcastScreen
-          ? 'bg-[#eef6fc]/92 border-t border-black/6'
-          : 'bg-bg-dark/90 border-t border-foreground/5'
-      }`}
-      style={{ paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom) * 0.4)' }}
+    <nav
+      className="fixed left-0 right-0 max-w-md mx-auto z-50 px-4"
+      style={{ bottom: 'calc(0.5rem + env(safe-area-inset-bottom) * 0.4)' }}
     >
-      <div className="flex items-center justify-around px-2">
+      <div
+        className={`flex items-center justify-around px-1 py-1 rounded-[22px] ${
+          isSleepcastScreen
+            ? 'sleepcast-flat-pill'
+            : 'glass-dock'
+        }`}
+      >
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
@@ -48,12 +50,14 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav }: { sleepca
             <button
               key={item.labelKey}
               onClick={() => handleNavClick(item)}
-              className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all ${
-                active ? 'text-primary' : 'text-foreground/40'
+              className={`relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl transition-all duration-300 ${
+                active
+                  ? 'text-primary nav-indicator'
+                  : isSleepcastScreen ? 'text-[#111217]/40' : 'text-foreground/35'
               }`}
             >
-              <Icon size={22} fill={active ? 'currentColor' : 'none'} />
-              <span className="text-[10px] font-semibold tracking-wide">{t(item.labelKey)}</span>
+              <Icon size={20} fill={active ? 'currentColor' : 'none'} strokeWidth={active ? 2 : 1.8} />
+              <span className="text-[9px] font-bold tracking-wider uppercase">{t(item.labelKey)}</span>
             </button>
           );
         })}

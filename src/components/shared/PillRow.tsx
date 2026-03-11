@@ -79,12 +79,22 @@ export function PillRow<T extends { id: string }>({
               }}
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               whileTap={{ scale: 0.94 }}
-              className={`flex items-center gap-2 whitespace-nowrap border px-4 py-1.5 text-sm font-semibold backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] ${
+              className={`relative flex items-center gap-2 whitespace-nowrap border px-4 py-1.5 text-sm font-semibold glass-noise ${
                 isActive
-                  ? 'border-white/35 bg-[color-mix(in_srgb,var(--color-primary,#8c2bee)_66%,white_18%)] text-white shadow-[0_0_20px_-5px_var(--glow-4)]'
-                  : 'border-white/25 bg-white/70 text-foreground/80'
+                  ? 'border-white/40 text-white'
+                  : 'border-white/20 text-foreground/80'
               }`}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
+              style={{
+                background: isActive
+                  ? 'linear-gradient(135deg, color-mix(in srgb, var(--color-primary, #8c2bee) 72%, white 16%) 0%, color-mix(in srgb, var(--color-primary, #8c2bee) 85%, black 8%) 100%)'
+                  : 'linear-gradient(135deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.55) 100%)',
+                backdropFilter: 'blur(24px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                boxShadow: isActive
+                  ? 'inset 0 1px 0 rgba(255,255,255,0.35), 0 0 24px -4px var(--glow-4), 0 4px 16px rgba(0,0,0,0.2), 0 0 0 0.5px rgba(255,255,255,0.1)'
+                  : 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(255,255,255,0.15)',
+                WebkitTapHighlightColor: 'transparent',
+              }}
             >
               {getLeading?.(item)}
               <span>{getLabel(item)}</span>

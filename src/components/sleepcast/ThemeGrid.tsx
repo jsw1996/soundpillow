@@ -114,9 +114,9 @@ function CategoryStoryTile({
       whileTap={{ scale: 0.99 }}
       onClick={onPlay}
       className="group block shrink-0 snap-start text-left"
-      style={{ width: '10.5rem' }}
+      style={{ width: 'calc((100% - 0.75rem) / 2)' }}
     >
-      <div className="relative aspect-square overflow-hidden rounded-[1.5rem]">
+      <div className="relative aspect-square overflow-hidden rounded-3xl">
         <img
           src={story.imageUrl}
           alt=""
@@ -159,7 +159,7 @@ function CategorySection({
 
       {leadStory ? (
         <div className="mt-4 overflow-x-auto no-scrollbar -mx-1 px-1">
-          <div className="flex snap-x snap-proximity gap-3 pr-5" style={{ scrollPaddingLeft: '0.25rem' }}>
+          <div className="flex snap-x snap-proximity gap-3" style={{ scrollPaddingLeft: '0.25rem' }}>
             {stories.map((story) => (
               <CategoryStoryTile
                 key={story.id}

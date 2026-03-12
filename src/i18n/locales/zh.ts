@@ -179,6 +179,8 @@ const zh: Record<string, string> = {
   sleepcastFilterOffline: '离线',
   sleepcastSelectScene: '选择今晚的场景',
   sleepcastStoriesReady: '今晚已有 {{count}} 个场景可听',
+  sleepcastRandomTitle: '今晚听点什么好呢？',
+  sleepcastRandomSubtitle: '选择困难？交给命运吧',
   sleepcastNoResults: '没有找到匹配的场景',
   sleepcastPlaying: '正在轻声播放',
   sleepcastPaused: '已暂停',

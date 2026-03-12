@@ -178,6 +178,8 @@ const es: Record<string, string> = {
   sleepcastFilterOffline: 'Sin red',
   sleepcastSelectScene: 'Elige una escena',
   sleepcastStoriesReady: '{{count}} escenas listas esta noche',
+  sleepcastRandomTitle: 'Sorpréndeme esta noche',
+  sleepcastRandomSubtitle: '¿No sabes qué escuchar? Deja que el destino elija tu historia',
   sleepcastNoResults: 'No hubo escenas que coincidieran',
   sleepcastPlaying: 'Sonando ahora',
   sleepcastPaused: 'En pausa',

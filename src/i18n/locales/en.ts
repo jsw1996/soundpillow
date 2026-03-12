@@ -179,6 +179,8 @@ const en = {
   sleepcastFilterOffline: 'Offline',
   sleepcastSelectScene: 'Choose a scene',
   sleepcastStoriesReady: '{{count}} scenes ready tonight',
+  sleepcastRandomTitle: 'Surprise me tonight',
+  sleepcastRandomSubtitle: 'Not sure what to listen to? Let fate pick your bedtime story',
   sleepcastNoResults: 'No scenes matched that search',
   sleepcastPlaying: 'Now drifting',
   sleepcastPaused: 'Paused',

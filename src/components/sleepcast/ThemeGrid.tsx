@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { BookOpen, Building2, Clock, PawPrint, Play, Sparkles, TrendingUp } from 'lucide-react';
+import { BookOpen, Building2, Clock, PawPrint, Play, Shuffle, Sparkles, TrendingUp } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
   type Story,
@@ -185,6 +185,8 @@ export function ThemeGrid({
   onStartMockStory: (story: Story) => void;
   catalogStories: Story[];
 }) {
+  const { t } = useTranslation();
+
   const categoryIds = useMemo(
     () => STORY_CATEGORIES.map((c) => c.id),
     [],
@@ -253,6 +255,48 @@ export function ThemeGrid({
                   ))}
                 </div>
               </div>
+            </section>
+          ) : null}
+
+          {catalogStories.length > 1 ? (
+            <section className="mt-5">
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.96 }}
+                onClick={() => {
+                  const idx = Math.floor(Math.random() * catalogStories.length);
+                  handleStoryPlay(catalogStories[idx]);
+                }}
+                className="group relative w-full overflow-hidden rounded-[1.6rem] text-left"
+              >
+                {/* layered watercolor-ish background */}
+                <div className="absolute inset-0 bg-linear-to-br from-[#ede9fe] via-[#e0e7ff] to-[#dbeafe]" />
+                <div className="absolute -left-6 -top-6 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(167,139,250,0.35)_0%,transparent_70%)] blur-2xl" />
+                <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.3)_0%,transparent_70%)] blur-2xl" />
+                <div className="absolute right-12 top-2 h-16 w-16 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.18)_0%,transparent_70%)] blur-xl" />
+
+                <div className="relative flex items-center gap-4 px-5 py-5">
+                  {/* icon */}
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/50 bg-white/70 shadow-sm backdrop-blur-sm">
+                    <Shuffle size={19} className="text-indigo-500" strokeWidth={2.4} />
+                  </div>
+
+                  {/* copy */}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[0.95rem] font-semibold tracking-[-0.02em] text-[#1e1b4b]">
+                      {t('sleepcastRandomTitle')}
+                    </p>
+                    <p className="mt-1 text-[0.78rem] leading-snug text-indigo-900/45">
+                      {t('sleepcastRandomSubtitle')}
+                    </p>
+                  </div>
+
+                  {/* play arrow */}
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500/90 text-white shadow-md shadow-indigo-400/30 transition-transform duration-300 group-active:scale-90">
+                    <Play size={14} fill="currentColor" className="ml-0.5" />
+                  </div>
+                </div>
+              </motion.button>
             </section>
           ) : null}
 

@@ -178,6 +178,8 @@ const ja: Record<string, string> = {
   sleepcastFilterOffline: 'オフライン',
   sleepcastSelectScene: '今夜の情景を選ぶ',
   sleepcastStoriesReady: '今夜は {{count}} シーンが再生可能',
+  sleepcastRandomTitle: '今夜はおまかせで',
+  sleepcastRandomSubtitle: '迷ったら運命に任せて。タップで今夜の物語をお届け',
   sleepcastNoResults: '一致するシーンがありません',
   sleepcastPlaying: '再生中',
   sleepcastPaused: '一時停止中',

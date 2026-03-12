@@ -29,9 +29,11 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
 
   // Reusable narration audio element (avoid creating new Audio() per paragraph on iOS)
   const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
+  const narrationResolveRef = useRef<(() => void) | null>(null);
   const bgElementsRef = useRef<Map<string, BgAudioElement>>(new Map());
   const paragraphIndexRef = useRef(0);
   const pausedRef = useRef(false);
+  const generationRef = useRef(0); // incremented on each new story to invalidate old narrateStory calls
 
   // Get or create the reusable narration audio element
   const getNarrationAudio = useCallback(() => {
@@ -42,10 +44,16 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
     return narrationAudioRef.current;
   }, []);
 
-  // Play a single audio source, reusing the narration element. Returns a promise that resolves when done.
-  const playNarrationAudio = useCallback((url: string, cleanup?: () => void): Promise<void> => {
+  // Play (or resume) a narration audio source. When `resume` is true, continues from current position
+  // instead of setting a new src.
+  const playNarrationAudio = useCallback((url: string, options?: { resume?: boolean; cleanup?: () => void }): Promise<void> => {
+    const { resume = false, cleanup } = options ?? {};
     return new Promise((resolve, reject) => {
       if (pausedRef.current) { cleanup?.(); resolve(); return; }
+
+      const wrappedResolve = () => { narrationResolveRef.current = null; resolve(); };
+      const wrappedReject = (err: Error) => { narrationResolveRef.current = null; reject(err); };
+      narrationResolveRef.current = wrappedResolve;
 
       const audio = getNarrationAudio();
 
@@ -77,18 +85,20 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
         if (Number.isFinite(audio.duration) && audio.duration > 0) {
           elapsedBeforeParagraphRef.current += audio.duration;
         }
-        cleanup?.(); resolve();
+        cleanup?.(); wrappedResolve();
       };
       audio.onerror = () => {
         cleanup?.();
-        if (pausedRef.current) resolve();
-        else reject(new Error('Audio playback failed'));
+        if (pausedRef.current) wrappedResolve();
+        else wrappedReject(new Error('Audio playback failed'));
       };
-      audio.src = url;
+      if (!resume) {
+        audio.src = url;
+      }
       audio.play().catch((err) => {
         cleanup?.();
-        if (pausedRef.current) resolve();
-        else reject(err);
+        if (pausedRef.current) wrappedResolve();
+        else wrappedReject(err);
       });
     });
   }, [getNarrationAudio]);
@@ -145,13 +155,30 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
     bgElementsRef.current.clear();
   }, []);
 
-  const cleanupNarration = useCallback(() => {
+  // Soft pause: keep audio position so we can resume mid-paragraph
+  const pauseNarration = useCallback(() => {
     pausedRef.current = true;
     if (narrationAudioRef.current) {
       narrationAudioRef.current.pause();
-      narrationAudioRef.current.src = '';
+    }
+    // Cancel any pending rAF to avoid a stray state update after pause
+    if (timeUpdateFrameRef.current !== null) {
+      cancelAnimationFrame(timeUpdateFrameRef.current);
+      timeUpdateFrameRef.current = null;
+    }
+    // Resolve pending playNarrationAudio promise so the narrateStory loop can break
+    if (narrationResolveRef.current) {
+      narrationResolveRef.current();
     }
   }, []);
+
+  // Full cleanup: destroy audio state (used by stop / startPreview)
+  const cleanupNarration = useCallback(() => {
+    pauseNarration();
+    if (narrationAudioRef.current) {
+      narrationAudioRef.current.src = '';
+    }
+  }, [pauseNarration]);
 
   const pauseBgAudio = useCallback(() => {
     bgElementsRef.current.forEach((bg) => bg.element.pause());
@@ -174,6 +201,7 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
 
   // Narrate all paragraphs sequentially using the preview audio URLs.
   const narrateStory = useCallback(async (cast: GeneratedSleepcast, startFrom: number = 0) => {
+    const gen = generationRef.current;
     paragraphIndexRef.current = startFrom;
     // Initialize paragraph durations array on first call
     if (paragraphDurationsRef.current.length !== cast.paragraphs.length) {
@@ -181,7 +209,7 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
     }
 
     for (let i = startFrom; i < cast.paragraphs.length; i++) {
-      if (pausedRef.current) break;
+      if (pausedRef.current || gen !== generationRef.current) break;
       paragraphIndexRef.current = i;
       setActiveParagraph(i);
 
@@ -192,13 +220,13 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
       await playNarrationAudio(audioUrl);
 
       // Brief pause between paragraphs
-      if (!pausedRef.current) {
+      if (!pausedRef.current && gen === generationRef.current) {
         await new Promise((r) => setTimeout(r, 1500));
       }
     }
 
-    // Story finished
-    if (!pausedRef.current && paragraphIndexRef.current >= cast.paragraphs.length - 1) {
+    // Story finished — only if this is still the active generation
+    if (!pausedRef.current && gen === generationRef.current && paragraphIndexRef.current >= cast.paragraphs.length - 1) {
       setStatus('idle');
       stopBgAudio();
     }
@@ -213,6 +241,7 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
     setAudioDuration(0);
     elapsedBeforeParagraphRef.current = 0;
     paragraphDurationsRef.current = new Array(cast.paragraphs.length).fill(0);
+    generationRef.current++;
     cleanupNarration();
     stopBgAudio();
     pausedRef.current = false;
@@ -236,15 +265,34 @@ export function useSleepcast(fadeMultiplier: number = 1.0) {
       pausedRef.current = false;
       setStatus('playing');
       resumeBgAudio();
-      await narrateStory(currentCast, paragraphIndexRef.current);
+
+      const audio = narrationAudioRef.current;
+      const canResume = audio && audio.src && audio.currentTime > 0;
+
+      const gen = generationRef.current;
+
+      if (canResume) {
+        // Resume current paragraph from where it was paused
+        await playNarrationAudio('', { resume: true });
+        // Continue with remaining paragraphs
+        if (!pausedRef.current && gen === generationRef.current && paragraphIndexRef.current < currentCast.paragraphs.length - 1) {
+          await narrateStory(currentCast, paragraphIndexRef.current + 1);
+        } else if (!pausedRef.current && gen === generationRef.current) {
+          setStatus('idle');
+          stopBgAudio();
+        }
+      } else {
+        // No valid position to resume, replay current paragraph
+        await narrateStory(currentCast, paragraphIndexRef.current);
+      }
     }
-  }, [status, currentCast, resumeBgAudio, narrateStory]);
+  }, [status, currentCast, resumeBgAudio, playNarrationAudio, narrateStory, stopBgAudio]);
 
   const pause = useCallback(() => {
-    cleanupNarration();
+    pauseNarration();
     pauseBgAudio();
     setStatus('paused');
-  }, [cleanupNarration, pauseBgAudio]);
+  }, [pauseNarration, pauseBgAudio]);
 
   const togglePlay = useCallback(async () => {
     if (status === 'playing') {

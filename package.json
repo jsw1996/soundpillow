@@ -17,7 +17,8 @@
     "ios:sync": "VITE_SERVER_URL=https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
     "ios:run": "VITE_SERVER_URL=https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net npm run build && npx cap sync ios && npx cap run ios",
-    "deploy": "npm run server:build && bash scripts/deploy.sh"
+    "server:deploy": "bash scripts/deploy.sh",
+    "server:deploy:win": "bash scripts/deploy-server.sh"
   },
   "dependencies": {
     "@azure/storage-blob": "^12.28.0",

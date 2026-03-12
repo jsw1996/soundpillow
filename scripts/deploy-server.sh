@@ -63,37 +63,21 @@ jar -cMf "$PROJECT_ROOT/$ZIP_FILE" .
 cd "$PROJECT_ROOT"
 echo "    Zip created: $ZIP_FILE"
 
-# ── Step 4: Deploy to Azure via Kudu zip API ─────────────────────────────────
-echo "==> Deploying to Azure App Service ($APP_NAME) via Kudu..."
-# Get publishing credentials
-CREDS=$(az webapp deployment list-publishing-credentials \
-  --resource-group "$RESOURCE_GROUP" \
+# ── Step 4: Deploy to Azure via az webapp deploy ─────────────────────────────
+echo "==> Deploying to Azure App Service ($APP_NAME)..."
+az webapp deploy \
   --name "$APP_NAME" \
-  --query "{user:publishingUserName, pass:publishingPassword}" \
-  -o tsv)
-KUDU_USER=$(echo "$CREDS" | cut -f1)
-KUDU_PASS=$(echo "$CREDS" | cut -f2)
-
-# Push zip to Kudu zipdeploy endpoint
-KUDU_URL="https://${APP_NAME}.scm.azurewebsites.net/api/zipdeploy"
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-  -X POST "$KUDU_URL" \
-  --user "${KUDU_USER}:${KUDU_PASS}" \
-  -H "Content-Type: application/octet-stream" \
-  --data-binary @"$ZIP_FILE" \
-  --max-time 300)
-
-if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ]; then
-  echo "    Deployment accepted (HTTP $HTTP_STATUS). Waiting for restart..."
-  sleep 15
-else
-  echo "    ERROR: Kudu returned HTTP $HTTP_STATUS"
-  exit 1
-fi
+  --resource-group "$RESOURCE_GROUP" \
+  --src-path "$ZIP_FILE" \
+  --type zip
 
 # ── Step 5: Health check ─────────────────────────────────────────────────────
 echo "==> Running health check..."
-APP_URL="https://${APP_NAME}.azurewebsites.net"
+APP_HOSTNAME=$(az webapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query "defaultHostName" -o tsv)
+APP_URL="https://${APP_HOSTNAME}"
 MAX_RETRIES=10
 RETRY_DELAY=10
 

@@ -303,6 +303,21 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         storyPreview: '在北方孤独的灯塔旁，一头布满伤疤的老鲸鱼每晚准时出现，与守塔人一起度过无数个安静的夜晚。',
         paragraphCount: 1,
     },
+    {
+        id: 'story-8',
+        title: '24小时书店',
+        artist: 'SoundPillow Stories',
+        duration: '10 min',
+        category: 'city-life',
+        imageSourceUrl: '',
+        imageUrl: 'audios/covers/24h-bookstore.jpg',
+        blobAudioPath: 'audios/stories/08_二十四小时书店.wav',
+        backgroundMusic: 'audios/music/beautiful-piano-amp-flute-normalized.mp3',
+        description: '凌晨两点的书店里，值班员叶青守着橙黄灯光，陪伴每一个深夜到来的读者，直到天亮。',
+        subtitle: '暖光书架、翻页声和凌晨不打烊的安静陪伴。',
+        storyPreview: '凌晨两点，书店只剩三个人。值班员叶青坐在收银台后，看着深夜来书店的人，每个人都带着各自的故事和一种只有夜里才会有的安静。',
+        paragraphCount: 1,
+    },
 ];
 
 function resolveAssetUrl(assetPath: string): string {

@@ -149,6 +149,13 @@ export function useAudioCoordinator(
   }, [catalogStories, player, mixer, timer, sleepcast]);
 
   const handleStartStory = useCallback((story: Story) => {
+    // If this story is already playing/paused, just show the player
+    const isActive = sleepcast.currentCast?.id === story.id
+      && (sleepcast.status === 'playing' || sleepcast.status === 'paused');
+    if (isActive) {
+      setSleepcastView('player');
+      return;
+    }
     player.pause();
     mixer.stopAll();
     timer.stop();

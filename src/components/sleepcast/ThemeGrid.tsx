@@ -3,7 +3,7 @@ import { BookOpen, Building2, Clock, PawPrint, Play, Shuffle, Sparkles, Trending
 import { motion } from 'motion/react';
 import {
   type Story,
-  STORY_CATEGORIES,
+  type StoryCategory,
 } from '../../data/stories';
 import { useTranslation } from '../../i18n';
 import { screenTransition } from '../../utils/animations';
@@ -11,8 +11,6 @@ import { PillRow } from '../shared/PillRow';
 import { useScrollSync } from '../../hooks/useScrollSync';
 
 const SLEEPCAST_BACKGROUND = 'linear-gradient(315deg, #ffffff, #def1ff)';
-
-type StoryCategory = (typeof STORY_CATEGORIES)[number];
 
 function renderCategoryIcon(categoryId: string, className = 'h-5 w-5') {
   switch (categoryId) {
@@ -181,15 +179,17 @@ function CategorySection({
 export function ThemeGrid({
   onStartMockStory,
   catalogStories,
+  storyCategories,
 }: {
   onStartMockStory: (story: Story) => void;
   catalogStories: Story[];
+  storyCategories: StoryCategory[];
 }) {
   const { t } = useTranslation();
 
   const categoryIds = useMemo(
-    () => STORY_CATEGORIES.map((c) => c.id),
-    [],
+    () => storyCategories.map((c) => c.id),
+    [storyCategories],
   );
 
   const { activeCategory, scrollViewportRef, setSectionRef, scrollToCategory } = useScrollSync(categoryIds);
@@ -205,13 +205,13 @@ export function ThemeGrid({
   }, [catalogStories]);
 
   const categorizedGroups = useMemo(
-    () => STORY_CATEGORIES
+    () => storyCategories
       .filter((category) => category.id !== 'all')
       .map((category) => ({
         category,
         stories: catalogStories.filter((story) => story.category === category.id),
       })),
-    [catalogStories],
+    [catalogStories, storyCategories],
   );
 
   const handleStoryPlay = useCallback((story: Story) => {
@@ -303,7 +303,7 @@ export function ThemeGrid({
           <div className="sticky z-20 -mx-5 mt-5 pb-4 pt-4" style={{ top: 'env(safe-area-inset-top)' }}>
             <div className="relative">
               <PillRow
-                items={STORY_CATEGORIES}
+                items={storyCategories}
                 activeId={activeCategory}
                 onItemSelect={(category) => {
                   scrollToCategory(category.id);

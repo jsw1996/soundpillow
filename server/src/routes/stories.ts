@@ -4,11 +4,12 @@ import { getStoryAudioCatalog } from '../audioCatalog.js';
 const router = Router();
 
 /**
- * GET /api/stories
- * Returns the curated story catalog (static content with resolved asset URLs).
+ * GET /api/stories?locale=zh
+ * Returns the curated story catalog with category labels in the requested locale.
  */
-router.get('/', (_req, res) => {
-  res.json(getStoryAudioCatalog());
+router.get('/', (req, res) => {
+  const locale = (req.query.locale as string) || 'zh';
+  res.json(getStoryAudioCatalog(locale as 'en' | 'zh' | 'ja' | 'es'));
 });
 
 export default router;

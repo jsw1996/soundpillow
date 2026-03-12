@@ -13,6 +13,7 @@ export function SleepcastScreen({
   currentTheme,
   error,
   catalogStories,
+  storyCategories,
   onStartMockStory,
   onStop,
 }: SleepcastScreenProps) {
@@ -48,6 +49,7 @@ export function SleepcastScreen({
           key="grid"
           onStartMockStory={onStartMockStory}
           catalogStories={catalogStories}
+          storyCategories={storyCategories}
         />
       )}
     </AnimatePresence>

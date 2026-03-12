@@ -3,7 +3,8 @@ import { fetchAudios, fetchStoryCatalog } from '../services/api';
 import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats, Track } from '../types';
 import { getDateString, getYesterday } from '../utils/date';
 import { loadFromStorage } from '../utils/storage';
-import type { Story } from '../data/stories';
+import { type Story, type StoryCategory } from '../data/stories';
+import { useTranslation } from '../i18n';
 
 interface AppContextValue {
   currentScreen: Screen;
@@ -21,6 +22,7 @@ interface AppContextValue {
   tracksLoading: boolean;
   tracksError: string | null;
   catalogStories: Story[];
+  storyCategories: StoryCategory[];
   settings: UserSettings;
   updateSettings: (patch: Partial<UserSettings>) => void;
   stats: ListeningStats;
@@ -70,6 +72,7 @@ function saveFavorites(favs: Set<string>) {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { locale } = useTranslation();
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<Set<string>>(() =>
@@ -81,6 +84,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [tracksLoading, setTracksLoading] = useState(true);
   const [tracksError, setTracksError] = useState<string | null>(null);
   const [catalogStories, setCatalogStories] = useState<Story[]>([]);
+  const [storyCategories, setStoryCategories] = useState<StoryCategory[]>([]);
   const [settings, setSettings] = useState<UserSettings>(() =>
     loadFromStorage(SETTINGS_KEY, DEFAULT_SETTINGS, (v) => ({ ...DEFAULT_SETTINGS, ...v })),
   );
@@ -148,9 +152,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const loadCatalogStories = useCallback(async () => {
+  const loadCatalogStories = useCallback(async (locale: string) => {
     try {
-      const stories = await fetchStoryCatalog();
+      const { categories, stories } = await fetchStoryCatalog(locale);
+      if (categories.length > 0) setStoryCategories(categories);
       if (stories.length > 0) setCatalogStories(stories as Story[]);
     } catch (error) {
       console.warn('Failed to load story catalog, using local fallback:', error);
@@ -162,10 +167,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     loadTracks();
   }, [loadTracks]);
 
-  // Load story catalog on mount
+  // Load story catalog on mount and when locale changes
   useEffect(() => {
-    loadCatalogStories();
-  }, [loadCatalogStories]);
+    loadCatalogStories(locale);
+  }, [loadCatalogStories, locale]);
 
   // Retry loading tracks when app returns to foreground if they failed
   useEffect(() => {
@@ -318,6 +323,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     tracksLoading,
     tracksError,
     catalogStories,
+    storyCategories,
     settings,
     updateSettings,
     stats,
@@ -333,7 +339,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     getWeekEntries,
   }), [
     currentScreen, searchQuery, favorites, showFavoritesOnly, menuOpen,
-    tracks, tracksLoading, tracksError, catalogStories, settings, stats, mixPresets, journal, streakStats,
+    tracks, tracksLoading, tracksError, catalogStories, storyCategories, settings, stats, mixPresets, journal, streakStats,
     setCurrentScreen, setSearchQuery, toggleFavorite, isFavorite,
     setShowFavoritesOnly, setMenuOpen, updateSettings,
     recordSession, resetStats, saveMixPreset, deleteMixPreset,

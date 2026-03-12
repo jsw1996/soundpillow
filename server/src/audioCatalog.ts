@@ -21,6 +21,39 @@ export interface StoryCatalogItem extends AudioTrack {
     isTodaysPick?: boolean;
 }
 
+type Locale = 'en' | 'zh' | 'ja' | 'es';
+
+interface StoryCategoryDefinition {
+    id: string;
+    labels: Record<Locale, string>;
+}
+
+/**
+ * Story categories in display order.
+ * The client renders category tabs and sections in this exact order.
+ * The 'all' entry is a virtual tab and does not correspond to a real category value on stories.
+ */
+const STORY_CATEGORIES = [
+    { id: 'all', labels: { en: 'All', zh: '全部', ja: 'すべて', es: 'Todo' } },
+    { id: 'city-life', labels: { en: 'City Life', zh: '都市生活', ja: '都市生活', es: 'Vida urbana' } },
+    { id: 'animal-friends', labels: { en: 'Animal Friends', zh: '动物伙伴', ja: '動物の友だち', es: 'Amigos animales' } },
+    { id: 'fairy-tale', labels: { en: 'Fairy Tales', zh: '童话故事', ja: 'おとぎ話', es: 'Cuentos' } },
+] as const satisfies readonly StoryCategoryDefinition[];
+
+export type StoryCategoryId = (typeof STORY_CATEGORIES)[number]['id'];
+/** Excludes the virtual 'all' tab — only real categories that stories can belong to. */
+export type RealStoryCategoryId = Exclude<StoryCategoryId, 'all'>;
+
+export interface StoryCategory {
+    id: StoryCategoryId;
+    label: string;
+}
+
+export interface StoryCatalogResponse {
+    categories: StoryCategory[];
+    stories: StoryCatalogItem[];
+}
+
 interface AudioTrackDefinition {
     id: string;
     title: string;
@@ -198,7 +231,11 @@ const AMBIENT_TRACK_DEFINITIONS: AudioTrackDefinition[] = [
     },
 ];
 
-const STORY_DEFINITIONS: AudioTrackDefinition[] = [
+interface StoryTrackDefinition extends Omit<AudioTrackDefinition, 'category'> {
+    category: RealStoryCategoryId;
+}
+
+const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-1',
         title: '周末的跳蚤市场',
@@ -324,7 +361,7 @@ function resolveAssetUrl(assetPath: string): string {
     return `${config.assetBaseUrl.replace(/\/+$/, '')}/${assetPath}`;
 }
 
-function resolveImageUrl(track: AudioTrackDefinition): string {
+function resolveImageUrl(track: AudioTrackDefinition | StoryTrackDefinition): string {
     if (track.blobCoverPath) {
         return resolveAssetUrl(track.blobCoverPath);
     }
@@ -337,7 +374,7 @@ function resolveImageUrl(track: AudioTrackDefinition): string {
     return track.imageSourceUrl;
 }
 
-function mapTrackDefinition(track: AudioTrackDefinition): AudioTrack {
+function mapTrackDefinition(track: AudioTrackDefinition | StoryTrackDefinition): AudioTrack {
     return {
         id: track.id,
         title: track.title,
@@ -355,9 +392,13 @@ export function getAudioCatalog(): AudioTrack[] {
     return AMBIENT_TRACK_DEFINITIONS.map(mapTrackDefinition);
 }
 
-export function getStoryAudioCatalog(): StoryCatalogItem[] {
-    return STORY_DEFINITIONS
-        .filter((t): t is AudioTrackDefinition & { subtitle: string; storyPreview: string; paragraphCount: number } =>
+export function getStoryCategories(locale: Locale = 'zh'): StoryCategory[] {
+    return STORY_CATEGORIES.map((c) => ({ id: c.id, label: c.labels[locale] }));
+}
+
+export function getStoryAudioCatalog(locale: Locale = 'zh'): StoryCatalogResponse {
+    const stories = STORY_DEFINITIONS
+        .filter((t): t is StoryTrackDefinition & { subtitle: string; storyPreview: string; paragraphCount: number } =>
             !!(t.subtitle && t.storyPreview && t.paragraphCount !== undefined)
         )
         .map((track): StoryCatalogItem => ({
@@ -369,4 +410,9 @@ export function getStoryAudioCatalog(): StoryCatalogItem[] {
             isTrending: track.isTrending,
             isTodaysPick: track.isTodaysPick,
         }));
+
+    return {
+        categories: getStoryCategories(locale),
+        stories,
+    };
 }

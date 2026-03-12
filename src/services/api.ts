@@ -1,4 +1,5 @@
 import type { Track } from '../types';
+import type { StoryCategory } from '../data/stories';
 
 // dev → local server; prod build (iOS + GitHub Pages) → online server
 const SERVER_URL = import.meta.env.DEV
@@ -23,8 +24,13 @@ export interface StoryCatalogItem {
   isTodaysPick?: boolean;
 }
 
-export async function fetchStoryCatalog(): Promise<StoryCatalogItem[]> {
-  const res = await fetch(`${SERVER_URL}/api/stories`, {
+export interface StoryCatalogResponse {
+  categories: StoryCategory[];
+  stories: StoryCatalogItem[];
+}
+
+export async function fetchStoryCatalog(locale: string = 'zh'): Promise<StoryCatalogResponse> {
+  const res = await fetch(`${SERVER_URL}/api/stories?locale=${locale}`, {
     signal: AbortSignal.timeout(3000),
   });
   if (!res.ok) throw new Error(`Server error: ${res.status}`);

@@ -21,13 +21,6 @@ export interface StoryCategory {
   label: string;
 }
 
-export const STORY_CATEGORIES: StoryCategory[] = [
-  { id: 'all', label: '全部' },
-  { id: 'fairy-tale', label: '童话故事' },
-  { id: 'animal-friends', label: '动物伙伴' },
-  { id: 'city-life', label: '都市生活' },
-];
-
 export function getStoryTheme(story: Story): SleepcastTheme {
   return {
     id: story.id,

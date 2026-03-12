@@ -12,6 +12,23 @@
   --color-surface-border: rgba(155, 126, 216, 0.1);
 }
 
+/* Disable browser-like text/image selection in Capacitor WebView */
+*,
+*::before,
+*::after {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Re-enable selection for actual text inputs */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 :root {
   --glow-2: rgba(155, 126, 216, 0.2);
   --glow-3: rgba(155, 126, 216, 0.3);

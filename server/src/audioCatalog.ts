@@ -14,7 +14,6 @@ export interface AudioTrack {
 
 export interface StoryCatalogItem extends AudioTrack {
     subtitle: string;
-    themeId: string;
     storyPreview: string;
     paragraphCount: number;
     backgroundMusic: string | undefined;
@@ -35,7 +34,6 @@ interface AudioTrackDefinition {
     description: string;
     // Story-specific optional fields
     subtitle?: string;
-    themeId?: string;
     storyPreview?: string;
     paragraphCount?: number;
     backgroundMusic?: string;
@@ -212,7 +210,6 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         blobAudioPath: 'audios/stories/01_周末的跳蚤市场.wav',
         description: '在热闹又温柔的周末市集里，跟着旧物与陌生人的小故事慢慢入睡。',
         subtitle: '旧物摊位、温柔对话和阳光斜照的周末午后。',
-        themeId: 'cabin-rain',
         storyPreview: '在热闹而放松的周末跳蚤市场里，人们交换旧物，也交换彼此生活里最柔软的小故事。',
         paragraphCount: 1,
         isTrending: true,
@@ -229,7 +226,6 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         backgroundMusic: 'audios/music/Moavii - We Are (freetouse.com).mp3',
         description: '在城市屋顶抬头看星星，听一位天文爱好者分享夜空与安静。',
         subtitle: '在城市屋顶仰望星空，听夜风和望远镜一起变安静。',
-        themeId: 'stargazing',
         storyPreview: '一位天文爱好者在城市天台架起望远镜，把远处的星光讲成一段适合入睡的夜话。',
         paragraphCount: 1,
         isTodaysPick: true,
@@ -246,7 +242,6 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         backgroundMusic: 'audios/music/the_mountain-calm-cinematic-piano-149913.mp3',
         description: '一只流浪猫慢慢学会信任，也在灯光温暖的小屋里找到归属。',
         subtitle: '一只小猫慢慢靠近灯光，也慢慢学会相信温暖。',
-        themeId: 'cabin-rain',
         storyPreview: '一只流浪猫在某个安静的夜晚推开了新生活的门，也找到了属于自己的柔软角落。',
         paragraphCount: 1,
         isTrending: true,
@@ -262,7 +257,6 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         blobAudioPath: 'audios/stories/02_会唱歌的老橡树.wav',
         description: '森林深处的老橡树会在夜里轻声歌唱，把每个愿望都变成摇篮曲。',
         subtitle: '森林里的老橡树一到夜里，就会把风变成摇篮曲。',
-        themeId: 'enchanted-forest',
         storyPreview: '在一片会发光的森林里，一棵古老的橡树唱着缓慢而温柔的歌，让所有路过的心事都安静下来。',
         paragraphCount: 1,
     },
@@ -277,7 +271,6 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         blobAudioPath: 'audios/stories/04_树洞里的邮局.wav',
         description: '一间藏在树洞里的邮局，替森林居民传递最轻柔的思念与秘密。',
         subtitle: '每一封信都藏着森林居民最柔软的秘密和思念。',
-        themeId: 'enchanted-forest',
         storyPreview: '一间开在树洞深处的小小邮局，替森林里的居民传递想念，也替夜晚保存一份安稳。',
         paragraphCount: 1,
     },
@@ -292,7 +285,6 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         blobAudioPath: 'audios/stories/05_唱片店的下午.wav',
         description: '午后的唱片店里，黑胶缓缓转动，旧时光像音乐一样安静流淌。',
         subtitle: '黑胶缓缓旋转，旧旋律把城市午后染得更柔和。',
-        themeId: 'zen-garden',
         storyPreview: '午后的唱片店有轻微的唱针噪音、木头香气和慢下来的时间，像一首适合睡前回味的歌。',
         paragraphCount: 1,
     },
@@ -335,13 +327,12 @@ export function getAudioCatalog(): AudioTrack[] {
 
 export function getStoryAudioCatalog(): StoryCatalogItem[] {
     return STORY_DEFINITIONS
-        .filter((t): t is AudioTrackDefinition & { subtitle: string; themeId: string; storyPreview: string; paragraphCount: number } =>
-            !!(t.subtitle && t.themeId && t.storyPreview && t.paragraphCount !== undefined)
+        .filter((t): t is AudioTrackDefinition & { subtitle: string; storyPreview: string; paragraphCount: number } =>
+            !!(t.subtitle && t.storyPreview && t.paragraphCount !== undefined)
         )
         .map((track): StoryCatalogItem => ({
             ...mapTrackDefinition(track),
             subtitle: track.subtitle,
-            themeId: track.themeId,
             storyPreview: track.storyPreview,
             paragraphCount: track.paragraphCount,
             backgroundMusic: track.backgroundMusic ? resolveAssetUrl(track.backgroundMusic) : undefined,

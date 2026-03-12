@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import type { GeneratedSleepcast, SleepcastStatus, SleepcastTheme } from '../types';
 import type { Story } from '../data/stories';
 import { useTranslation } from '../i18n';
-import { getStoryCast, getStoryTheme } from '../data/stories';
 import { getThemeName } from './sleepcast/utils';
 import { formatTime } from '../utils/time';
 import { PlayerScreen } from './PlayerScreen';

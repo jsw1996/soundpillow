@@ -16,7 +16,6 @@ export interface StoryCatalogItem {
   audioUrl: string;
   description: string;
   category: string;
-  themeId: string;
   storyPreview: string;
   paragraphCount: number;
   backgroundMusic: string | undefined;

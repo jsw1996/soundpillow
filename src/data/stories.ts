@@ -1,5 +1,4 @@
 import type { GeneratedSleepcast, SleepcastTheme } from '../types';
-import { SLEEPCAST_THEMES } from './sleepcastThemes';
 
 export interface Story {
   id: string;
@@ -8,7 +7,6 @@ export interface Story {
   duration: string;
   imageUrl: string;
   category: string;
-  themeId: SleepcastTheme['id'];
   backgroundMusic: string | undefined;
   audioUrl?: string;       // resolved URL from server
   blobAudioPath?: string;  // local fallback blob path
@@ -31,11 +29,14 @@ export const STORY_CATEGORIES: StoryCategory[] = [
 ];
 
 export function getStoryTheme(story: Story): SleepcastTheme {
-  const baseTheme = SLEEPCAST_THEMES.find((theme) => theme.id === story.themeId) ?? SLEEPCAST_THEMES[0];
   return {
-    ...baseTheme,
+    id: story.id,
+    name: story.title,
+    icon: 'BookOpen',
+    prompt: '',
     imageUrl: story.imageUrl,
     backgroundMusic: story.backgroundMusic,
+    bgTrackIds: [],
   };
 }
 
@@ -43,7 +44,6 @@ export function getStoryCast(story: Story): GeneratedSleepcast {
   const resolvedAudioUrl = story.audioUrl ?? story.blobAudioPath ?? '';
   return {
     id: story.id,
-    themeId: story.themeId,
     title: story.title,
     story: story.storyPreview,
     paragraphs: [story.storyPreview],

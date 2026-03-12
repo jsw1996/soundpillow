@@ -72,7 +72,6 @@ export interface SleepcastTheme {
 
 export interface GeneratedSleepcast {
   id: string;
-  themeId: string;
   title: string;
   story: string;        // the full generated story text
   paragraphs: string[]; // story split into paragraphs for progressive display

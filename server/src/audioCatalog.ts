@@ -288,6 +288,21 @@ const STORY_DEFINITIONS: AudioTrackDefinition[] = [
         storyPreview: '午后的唱片店有轻微的唱针噪音、木头香气和慢下来的时间，像一首适合睡前回味的歌。',
         paragraphCount: 1,
     },
+    {
+        id: 'story-7',
+        title: '守灯塔的鲸鱼',
+        artist: 'SoundPillow Stories',
+        duration: '14 min',
+        category: 'animal-friends',
+        imageSourceUrl: '',
+        imageUrl: 'audios/covers/守灯塔的鲸鱼.jpg',
+        blobAudioPath: 'audios/stories/07_守灯塔的鲸鱼.wav',
+        backgroundMusic: 'audios/music/OnceUponATime_normalized.mp3',
+        description: '北方海域的灯塔旁，一头老鲸鱼每晚巡游守护，与守塔老人共同陪伴漫长的夜。',
+        subtitle: '礁石灯塔、深海低鸣和一段无需言语的默契陪伴。',
+        storyPreview: '在北方孤独的灯塔旁，一头布满伤疤的老鲸鱼每晚准时出现，与守塔人一起度过无数个安静的夜晚。',
+        paragraphCount: 1,
+    },
 ];
 
 function resolveAssetUrl(assetPath: string): string {

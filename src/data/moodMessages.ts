@@ -20,7 +20,7 @@ export const MOODS: MoodConfig[] = [
     gradientFrom: '#4F46E5',
     gradientTo: '#7C3AED',
     bgClass: 'from-[#4F46E5] to-[#7C3AED]',
-    imageUrl: 'https://images.unsplash.com/photo-1754979732676-9006a8b44330?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    imageUrl: 'https://images.unsplash.com/photo-1754979732676-9006a8b44330?q=80&w=987&fm=jpg&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     messages: {
       en: [
         "Rest is not giving up — it's gearing up. Let the night carry you. 🌙",
@@ -54,7 +54,7 @@ export const MOODS: MoodConfig[] = [
     gradientFrom: '#6366F1',
     gradientTo: '#A78BFA',
     bgClass: 'from-[#6366F1] to-[#A78BFA]',
-    imageUrl: 'https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=800&q=80&auto=format&fit=crop&sat=-30',
+    imageUrl: 'https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=800&q=80&fm=jpg&fit=crop&sat=-30',
     messages: {
       en: [
         "Not every day needs to sparkle. Meh days are valid days too. 🌿",
@@ -88,7 +88,7 @@ export const MOODS: MoodConfig[] = [
     gradientFrom: '#10B981',
     gradientTo: '#3B82F6',
     bgClass: 'from-[#10B981] to-[#3B82F6]',
-    imageUrl: 'https://images.unsplash.com/photo-1768808520785-a4ce8c12c335?w=800&q=80&auto=format&fit=crop&sat=-30',
+    imageUrl: 'https://images.unsplash.com/photo-1768808520785-a4ce8c12c335?w=800&q=80&fm=jpg&fit=crop&sat=-30',
     messages: {
       en: [
         "Okay is more than enough. Life is mostly okay, and that's pretty wonderful. 🌸",
@@ -122,7 +122,7 @@ export const MOODS: MoodConfig[] = [
     gradientFrom: '#F59E0B',
     gradientTo: '#EF4444',
     bgClass: 'from-[#F59E0B] to-[#EF4444]',
-    imageUrl: 'https://images.unsplash.com/photo-1709588058162-a0310f3061b4?w=800&q=80&auto=format&fit=crop&sat=-30',
+    imageUrl: 'https://images.unsplash.com/photo-1709588058162-a0310f3061b4?w=800&q=80&fm=jpg&fit=crop&sat=-30',
     messages: {
       en: [
         "Good days deserve to be felt fully. You're absolutely glowing today! ☀️",
@@ -156,7 +156,7 @@ export const MOODS: MoodConfig[] = [
     gradientFrom: '#8B5CF6',
     gradientTo: '#EC4899',
     bgClass: 'from-[#8B5CF6] to-[#EC4899]',
-    imageUrl: 'https://images.unsplash.com/photo-1625215452192-9daeae8e8b8e?w=800&q=80&auto=format&fit=crop&sat=-30',
+    imageUrl: 'https://images.unsplash.com/photo-1625215452192-9daeae8e8b8e?w=800&q=80&fm=jpg&fit=crop&sat=-30',
     messages: {
       en: [
         "You're absolutely vibrating today. The whole world can feel it! ✨",

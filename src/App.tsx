@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'motion/react';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { LanguageProvider, useTranslation } from './i18n';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
@@ -45,6 +46,11 @@ function AppContent() {
   useEffect(() => {
     checkIn();
   }, [checkIn]);
+
+  // Hide the native Capacitor splash screen once the web app is loaded
+  useEffect(() => {
+    SplashScreen.hide().catch(() => {});
+  }, []);
 
   const coordinator = useAudioCoordinator(
     { player, mixer, sleepcast, timer },

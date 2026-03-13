@@ -13,9 +13,10 @@ interface HomeScreenProps {
   onMixStop: () => void;
   playingMixId: string | null;
   isMixPlaying: boolean;
+  onOpenMixer: () => void;
 }
 
-export function HomeScreen({ onTrackSelect, onMixSelect, onMixStop, playingMixId, isMixPlaying }: HomeScreenProps) {
+export function HomeScreen({ onTrackSelect, onMixSelect, onMixStop, playingMixId, isMixPlaying, onOpenMixer }: HomeScreenProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { isFavorite, tracks } = useAppContext();
   const pageScrollRef = useRef<HTMLDivElement>(null);
@@ -38,6 +39,7 @@ export function HomeScreen({ onTrackSelect, onMixSelect, onMixStop, playingMixId
         onMixStop={onMixStop}
         playingMixId={playingMixId}
         isMixPlaying={isMixPlaying}
+        onOpenMixer={onOpenMixer}
       />
       <CategoryPills
         activeCategory={activeCategory}

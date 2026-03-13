@@ -9,6 +9,7 @@ const zh: Record<string, string> = {
   // Navigation
   navHome: '首页',
   navMixer: '混音器',
+  navCanvas: '画布',
   navFavorites: '收藏',
   navProfile: '个人',
 

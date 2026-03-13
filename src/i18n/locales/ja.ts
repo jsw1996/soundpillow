@@ -9,6 +9,7 @@ const ja: Record<string, string> = {
   // Navigation
   navHome: 'ホーム',
   navMixer: 'ミキサー',
+  navCanvas: 'キャンバス',
   navFavorites: 'お気に入り',
   navProfile: 'プロフィール',
 

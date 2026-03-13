@@ -14,6 +14,7 @@ import { HomeScreen } from './components/HomeScreen';
 import { PlayerScreen } from './components/PlayerScreen';
 import { MixerScreen } from './components/MixerScreen';
 import { ProfileScreen } from './components/ProfileScreen';
+import { MoodCanvasScreen } from './components/MoodCanvasScreen';
 import { SleepcastScreen } from './components/SleepcastScreen';
 import { SleepcastPlayer } from './components/SleepcastPlayer';
 import { MiniPlayer } from './components/MiniPlayer';
@@ -106,6 +107,7 @@ function AppContent() {
             onMixStop={coordinator.handleMixStop}
             playingMixId={coordinator.activeMix?.id ?? null}
             isMixPlaying={mixer.isMixPlaying}
+            onOpenMixer={() => setCurrentScreen('mixer')}
           />
         );
       case 'player':
@@ -142,6 +144,8 @@ function AppContent() {
         );
       case 'profile':
         return <ProfileScreen key="profile" />;
+      case 'canvas':
+        return <MoodCanvasScreen key="canvas" />;
       case 'sleepcast':
         return (
           <SleepcastScreen

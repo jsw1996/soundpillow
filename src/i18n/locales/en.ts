@@ -9,6 +9,7 @@ const en = {
   // Navigation
   navHome: 'Home',
   navMixer: 'Mixer',
+  navCanvas: 'Canvas',
   navFavorites: 'Favorites',
   navProfile: 'Profile',
 

@@ -1,4 +1,4 @@
-import { Home as HomeIcon, Sliders, User, BookOpen } from 'lucide-react';
+import { Home as HomeIcon, User, BookOpen, StickyNote } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import { Screen, Track } from '../types';
@@ -8,7 +8,7 @@ import type { TranslationKeys } from '../i18n/locales/en';
 const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationKeys }[] = [
   { screen: 'home', icon: HomeIcon, labelKey: 'navHome' },
   { screen: 'sleepcast', icon: BookOpen, labelKey: 'navSleepcast' },
-  { screen: 'mixer', icon: Sliders, labelKey: 'navMixer' },
+  { screen: 'canvas', icon: StickyNote, labelKey: 'navCanvas' },
   { screen: 'profile', icon: User, labelKey: 'navProfile' },
 ];
 

@@ -9,6 +9,7 @@ const es: Record<string, string> = {
   // Navigation
   navHome: 'Inicio',
   navMixer: 'Mezclador',
+  navCanvas: 'Canvas',
   navFavorites: 'Favoritos',
   navProfile: 'Perfil',
 

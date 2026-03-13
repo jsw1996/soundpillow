@@ -58,7 +58,7 @@ export interface StreakStats {
   lastCheckInDate: string | null; // "2026-02-27"
 }
 
-export type Screen = 'home' | 'player' | 'mixer' | 'profile' | 'sleepcast';
+export type Screen = 'home' | 'player' | 'mixer' | 'profile' | 'sleepcast' | 'canvas';
 
 export interface SleepcastTheme {
   id: string;

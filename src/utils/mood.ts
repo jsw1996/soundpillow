@@ -2,6 +2,7 @@ import type { MoodEntry } from '../types';
 
 const MOOD_KEY = 'sleepyhub-mood-card';
 const MOOD_HISTORY_KEY = 'sleepyhub-mood-history';
+export const MOOD_HISTORY_UPDATED_EVENT = 'sleepyhub:mood-history-updated';
 
 function isMoodEntry(value: unknown): value is MoodEntry {
   if (!value || typeof value !== 'object') return false;
@@ -61,5 +62,8 @@ export function saveMoodEntry(entry: MoodEntry): MoodEntry {
   const history = dedupeByDate([entry, ...loadMoodHistory()]);
   localStorage.setItem(MOOD_KEY, JSON.stringify(entry));
   localStorage.setItem(MOOD_HISTORY_KEY, JSON.stringify(history));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(MOOD_HISTORY_UPDATED_EVENT, { detail: entry }));
+  }
   return entry;
 }

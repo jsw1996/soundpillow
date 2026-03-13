@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { Layers, Share2 } from 'lucide-react';
+import { Share2, SlidersHorizontal } from 'lucide-react';
 import { DEFAULT_MIXES } from '../../constants';
 import { Track, MixPreset } from '../../types';
 import { useAppContext } from '../../context/AppContext';
@@ -12,11 +12,12 @@ interface MixCarouselProps {
   onMixStop: () => void;
   playingMixId: string | null;
   isMixPlaying: boolean;
+  onOpenMixer: () => void;
 }
 
-export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying }: MixCarouselProps) {
+export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying, onOpenMixer }: MixCarouselProps) {
   const [activeMixIdx, setActiveMixIdx] = useState(0);
-  const { setCurrentScreen, tracks } = useAppContext();
+  const { tracks } = useAppContext();
   const { t } = useTranslation();
   const tt = useTrackTranslation();
   const getMixName = useMixNameTranslation();
@@ -100,14 +101,12 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
                       onClick={(e) => {
                         e.stopPropagation();
                         onMixSelect(mix);
-                        setCurrentScreen('mixer');
+                        onOpenMixer();
                       }}
-                      className="px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm flex items-center gap-1 active:scale-95 transition-transform"
+                      className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center active:scale-95 transition-transform"
+                      aria-label={t('navMixer')}
                     >
-                      <Layers size={12} className="text-primary" />
-                      <span className="text-[10px] font-bold text-white/80">
-                        {t('nSounds', { n: mix.tracks.length })}
-                      </span>
+                      <SlidersHorizontal size={14} className="text-primary" />
                     </button>
                   </div>
                 </div>

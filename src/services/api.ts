@@ -8,15 +8,13 @@ const SERVER_URL = import.meta.env.DEV
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const res = await fetch(input, {
+    return await fetch(input, {
       ...init,
       signal: controller.signal,
     });
-
-    return res;
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new Error(`Request timeout after ${timeoutMs}ms`);
@@ -24,7 +22,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
 
     throw error;
   } finally {
-    window.clearTimeout(timeoutId);
+    globalThis.clearTimeout(timeoutId);
   }
 }
 

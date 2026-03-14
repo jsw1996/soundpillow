@@ -172,7 +172,7 @@ export async function generateShareImage(
       // ── Branding footer ───────────────────────────────────────────────
       ctx.font = `500 26px ${fontStack}`;
       ctx.fillStyle = '#bbb';
-      ctx.fillText('SoundPillow ✦ mood card', cx, cardY + cardH - 44);
+      ctx.fillText('半刻 ✦ mood card', cx, cardY + cardH - 44);
 
       canvas.toBlob((blob) => resolve(blob!), 'image/png');
     };

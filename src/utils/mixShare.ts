@@ -114,7 +114,7 @@ export async function shareMix(
   const url = buildShareUrl(name, tracks);
   if (!url) return 'failed';
 
-  const text = shareText || `Listen to "${name}" on SoundPillow`;
+  const text = shareText || `Listen to "${name}" on 半刻`;
 
   // 1. Capacitor native share (iOS/Android) — opens the native share sheet
   if (Capacitor.isNativePlatform()) {

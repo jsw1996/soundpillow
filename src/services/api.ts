@@ -6,6 +6,28 @@ const SERVER_URL = import.meta.env.DEV
   ? 'http://localhost:3001'
   : (import.meta.env.VITE_SERVER_URL || 'https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net');
 
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+
+    return res;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeoutMs}ms`);
+    }
+
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 export interface StoryCatalogItem {
   id: string;
   title: string;
@@ -30,17 +52,17 @@ export interface StoryCatalogResponse {
 }
 
 export async function fetchStoryCatalog(locale: string = 'zh'): Promise<StoryCatalogResponse> {
-  const res = await fetch(`${SERVER_URL}/api/stories?locale=${locale}`, {
-    signal: AbortSignal.timeout(3000),
-  });
+  const res = await fetchWithTimeout(
+    `${SERVER_URL}/api/stories?locale=${encodeURIComponent(locale)}`,
+    {},
+    8000,
+  );
   if (!res.ok) throw new Error(`Server error: ${res.status}`);
   return res.json();
 }
 
 export async function fetchAudios(): Promise<Track[]> {
-  const res = await fetch(`${SERVER_URL}/api/audios`, {
-    signal: AbortSignal.timeout(2000),
-  });
+  const res = await fetchWithTimeout(`${SERVER_URL}/api/audios`, {}, 5000);
   if (!res.ok) {
     throw new Error(`Server error: ${res.status}`);
   }
@@ -53,12 +75,15 @@ export async function fetchAudios(): Promise<Track[]> {
  */
 export async function fetchMoodMessage(mood: string, locale: string = 'en'): Promise<string | null> {
   try {
-    const res = await fetch(`${SERVER_URL}/api/mood/message`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mood, locale }),
-      signal: AbortSignal.timeout(10000),
-    });
+    const res = await fetchWithTimeout(
+      `${SERVER_URL}/api/mood/message`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mood, locale }),
+      },
+      12000,
+    );
     if (!res.ok) return null;
     const data = await res.json() as { message?: string };
     return data.message ?? null;

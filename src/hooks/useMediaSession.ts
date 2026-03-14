@@ -35,7 +35,7 @@ export function useMediaSession({
       ] : [];
 
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: title ?? 'SoundPillow',
+        title: title ?? '半刻',
         artist: artist ?? '',
         artwork: artworkArr,
       });

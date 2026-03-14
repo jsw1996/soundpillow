@@ -1,7 +1,7 @@
 const es: Record<string, string> = {
   // General
-  appName: 'SoundPillow',
-  appVersion: 'SoundPillow v1.0',
+  appName: '半刻',
+  appVersion: '半刻 v1.0',
   cancel: 'Cancelar',
   save: 'Guardar',
   reset: 'Restablecer',
@@ -138,7 +138,7 @@ const es: Record<string, string> = {
   sharedMixLoaded: '¡Mezcla compartida cargada!',
   sharedMixInvalid: 'Enlace de mezcla inválido',
   shareCurrentMix: 'Compartir Mezcla Actual',
-  listenTo: 'Escucha "{{name}}" en SoundPillow',
+  listenTo: 'Escucha "{{name}}" en 半刻',
 
   // Default mix names
   mix_default_1: 'Noche de Fogata de Verano',

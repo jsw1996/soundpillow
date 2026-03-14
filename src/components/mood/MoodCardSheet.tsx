@@ -78,7 +78,7 @@ export function MoodCardSheet({ entry, config, sharing, onShare, onDone }: MoodC
           </motion.p>
 
           <p className="text-[11px] text-gray-300 font-medium mt-0.5 tracking-wide">
-            SoundPillow ✦ mood card
+            半刻 ✦ mood card
           </p>
         </div>
       </div>

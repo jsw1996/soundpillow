@@ -1,7 +1,7 @@
 const zh: Record<string, string> = {
   // General
-  appName: 'SoundPillow',
-  appVersion: 'SoundPillow v1.0',
+  appName: '半刻',
+  appVersion: '半刻 v1.0',
   cancel: '取消',
   save: '保存',
   reset: '重置',
@@ -138,7 +138,7 @@ const zh: Record<string, string> = {
   sharedMixLoaded: '已加载分享的混音！',
   sharedMixInvalid: '无效的混音链接',
   shareCurrentMix: '分享当前混音',
-  listenTo: '在 SoundPillow 上收听「{{name}}」',
+  listenTo: '在半刻上收听「{{name}}」',
 
   // Default mix names
   mix_default_1: '夏夜篝火',

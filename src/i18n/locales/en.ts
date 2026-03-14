@@ -1,7 +1,7 @@
 const en = {
   // General
-  appName: 'SoundPillow',
-  appVersion: 'SoundPillow v1.0',
+  appName: '半刻',
+  appVersion: '半刻 v1.0',
   cancel: 'Cancel',
   save: 'Save',
   reset: 'Reset',
@@ -138,7 +138,7 @@ const en = {
   sharedMixLoaded: 'Shared mix loaded!',
   sharedMixInvalid: 'Invalid mix link',
   shareCurrentMix: 'Share Current Mix',
-  listenTo: 'Listen to "{{name}}" on SoundPillow',
+  listenTo: 'Listen to "{{name}}" on 半刻',
 
   // Default mix names
   mix_default_1: 'Summer Bonfire Night',

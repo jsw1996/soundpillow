@@ -1,7 +1,7 @@
 const ja: Record<string, string> = {
   // General
-  appName: 'SoundPillow',
-  appVersion: 'SoundPillow v1.0',
+  appName: '半刻',
+  appVersion: '半刻 v1.0',
   cancel: 'キャンセル',
   save: '保存',
   reset: 'リセット',
@@ -138,7 +138,7 @@ const ja: Record<string, string> = {
   sharedMixLoaded: '共有ミックスを読み込みました！',
   sharedMixInvalid: '無効なミックスリンク',
   shareCurrentMix: '現在のミックスを共有',
-  listenTo: 'SoundPillowで「{{name}}」を聴く',
+  listenTo: '半刻で「{{name}}」を聴く',
 
   // Default mix names
   mix_default_1: '夏の焚き火の夜',

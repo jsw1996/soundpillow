@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { Grip, Image as ImageIcon, RotateCw } from 'lucide-react';
 import { loadMoodHistory, MOOD_HISTORY_UPDATED_EVENT } from '../../utils/mood';
@@ -23,7 +23,10 @@ interface MoodCanvasItem {
   color?: string;
   imageUrl?: string;
   moodEmoji?: string;
+  date?: string;
 }
+
+type MoodCanvasFilter = 'all' | 'week' | 'month' | 'year';
 
 type ActionState =
   | {
@@ -105,6 +108,44 @@ const INITIAL_ITEMS: MoodCanvasItem[] = [
 const MOOD_CARD_COLORS = ['#FFFBE0', '#FFFDF2', '#FFF9E6', '#FFFFFF'];
 const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((m) => [m.level, m.emoji])) as Record<MoodLevel, string>;
 const MOOD_POLAROID_PREFIX = 'mood-polaroid-';
+const MOOD_CANVAS_FILTERS: Array<{ value: MoodCanvasFilter; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'week', label: 'This week' },
+  { value: 'month', label: 'This month' },
+  { value: 'year', label: 'This year' },
+];
+
+function parseLocalDateString(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+function isDateInFilter(date: string | undefined, filter: MoodCanvasFilter, now: Date): boolean {
+  if (!date || filter === 'all') return true;
+
+  const target = parseLocalDateString(date);
+  if (!target) return false;
+
+  if (filter === 'year') {
+    return target.getFullYear() === now.getFullYear();
+  }
+
+  if (filter === 'month') {
+    return target.getFullYear() === now.getFullYear() && target.getMonth() === now.getMonth();
+  }
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setHours(0, 0, 0, 0);
+  startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+  return target >= startOfWeek && target < endOfWeek;
+}
 
 function buildItemsFromMoodHistory(history: MoodEntry[]): MoodCanvasItem[] {
   if (history.length === 0) return INITIAL_ITEMS;
@@ -122,6 +163,7 @@ function buildItemsFromMoodHistory(history: MoodEntry[]): MoodCanvasItem[] {
     return {
       id: `${MOOD_POLAROID_PREFIX}${entry.date}`,
       type: 'photo',
+      date: entry.date,
       x,
       y,
       r: rotation,
@@ -159,6 +201,7 @@ function mergeMoodItems(prev: MoodCanvasItem[], generated: MoodCanvasItem[]): Mo
       title: item.title,
       text: item.text,
       color: item.color,
+      date: item.date,
     };
   });
 
@@ -244,6 +287,7 @@ export function MoodCanvas() {
   const actionRef = useRef<ActionState | null>(null);
   const boardPointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const [items, setItems] = useState<MoodCanvasItem[]>(initCanvasItems);
+  const [filter, setFilter] = useState<MoodCanvasFilter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState('');
@@ -411,6 +455,11 @@ export function MoodCanvas() {
       window.removeEventListener('storage', onMoodUpdate as EventListener);
     };
   }, [syncMoodCards]);
+
+  const visibleItems = useMemo(() => {
+    const now = new Date();
+    return items.filter((item) => item.type !== 'photo' || isDateInFilter(item.date, filter, now));
+  }, [filter, items]);
 
   const pointerToBoard = useCallback((event: PointerEvent | ReactPointerEvent) => {
     const rect = boardRef.current?.getBoundingClientRect();
@@ -611,7 +660,7 @@ export function MoodCanvas() {
             transform: `translate3d(${viewportOffset.x}px, ${viewportOffset.y}px, 0) scale(${viewportScale})`,
           }}
         >
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const isSelected = item.id === selectedId;
             const isEditing = item.id === editingItemId;
             return (
@@ -821,6 +870,35 @@ export function MoodCanvas() {
               </div>
             );
           })}
+        </div>
+
+        <div
+          className="absolute left-3 right-3 z-40 flex items-start gap-3"
+          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
+        >
+          <div className="flex flex-wrap gap-2">
+            {MOOD_CANVAS_FILTERS.map((option) => {
+              const isActive = option.value === filter;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onPointerDown={(event) => {
+                    event.stopPropagation();
+                  }}
+                  onClick={() => setFilter(option.value)}
+                  className="px-2.5 py-1 text-[10px] uppercase tracking-widest border transition-colors"
+                  style={{
+                    borderColor: isActive ? 'rgba(74,158,142,0.32)' : 'rgba(0,0,0,0.25)',
+                    backgroundColor: isActive ? 'rgba(230,244,240,0.92)' : 'rgba(255,255,255,0.68)',
+                    color: isActive ? PALETTE.accent : 'rgba(45,45,45,0.78)',
+                  }}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div

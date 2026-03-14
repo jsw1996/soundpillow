@@ -26,7 +26,7 @@ function start() {
   validateConfig();
 
   app.listen(config.port, () => {
-    console.log(`🌙 SoundPillow server running on port ${config.port}`);
+    console.log(`🌙 半刻 server running on port ${config.port}`);
   });
 }
 

@@ -71,7 +71,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
       
       <div className="relative z-10 flex flex-col items-center">
         <h1 className="text-5xl font-extrabold tracking-tight text-white/90 drop-shadow-xl" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
-          SoundPillow
+          半刻
         </h1>
       </div>
     </motion.div>

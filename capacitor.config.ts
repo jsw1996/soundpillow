@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.soundpillow.app',
-  appName: 'SoundPillow',
+  appName: '半刻',
   webDir: 'dist',
   ios: {
     contentInset: 'automatic',

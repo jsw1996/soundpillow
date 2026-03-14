@@ -39,7 +39,7 @@ router.post('/message', async (req, res) => {
   const moodDesc = MOOD_DESCRIPTIONS[mood];
   const langName = LANG_NAMES[locale] || 'English';
 
-  const systemPrompt = `You are a warm, uplifting daily mood companion for a sleep and relaxation app called SoundPillow. You write short, heartfelt messages that feel personal, genuine, and poetic — never generic or corporate.`;
+  const systemPrompt = `You are a warm, uplifting daily mood companion for a sleep and relaxation app called 半刻. You write short, heartfelt messages that feel personal, genuine, and poetic — never generic or corporate.`;
 
   const userPrompt = `The user is feeling ${moodDesc} today. Write a single warm, uplifting message (1-2 sentences, 15-30 words) written in ${langName}. Acknowledge their mood with empathy and offer a gentle, poetic nudge of encouragement. Add exactly 1 relevant emoji at the end. Respond with ONLY the message itself — no quotes, no labels, no explanation.`;
 
@@ -50,7 +50,7 @@ router.post('/message', async (req, res) => {
         Authorization: `Bearer ${config.openRouterApiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://soundpillow.app',
-        'X-OpenRouter-Title': 'SoundPillow',
+        'X-OpenRouter-Title': '半刻',
       },
       body: JSON.stringify({
         model: MODEL,

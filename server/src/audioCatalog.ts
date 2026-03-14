@@ -239,7 +239,7 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-1',
         title: '周末的跳蚤市场',
-        artist: 'SoundPillow Stories',
+        artist: '半刻 Stories',
         duration: '6 min',
         category: 'city-life',
         imageSourceUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80',
@@ -254,7 +254,7 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-2',
         title: '天台上的天文爱好者',
-        artist: 'SoundPillow Stories',
+        artist: '半刻 Stories',
         duration: '9 min',
         category: 'city-life',
         imageSourceUrl: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=800&q=80',
@@ -270,7 +270,7 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-3',
         title: '流浪猫的新家',
-        artist: 'SoundPillow Stories',
+        artist: '半刻 Stories',
         duration: '5 min',
         category: 'animal-friends',
         imageSourceUrl: 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=800&q=80',
@@ -286,7 +286,7 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-4',
         title: '会唱歌的老橡树',
-        artist: 'SoundPillow Stories',
+        artist: '半刻 Stories',
         duration: '6 min',
         category: 'fairy-tale',
         imageSourceUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80',
@@ -300,7 +300,7 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-5',
         title: '树洞里的邮局',
-        artist: 'SoundPillow Stories',
+        artist: '半刻 Stories',
         duration: '7 min',
         category: 'fairy-tale',
         imageSourceUrl: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80',
@@ -314,7 +314,7 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-6',
         title: '唱片店的下午',
-        artist: 'SoundPillow Stories',
+        artist: '半刻 Stories',
         duration: '7 min',
         category: 'city-life',
         imageSourceUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=800&q=80',
@@ -328,7 +328,7 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-7',
         title: '守灯塔的鲸鱼',
-        artist: 'SoundPillow Stories',
+        artist: '半刻 Stories',
         duration: '14 min',
         category: 'animal-friends',
         imageSourceUrl: '',
@@ -343,7 +343,7 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     {
         id: 'story-8',
         title: '24小时书店',
-        artist: 'SoundPillow Stories',
+        artist: '半刻 Stories',
         duration: '10 min',
         category: 'city-life',
         imageSourceUrl: '',

@@ -6,6 +6,22 @@ const SERVER_URL = import.meta.env.DEV
   ? 'http://localhost:3001'
   : (import.meta.env.VITE_SERVER_URL || 'https://sound-pillow-emdgctephrfpbcf3.southeastasia-01.azurewebsites.net');
 
+function normalizeRequestError(error: unknown, timeoutMs: number): Error {
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    return new Error(`Request timeout after ${timeoutMs}ms`);
+  }
+
+  if (error instanceof Error) {
+    return error;
+  }
+
+  if (typeof error === 'string' && error.trim()) {
+    return new Error(error);
+  }
+
+  return new Error('Network request failed');
+}
+
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = globalThis.setTimeout(() => controller.abort(), timeoutMs);
@@ -16,11 +32,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
       signal: controller.signal,
     });
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error(`Request timeout after ${timeoutMs}ms`);
-    }
-
-    throw error;
+    throw normalizeRequestError(error, timeoutMs);
   } finally {
     globalThis.clearTimeout(timeoutId);
   }

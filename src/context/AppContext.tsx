@@ -153,12 +153,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const loadCatalogStories = useCallback(async (locale: string) => {
-    try {
-      const { categories, stories } = await fetchStoryCatalog(locale);
-      if (categories.length > 0) setStoryCategories(categories);
-      if (stories.length > 0) setCatalogStories(stories as Story[]);
-    } catch (error) {
-      console.warn('Failed to load story catalog, using local fallback:', error);
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const { categories, stories } = await fetchStoryCatalog(locale);
+        setStoryCategories(categories);
+        setCatalogStories(stories as Story[]);
+        return;
+      } catch (error) {
+        console.warn(`Failed to load story catalog (attempt ${attempt + 1}/3).`, error);
+
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+
+      }
     }
   }, []);
 
@@ -178,10 +188,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (document.visibilityState === 'visible' && tracks.length === 0) {
         loadTracks();
       }
+
+      if (document.visibilityState === 'visible' && catalogStories.length === 0) {
+        loadCatalogStories(locale);
+      }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [tracks.length, loadTracks]);
+  }, [tracks.length, catalogStories.length, loadTracks, loadCatalogStories, locale]);
 
   const toggleFavorite = useCallback((trackId: string) => {
     setFavorites((prev) => {

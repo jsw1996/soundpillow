@@ -95,7 +95,7 @@ export function PlayerScreen({
 
       {/* ── Header ── */}
       <header
-        className="relative flex items-center justify-between px-5 z-20"
+        className="app-screen-content relative z-20 flex items-center justify-between px-5 md:px-8"
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
       >
         <button
@@ -140,7 +140,7 @@ export function PlayerScreen({
       <div className="flex-1 min-h-0" />
 
       {/* ── Bottom controls ── */}
-      <div className="relative z-10 px-7 space-y-5" style={{ paddingBottom: 'max(1.75rem, env(safe-area-inset-bottom))' }}>
+      <div className="app-screen-content relative z-10 w-full px-7 md:px-10 space-y-5" style={{ paddingBottom: 'max(1.75rem, env(safe-area-inset-bottom))' }}>
 
         {/* Track info */}
         <motion.div
@@ -184,7 +184,7 @@ export function PlayerScreen({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="flex items-center justify-between"
+          className="flex items-center justify-between gap-4 md:gap-8"
         >
           {/* Timer toggle */}
           <button
@@ -198,7 +198,7 @@ export function PlayerScreen({
             <Moon size={18} />
           </button>
 
-          <div className="flex items-center gap-10">
+          <div className="flex items-center gap-6 md:gap-10">
             <button
               onClick={onSkipPrev}
               className="p-3 rounded-full liquid-glass-sm text-white/70 active:scale-90 transition-all"

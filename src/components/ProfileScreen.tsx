@@ -16,17 +16,19 @@ export function ProfileScreen() {
       className="flex-1 overflow-y-auto pb-24 space-y-6 no-scrollbar"
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
-      <StreakCard streakStats={streakStats} />
-      <WeeklyActivityCard weekEntries={getWeekEntries()} />
-      <MoodTrends />
-      <ListeningStatsCard stats={stats} favoritesCount={favorites.size} tracks={tracks} />
-      <SettingsPanel
-        settings={settings}
-        updateSettings={updateSettings}
-        stats={stats}
-        favoritesCount={favorites.size}
-        resetStats={resetStats}
-      />
+      <div className="app-screen-content space-y-6">
+        <StreakCard streakStats={streakStats} />
+        <WeeklyActivityCard weekEntries={getWeekEntries()} />
+        <MoodTrends />
+        <ListeningStatsCard stats={stats} favoritesCount={favorites.size} tracks={tracks} />
+        <SettingsPanel
+          settings={settings}
+          updateSettings={updateSettings}
+          stats={stats}
+          favoritesCount={favorites.size}
+          resetStats={resetStats}
+        />
+      </div>
     </motion.div>
   );
 }

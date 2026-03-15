@@ -30,7 +30,7 @@ export function SavePresetDialog({ activeMixerTracks, onShare }: SavePresetDialo
   };
 
   return (
-    <div className="px-6 space-y-2">
+    <div className="app-screen-content px-6 md:px-8 space-y-2">
       {!showSaveDialog ? (
         <div className="flex gap-2">
           <button

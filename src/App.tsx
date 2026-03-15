@@ -165,7 +165,7 @@ function AppContent() {
 
   if (showStartupOverlay) {
     return (
-      <div className="max-w-md mx-auto h-dvh relative overflow-hidden bg-bg-dark">
+      <div className="app-shell h-dvh bg-bg-dark">
         <MoodCheckIn
           requireCheckIn={moodCard.shouldShow}
           onComplete={(entry) => moodCard.saveMood(entry)}
@@ -182,7 +182,7 @@ function AppContent() {
 
   return (
     <div
-      className={`max-w-md mx-auto h-dvh flex flex-col relative overflow-hidden ${isSleepcastGrid ? '' : 'bg-bg-dark'}`}
+      className={`app-shell h-dvh flex flex-col ${isSleepcastGrid ? '' : 'bg-bg-dark'}`}
       style={isSleepcastGrid ? { background: 'linear-gradient(315deg, #ffffff, #def1ff)' } : undefined}
     >
       {!isSleepcastGrid && <div className="ambient-bg" />}

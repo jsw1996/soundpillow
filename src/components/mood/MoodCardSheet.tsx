@@ -23,7 +23,7 @@ export function MoodCardSheet({ entry, config, sharing, onShare, onDone }: MoodC
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ scale: 0.88, opacity: 0, y: 40 }}
       transition={{ type: 'spring', damping: 24, stiffness: 260 }}
-      className="flex flex-col items-center w-full px-6"
+      className="app-bottom-sheet flex w-full flex-col items-center px-6"
       style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
     >
       {/* Polaroid card */}

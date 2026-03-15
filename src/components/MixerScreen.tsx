@@ -49,8 +49,8 @@ export function MixerScreen({
       style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
     >
       {/* Track grid */}
-      <section className="px-6">
-        <div className="grid grid-cols-2 gap-3">
+      <section className="app-screen-content px-6 md:px-8">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {tracks.map((track) => (
             <MixerTrackCard
               key={track.id}

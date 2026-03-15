@@ -66,9 +66,9 @@ export function TrackGrid({ tracks, onTrackSelect }: TrackGridProps) {
   if (tracks.length === 0) return null;
 
   return (
-    <section className="space-y-4 px-6 mt-4">
+    <section className="app-screen-content mt-4 space-y-4 px-6 md:px-8">
       <h2 className="text-lg font-bold">{t('quickSleep')}</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
         {tracks.map((track) => (
           <TrackCard key={track.id} track={track} onSelect={onTrackSelect} />
         ))}

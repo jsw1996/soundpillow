@@ -71,13 +71,13 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
 
   return (
     <nav
-      className="fixed left-0 right-0 max-w-md mx-auto z-50 px-4"
+      className="app-shell-fixed fixed left-0 right-0 z-50 px-4"
       style={{ bottom: 'calc(0.5rem + env(safe-area-inset-bottom) * 0.4)' }}
     >
       <motion.div
         layout="position"
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-        className={`flex items-center justify-around px-1 py-1 rounded-[22px] ${
+        className={`mx-auto flex max-w-[32rem] items-center justify-around px-1 py-1 rounded-[22px] ${
           isSleepcastScreen
             ? 'sleepcast-flat-pill'
             : 'glass-dock'

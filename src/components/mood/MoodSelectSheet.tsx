@@ -21,7 +21,7 @@ export function MoodSelectSheet({ hovered, onHover, onSelect, onDismiss }: MoodS
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-      className="w-full rounded-t-4xl bg-white/10 backdrop-blur-2xl border-t border-white/15 px-6 pt-5"
+      className="app-bottom-sheet w-full rounded-t-4xl bg-white/10 backdrop-blur-2xl border-t border-white/15 px-6 pt-5"
       style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
     >
       {/* Handle */}

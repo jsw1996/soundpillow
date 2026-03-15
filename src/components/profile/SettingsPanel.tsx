@@ -142,7 +142,7 @@ export function SettingsPanel({
             <Globe size={18} className="text-primary/60" />
             <span className="text-sm font-semibold">{t('language')}</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             {SUPPORTED_LOCALES.map((loc) => (
               <button
                 key={loc.code}

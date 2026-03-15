@@ -62,8 +62,7 @@ function HighlightCarouselCard({
       type="button"
       whileTap={{ scale: 0.99 }}
       onClick={onPlay}
-      className="group block shrink-0 snap-center text-left"
-      style={{ width: '80vw', maxWidth: '19rem' }}
+      className="sleepcast-highlight-card group block shrink-0 snap-center text-left"
     >
       <div className="relative overflow-hidden rounded-[2rem]">
         <img
@@ -111,8 +110,7 @@ function CategoryStoryTile({
       type="button"
       whileTap={{ scale: 0.99 }}
       onClick={onPlay}
-      className="group block shrink-0 snap-start text-left"
-      style={{ width: 'calc((100% - 0.75rem) / 2)' }}
+      className="sleepcast-category-tile group block shrink-0 snap-start text-left"
     >
       <div className="relative aspect-square overflow-hidden rounded-3xl">
         <img
@@ -236,7 +234,7 @@ export function ThemeGrid({
         className="relative z-10 h-full overflow-y-auto overflow-x-hidden no-scrollbar"
       >
         <div
-          className="px-5"
+          className="px-5 md:px-8"
           style={{
             paddingTop: 'max(1rem, env(safe-area-inset-top))',
             paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom))',
@@ -244,8 +242,8 @@ export function ThemeGrid({
         >
           {highlightStories.length > 0 ? (
             <section className="pt-3">
-              <div className="overflow-x-auto no-scrollbar -mx-5 px-5">
-                <div className="flex snap-x snap-mandatory gap-4 pr-5" style={{ scrollPaddingLeft: '1.25rem' }}>
+              <div className="overflow-x-auto no-scrollbar -mx-5 px-5 md:-mx-8 md:px-8">
+                <div className="flex snap-x snap-mandatory gap-4 pr-5 md:pr-8" style={{ scrollPaddingLeft: '1.25rem' }}>
                   {highlightStories.map((story) => (
                     <HighlightCarouselCard
                       key={story.id}
@@ -300,7 +298,7 @@ export function ThemeGrid({
             </section>
           ) : null}
 
-          <div className="sticky z-20 -mx-5 mt-5 pb-4 pt-4" style={{ top: 'env(safe-area-inset-top)' }}>
+          <div className="sticky z-20 -mx-5 mt-5 pb-4 pt-4 md:-mx-8" style={{ top: 'env(safe-area-inset-top)' }}>
             <div className="relative">
               <PillRow
                 items={storyCategories}
@@ -311,7 +309,7 @@ export function ThemeGrid({
                 getLabel={(category) => category.label}
                 getLeading={(category) => renderCategoryIcon(category.id, 'h-3.5 w-3.5')}
                 containerClassName="overflow-x-auto no-scrollbar"
-                listClassName="flex min-w-max gap-2 pl-5"
+                listClassName="flex min-w-max gap-2 pl-5 md:pl-8"
               />
             </div>
           </div>

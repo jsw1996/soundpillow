@@ -15,7 +15,7 @@ export function PresetList({ presets, onLoadPreset, onDeletePreset, onSharePrese
   if (presets.length === 0) return null;
 
   return (
-    <section className="px-6 space-y-3">
+    <section className="app-screen-content px-6 md:px-8 space-y-3">
       <h2 className="text-sm font-bold text-foreground/50 uppercase tracking-wider">{t('savedPresets')}</h2>
       {presets.map((preset) => (
         <div

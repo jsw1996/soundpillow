@@ -1,13 +1,15 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { Grip, Image as ImageIcon, RotateCw, Trash2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Grip, Image as ImageIcon, RotateCw, Trash2, X } from 'lucide-react';
 import { loadMoodHistory, MOOD_HISTORY_UPDATED_EVENT } from '../../utils/mood';
 import { MOODS } from '../../data/moodMessages';
 import type { MoodEntry, MoodLevel } from '../../types';
+import { STICKER_CATALOG, type StickerDefinition } from '../../data/stickerCatalog';
 import { getDateString } from '../../utils/date';
 import { useTranslation } from '../../i18n';
 
-type MoodCanvasItemType = 'note' | 'entry' | 'photo';
+type MoodCanvasItemType = 'note' | 'entry' | 'photo' | 'sticker';
 
 interface MoodCanvasItem {
   id: string;
@@ -25,6 +27,7 @@ interface MoodCanvasItem {
   imageUrl?: string;
   moodEmoji?: string;
   date?: string;
+  stickerCategory?: string;
 }
 
 type MoodCanvasFilter = 'all' | 'week' | 'month' | 'year';
@@ -239,8 +242,14 @@ const DELETED_IDS_STORAGE_KEY = 'sleepyhub-mood-canvas-deleted';
 
 function saveCanvasItems(items: MoodCanvasItem[]) {
   try {
-    // Only persist non-mood items (notes/entries) and mood card positions
-    const toSave = items.map(({ imageUrl, ...rest }) => rest);
+    // Persist non-mood items fully and keep mood card positions without storing derived image URLs.
+    const toSave = items.map((item) => {
+      if (item.type === 'photo' && item.id.startsWith(MOOD_POLAROID_PREFIX)) {
+        const { imageUrl, ...rest } = item;
+        return rest;
+      }
+      return item;
+    });
     localStorage.setItem(CANVAS_STORAGE_KEY, JSON.stringify(toSave));
   } catch { /* quota exceeded — ignore */ }
 }
@@ -314,6 +323,8 @@ export function MoodCanvas() {
   const [filter, setFilter] = useState<MoodCanvasFilter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [isStickerDrawerOpen, setIsStickerDrawerOpen] = useState(false);
+  const [activeStickerCategoryId, setActiveStickerCategoryId] = useState<string>(STICKER_CATALOG[0]?.id ?? '');
   const [draftTitle, setDraftTitle] = useState('');
   const [draftText, setDraftText] = useState('');
   const [viewportOffset, setViewportOffset] = useState(() => {
@@ -341,6 +352,18 @@ export function MoodCanvas() {
   useEffect(() => {
     saveViewport(viewportOffset, viewportScale);
   }, [viewportOffset, viewportScale]);
+
+  const stickerCategories = useMemo(() => STICKER_CATALOG.filter((category) => category.stickers.length > 0), []);
+  const activeStickerCategory = useMemo(
+    () => stickerCategories.find((category) => category.id === activeStickerCategoryId) ?? stickerCategories[0] ?? null,
+    [activeStickerCategoryId, stickerCategories],
+  );
+
+  useEffect(() => {
+    if (!activeStickerCategory && stickerCategories[0]) {
+      setActiveStickerCategoryId(stickerCategories[0].id);
+    }
+  }, [activeStickerCategory, stickerCategories]);
 
   const bringToFront = useCallback((id: string) => {
     setItems((prev) => {
@@ -456,6 +479,36 @@ export function MoodCanvas() {
     });
 
     setSelectedId(id);
+  }, [viewportOffset.x, viewportOffset.y, viewportScale]);
+
+  const addStickerItem = useCallback((sticker: StickerDefinition, categoryId: string) => {
+    const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const boardRect = boardRef.current?.getBoundingClientRect();
+    const boardCenterX = boardRect ? boardRect.width / 2 : 180;
+    const boardCenterY = boardRect ? boardRect.height / 2 : 300;
+    const worldCenterX = (boardCenterX - viewportOffset.x) / viewportScale;
+    const worldCenterY = (boardCenterY - viewportOffset.y) / viewportScale;
+
+    setItems((prev) => {
+      const maxZ = prev.reduce((max, item) => Math.max(max, item.z), 0);
+      const newItem: MoodCanvasItem = {
+        id,
+        type: 'sticker',
+        x: worldCenterX - 56,
+        y: worldCenterY - 56,
+        r: 0,
+        w: 112,
+        h: 112,
+        z: maxZ + 1,
+        title: sticker.label,
+        imageUrl: sticker.src,
+        stickerCategory: categoryId,
+      };
+      return [...prev, newItem];
+    });
+
+    setSelectedId(id);
+    setIsStickerDrawerOpen(false);
   }, [viewportOffset.x, viewportOffset.y, viewportScale]);
 
   const deletedIdsRef = useRef(loadDeletedIds());
@@ -622,6 +675,7 @@ export function MoodCanvas() {
       <div
         ref={boardRef}
         onPointerDown={(event) => {
+          if (isStickerDrawerOpen) return;
           const hitCard = !!(event.target as HTMLElement).closest('[data-board-item]');
           if (!hitCard) {
             if (editingItemId) {
@@ -697,6 +751,7 @@ export function MoodCanvas() {
           {visibleItems.map((item) => {
             const isSelected = item.id === selectedId;
             const isEditing = item.id === editingItemId;
+            const isSticker = item.type === 'sticker';
             return (
               <div
                 key={item.id}
@@ -728,7 +783,7 @@ export function MoodCanvas() {
                   event.preventDefault();
                   beginEdit(item);
                 }}
-                className={`absolute transition-shadow ${item.type === 'photo' ? 'p-2 pb-7' : 'p-3'}`}
+                className={`absolute transition-shadow ${item.type === 'photo' ? 'p-2 pb-7' : isSticker ? 'p-0' : 'p-3'}`}
                 style={{
                   touchAction: 'manipulation',
                   width: item.w,
@@ -737,10 +792,18 @@ export function MoodCanvas() {
                   top: item.y,
                   transform: `rotate(${item.r}deg)`,
                   zIndex: item.z,
-                  border: isSelected ? '1.5px solid rgba(74,158,142,0.5)' : `1px solid ${PALETTE.border}`,
-                  backgroundColor: item.color,
+                  border: isSticker
+                    ? isSelected
+                      ? '1.5px dashed rgba(74,158,142,0.62)'
+                      : '1px solid transparent'
+                    : isSelected
+                      ? '1.5px solid rgba(74,158,142,0.5)'
+                      : `1px solid ${PALETTE.border}`,
+                  backgroundColor: isSticker ? 'transparent' : item.color,
                   boxShadow: isSelected
                     ? '0 20px 40px rgba(0,0,0,0.15)'
+                    : isSticker
+                      ? 'none'
                     : item.type === 'photo'
                       ? '0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04)'
                       : '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
@@ -861,6 +924,18 @@ export function MoodCanvas() {
                       </div>
                     </div>
                   </>
+                )}
+
+                {item.type === 'sticker' && item.imageUrl && (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title ?? ''}
+                      className="h-full w-full object-contain select-none pointer-events-none"
+                      style={{ filter: 'drop-shadow(0 10px 16px rgba(0,0,0,0.16))' }}
+                      draggable={false}
+                    />
+                  </div>
                 )}
 
                 {isEditing && (
@@ -989,7 +1064,124 @@ export function MoodCanvas() {
           >
             {t('canvasAddEntry')}
           </button>
+          <button
+            type="button"
+            onPointerDown={(event) => {
+              event.stopPropagation();
+            }}
+            onClick={() => {
+              if (editingItemId) {
+                editingRef.current = null;
+                commitEdit();
+              }
+              setIsStickerDrawerOpen(true);
+            }}
+            className="px-2.5 py-1 text-[10px] uppercase tracking-widest border"
+            style={{
+              borderColor: 'rgba(0,0,0,0.25)',
+              color: 'rgba(45,45,45,0.78)',
+              backgroundColor: 'rgba(255,255,255,0.68)',
+            }}
+          >
+            {t('canvasAddSticker')}
+          </button>
         </div>
+
+        <AnimatePresence>
+          {isStickerDrawerOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="fixed inset-0 z-[70] flex items-end bg-black/30 backdrop-blur-[1px]"
+              onClick={() => setIsStickerDrawerOpen(false)}
+            >
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                className="app-bottom-sheet w-full rounded-t-[2rem] border-t border-black/10 bg-[rgba(249,248,244,0.98)] px-4 pt-3 shadow-2xl"
+                style={{
+                  minHeight: 'min(32rem, 68dvh)',
+                  paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
+                }}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="relative mb-4 flex items-center justify-end gap-4">
+                  <div className="absolute inset-x-0 flex justify-center pointer-events-none">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-center" style={{ color: PALETTE.text }}>
+                      {t('canvasStickerDrawerTitle')}
+                    </h3>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsStickerDrawerOpen(false)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border"
+                    style={{ borderColor: 'rgba(0,0,0,0.08)', color: PALETTE.softText, backgroundColor: 'rgba(255,255,255,0.8)' }}
+                    aria-label={t('canvasStickerDrawerClose')}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+
+                <div className="mb-4 flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                  {stickerCategories.map((category) => {
+                    const isActive = category.id === activeStickerCategory?.id;
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => setActiveStickerCategoryId(category.id)}
+                        className="shrink-0 rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-widest transition-colors"
+                        style={{
+                          borderColor: isActive ? 'rgba(74,158,142,0.32)' : 'rgba(0,0,0,0.18)',
+                          backgroundColor: isActive ? 'rgba(230,244,240,0.92)' : 'rgba(255,255,255,0.7)',
+                          color: isActive ? PALETTE.accent : 'rgba(45,45,45,0.78)',
+                        }}
+                      >
+                        {t(`canvasStickerCategory_${category.id}` as any) === `canvasStickerCategory_${category.id}`
+                          ? category.label
+                          : t(`canvasStickerCategory_${category.id}` as any)}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {activeStickerCategory ? (
+                  <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
+                    {activeStickerCategory.stickers.map((sticker) => (
+                      <button
+                        key={sticker.id}
+                        type="button"
+                        onClick={() => addStickerItem(sticker, activeStickerCategory.id)}
+                        className="flex aspect-square items-center justify-center p-2 transition-transform active:scale-95"
+                        aria-label={sticker.label}
+                      >
+                        <img
+                          src={sticker.src}
+                          alt={sticker.label}
+                          className="h-full w-full object-contain"
+                          style={{ filter: 'drop-shadow(0 12px 20px rgba(0,0,0,0.14))' }}
+                          draggable={false}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    className="rounded-3xl border border-dashed px-4 py-8 text-center text-xs"
+                    style={{ borderColor: 'rgba(0,0,0,0.16)', color: PALETTE.softText, backgroundColor: 'rgba(255,255,255,0.4)' }}
+                  >
+                    {t('canvasStickerDrawerEmpty')}
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

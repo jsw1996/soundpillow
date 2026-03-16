@@ -38,6 +38,7 @@ const STORY_CATEGORIES = [
     { id: 'city-life', labels: { en: 'City Life', zh: '都市生活', ja: '都市生活', es: 'Vida urbana' } },
     { id: 'animal-friends', labels: { en: 'Animal Friends', zh: '动物伙伴', ja: '動物の友だち', es: 'Amigos animales' } },
     { id: 'fairy-tale', labels: { en: 'Fairy Tales', zh: '童话故事', ja: 'おとぎ話', es: 'Cuentos' } },
+    { id: 'guided-relaxation', labels: { en: 'Guided Relaxation', zh: '冥想引导', ja: 'リラクゼーション', es: 'Relajación guiada' } },
 ] as const satisfies readonly StoryCategoryDefinition[];
 
 export type StoryCategoryId = (typeof STORY_CATEGORIES)[number]['id'];
@@ -353,6 +354,21 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
         description: '凌晨两点的书店里，值班员叶青守着橙黄灯光，陪伴每一个深夜到来的读者，直到天亮。',
         subtitle: '暖光书架、翻页声和凌晨不打烊的安静陪伴。',
         storyPreview: '凌晨两点，书店只剩三个人。值班员叶青坐在收银台后，看着深夜来书店的人，每个人都带着各自的故事和一种只有夜里才会有的安静。',
+        paragraphCount: 1,
+    },
+    {
+        id: 'story-9',
+        title: '云上花园',
+        artist: '半刻 Stories',
+        duration: '13 min',
+        category: 'guided-relaxation',
+        imageSourceUrl: '',
+        imageUrl: 'audios/covers/云上花园.jpg',
+        blobAudioPath: 'audios/stories/09_云上花园.wav',
+        backgroundMusic: 'audios/music/tunetank-tranquil-piano-ambient-normalized.mp3',
+        description: '在云朵上的花园里，跟随呼吸放松身体，让柔软的微风和花香带你慢慢入睡。',
+        subtitle: '轻柔呼吸引导，在云端花园中找到最深的放松。',
+        storyPreview: '躺在柔软的云朵上，身体像羽毛一样轻盈，跟随温柔的声音走进一座只属于你的空中花园，让每一次呼吸都变成安眠的摇篮。',
         paragraphCount: 1,
     },
 ];

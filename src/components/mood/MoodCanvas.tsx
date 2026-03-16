@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { Grip, Image as ImageIcon, RotateCw } from 'lucide-react';
+import { Grip, Image as ImageIcon, RotateCw, Trash2 } from 'lucide-react';
 import { loadMoodHistory, MOOD_HISTORY_UPDATED_EVENT } from '../../utils/mood';
 import { MOODS } from '../../data/moodMessages';
 import type { MoodEntry, MoodLevel } from '../../types';
@@ -148,7 +148,7 @@ function isDateInFilter(date: string | undefined, filter: MoodCanvasFilter, now:
 }
 
 function buildItemsFromMoodHistory(history: MoodEntry[]): MoodCanvasItem[] {
-  if (history.length === 0) return INITIAL_ITEMS;
+  if (history.length === 0) return [];
   const ascHistory = [...history].sort((a, b) => a.date.localeCompare(b.date));
 
   return ascHistory.map((entry, index) => {
@@ -234,6 +234,7 @@ const ENTRY_PLACEHOLDER = '写下一条今天的心情日志…';
 
 const CANVAS_STORAGE_KEY = 'sleepyhub-mood-canvas';
 const VIEWPORT_STORAGE_KEY = 'sleepyhub-mood-canvas-viewport';
+const DELETED_IDS_STORAGE_KEY = 'sleepyhub-mood-canvas-deleted';
 
 function saveCanvasItems(items: MoodCanvasItem[]) {
   try {
@@ -251,6 +252,22 @@ function loadCanvasItems(): MoodCanvasItem[] | null {
   } catch {
     return null;
   }
+}
+
+function loadDeletedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_IDS_STORAGE_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDeletedIds(ids: Set<string>) {
+  try {
+    localStorage.setItem(DELETED_IDS_STORAGE_KEY, JSON.stringify([...ids]));
+  } catch { /* ignore */ }
 }
 
 function saveViewport(offset: { x: number; y: number }, scale: number) {
@@ -275,11 +292,16 @@ function loadViewport(): { x: number; y: number; scale: number } | null {
  * updated images).
  */
 function initCanvasItems(): MoodCanvasItem[] {
-  const moodItems = buildItemsFromMoodHistory(loadMoodHistory());
+  const deleted = loadDeletedIds();
+  const moodItems = buildItemsFromMoodHistory(loadMoodHistory()).filter((i) => !deleted.has(i.id));
   const saved = loadCanvasItems();
-  if (!saved) return moodItems;
-  // Use saved items as the "prev" state, merge mood items on top
-  return mergeMoodItems(saved, moodItems);
+  if (!saved) {
+    // No saved canvas: use mood items if any, otherwise show initial demo items
+    if (moodItems.length > 0) return moodItems;
+    return INITIAL_ITEMS.filter((i) => !deleted.has(i.id));
+  }
+  const merged = mergeMoodItems(saved, moodItems);
+  return merged.filter((i) => !deleted.has(i.id));
 }
 
 export function MoodCanvas() {
@@ -434,8 +456,18 @@ export function MoodCanvas() {
     setSelectedId(id);
   }, [viewportOffset.x, viewportOffset.y, viewportScale]);
 
+  const deletedIdsRef = useRef(loadDeletedIds());
+
+  const deleteItem = useCallback((id: string) => {
+    deletedIdsRef.current.add(id);
+    saveDeletedIds(deletedIdsRef.current);
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    setSelectedId(null);
+  }, []);
+
   const syncMoodCards = useCallback(() => {
-    const generated = buildItemsFromMoodHistory(loadMoodHistory());
+    const deleted = deletedIdsRef.current;
+    const generated = buildItemsFromMoodHistory(loadMoodHistory()).filter((i) => !deleted.has(i.id));
     setItems((prev) => mergeMoodItems(prev, generated));
   }, []);
 
@@ -864,6 +896,20 @@ export function MoodCanvas() {
                       aria-label="Rotate"
                     >
                       <RotateCw size={11} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        deleteItem(item.id);
+                      }}
+                      className="absolute -top-3 -right-3 w-5 h-5 rounded-full border flex items-center justify-center"
+                      style={{ borderColor: 'rgba(220,60,60,0.5)', backgroundColor: '#FFFFFF', color: 'rgba(220,60,60,0.85)' }}
+                      aria-label="Delete"
+                    >
+                      <Trash2 size={10} />
                     </button>
                   </>
                 )}

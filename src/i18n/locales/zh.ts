@@ -208,6 +208,21 @@ const zh: Record<string, string> = {
   moodTrends: '心情趋势',
   viewChart: '图表',
   viewCalendar: '日历',
+
+  // Mood Canvas
+  canvasFilterAll: '全部',
+  canvasFilterWeek: '本周',
+  canvasFilterMonth: '本月',
+  canvasFilterYear: '今年',
+  canvasNotePlaceholder: '记录一个此刻的想法…',
+  canvasEntryPlaceholder: '写下一条今天的心情日志…',
+  canvasDone: '完成',
+  canvasDrag: '拖动',
+  canvasAddNote: '+ 便签',
+  canvasAddEntry: '+ 日志',
+  canvasDemoNote: '今天的心情像薄云，慢慢散开。给自己一点耐心。',
+  canvasDemoEntry: '晚饭后散步十分钟，听雨声时心跳慢下来了。',
+  canvasDemoCaption: '晨光',
 };
 
 export default zh;

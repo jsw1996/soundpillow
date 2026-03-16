@@ -5,6 +5,7 @@ import { loadMoodHistory, MOOD_HISTORY_UPDATED_EVENT } from '../../utils/mood';
 import { MOODS } from '../../data/moodMessages';
 import type { MoodEntry, MoodLevel } from '../../types';
 import { getDateString } from '../../utils/date';
+import { useTranslation } from '../../i18n';
 
 type MoodCanvasItemType = 'note' | 'entry' | 'photo';
 
@@ -65,54 +66,56 @@ type ActionState =
 const MIN_SCALE = 0.65;
 const MAX_SCALE = 2.2;
 
-const INITIAL_ITEMS: MoodCanvasItem[] = [
-  {
-    id: 'note-1',
-    type: 'note',
-    x: 18,
-    y: 24,
-    r: -3,
-    w: 170,
-    h: 142,
-    z: 1,
-    color: '#FFFBE0',
-    text: '今天的心情像薄云，慢慢散开。给自己一点耐心。',
-  },
-  {
-    id: 'entry-1',
-    type: 'entry',
-    x: 130,
-    y: 174,
-    r: 2,
-    w: 186,
-    h: 170,
-    z: 2,
-    color: '#FFFDF2',
-    title: '2026-03-13',
-    text: '晚饭后散步十分钟，听雨声时心跳慢下来了。',
-  },
-  {
-    id: 'photo-1',
-    type: 'photo',
-    x: 12,
-    y: 246,
-    r: -5,
-    w: 124,
-    h: 152,
-    z: 3,
-    color: '#FFFFFF',
-    caption: 'Morning Light',
-  },
-];
+function buildInitialItems(t: (key: any) => string): MoodCanvasItem[] {
+  return [
+    {
+      id: 'note-1',
+      type: 'note',
+      x: 18,
+      y: 24,
+      r: -3,
+      w: 170,
+      h: 142,
+      z: 1,
+      color: '#FFFBE0',
+      text: t('canvasDemoNote'),
+    },
+    {
+      id: 'entry-1',
+      type: 'entry',
+      x: 130,
+      y: 174,
+      r: 2,
+      w: 186,
+      h: 170,
+      z: 2,
+      color: '#FFFDF2',
+      title: '2026-03-13',
+      text: t('canvasDemoEntry'),
+    },
+    {
+      id: 'photo-1',
+      type: 'photo',
+      x: 12,
+      y: 246,
+      r: -5,
+      w: 124,
+      h: 152,
+      z: 3,
+      color: '#FFFFFF',
+      caption: t('canvasDemoCaption'),
+    },
+  ];
+}
 
 const MOOD_CARD_COLORS = ['#FFFBE0', '#FFFDF2', '#FFF9E6', '#FFFFFF'];
 const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((m) => [m.level, m.emoji])) as Record<MoodLevel, string>;
 const MOOD_POLAROID_PREFIX = 'mood-polaroid-';
-const MOOD_CANVAS_FILTERS: Array<{ value: MoodCanvasFilter; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'week', label: 'This week' },
-  { value: 'month', label: 'This month' },
-  { value: 'year', label: 'This year' },
+const MOOD_CANVAS_FILTER_KEYS: Array<{ value: MoodCanvasFilter; key: string }> = [
+  { value: 'all', key: 'canvasFilterAll' },
+  { value: 'week', key: 'canvasFilterWeek' },
+  { value: 'month', key: 'canvasFilterMonth' },
+  { value: 'year', key: 'canvasFilterYear' },
 ];
 
 function parseLocalDateString(value: string): Date | null {
@@ -229,8 +232,6 @@ const midpointBetween = (a: { x: number; y: number }, b: { x: number; y: number 
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 };
 
-const NOTE_PLACEHOLDER = '记录一个此刻的想法…';
-const ENTRY_PLACEHOLDER = '写下一条今天的心情日志…';
 
 const CANVAS_STORAGE_KEY = 'sleepyhub-mood-canvas';
 const VIEWPORT_STORAGE_KEY = 'sleepyhub-mood-canvas-viewport';
@@ -291,24 +292,25 @@ function loadViewport(): { x: number; y: number; scale: number } | null {
  * with freshly generated mood polaroids (to pick up new mood entries or
  * updated images).
  */
-function initCanvasItems(): MoodCanvasItem[] {
+function initCanvasItems(t: (key: any) => string): MoodCanvasItem[] {
   const deleted = loadDeletedIds();
-  const moodItems = buildItemsFromMoodHistory(loadMoodHistory()).filter((i) => !deleted.has(i.id));
+  const moodItems = buildItemsFromMoodHistory(loadMoodHistory()).filter((i: MoodCanvasItem) => !deleted.has(i.id));
   const saved = loadCanvasItems();
   if (!saved) {
     // No saved canvas: use mood items if any, otherwise show initial demo items
     if (moodItems.length > 0) return moodItems;
-    return INITIAL_ITEMS.filter((i) => !deleted.has(i.id));
+    return buildInitialItems(t).filter((i) => !deleted.has(i.id));
   }
   const merged = mergeMoodItems(saved, moodItems);
   return merged.filter((i) => !deleted.has(i.id));
 }
 
 export function MoodCanvas() {
+  const { t } = useTranslation();
   const boardRef = useRef<HTMLDivElement | null>(null);
   const actionRef = useRef<ActionState | null>(null);
   const boardPointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const [items, setItems] = useState<MoodCanvasItem[]>(initCanvasItems);
+  const [items, setItems] = useState<MoodCanvasItem[]>(() => initCanvasItems(t));
   const [filter, setFilter] = useState<MoodCanvasFilter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -754,14 +756,14 @@ export function MoodCanvas() {
                         onChange={(event) => setDraftText(event.target.value)}
                         onPointerDown={(event) => event.stopPropagation()}
                         onBlur={handleBlur}
-                        placeholder={NOTE_PLACEHOLDER}
+                        placeholder={t('canvasNotePlaceholder')}
                         className="w-full h-[80%] bg-transparent text-xs leading-relaxed outline-none resize-none placeholder:text-black/25"
                         style={{ color: 'rgba(45,45,45,0.85)', caretColor: PALETTE.accent }}
                         autoFocus
                       />
                     ) : (
                       <p className="leading-relaxed text-xs" style={{ color: item.text ? 'rgba(45,45,45,0.85)' : 'rgba(0,0,0,0.25)' }}>
-                        {item.text || NOTE_PLACEHOLDER}
+                        {item.text || t('canvasNotePlaceholder')}
                       </p>
                     )}
                   </>
@@ -793,14 +795,14 @@ export function MoodCanvas() {
                         onChange={(event) => setDraftText(event.target.value)}
                         onPointerDown={(event) => event.stopPropagation()}
                         onBlur={handleBlur}
-                        placeholder={ENTRY_PLACEHOLDER}
+                        placeholder={t('canvasEntryPlaceholder')}
                         className="w-full h-[78%] bg-transparent text-xs leading-relaxed outline-none resize-none placeholder:text-black/25"
                         style={{ color: 'rgba(45,45,45,0.86)', caretColor: PALETTE.accent }}
                         autoFocus
                       />
                     ) : (
                       <p className="leading-relaxed text-xs" style={{ color: item.text ? 'rgba(45,45,45,0.86)' : 'rgba(0,0,0,0.25)' }}>
-                        {item.text || ENTRY_PLACEHOLDER}
+                        {item.text || t('canvasEntryPlaceholder')}
                       </p>
                     )}
                   </>
@@ -872,7 +874,7 @@ export function MoodCanvas() {
                     className="absolute -top-3 right-0 px-2 py-0.5 border text-[9px] uppercase tracking-widest"
                     style={{ borderColor: 'rgba(74,158,142,0.6)', backgroundColor: '#FFFFFF', color: 'rgba(74,158,142,0.92)' }}
                   >
-                    Done
+                    {t('canvasDone')}
                   </button>
                 )}
 
@@ -883,9 +885,9 @@ export function MoodCanvas() {
                       onPointerDown={(event) => startDrag(event, item)}
                       className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest cursor-grab active:cursor-grabbing"
                       style={{ borderColor: 'rgba(74,158,142,0.6)', backgroundColor: '#FFFFFF', color: 'rgba(74,158,142,0.92)' }}
-                      aria-label="Drag card"
+                      aria-label={t('canvasDrag')}
                     >
-                      Drag
+                      {t('canvasDrag')}
                     </button>
 
                     <button
@@ -923,7 +925,7 @@ export function MoodCanvas() {
           style={{ top: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
         >
           <div className="flex flex-wrap gap-2">
-            {MOOD_CANVAS_FILTERS.map((option) => {
+            {MOOD_CANVAS_FILTER_KEYS.map((option) => {
               const isActive = option.value === filter;
               return (
                 <button
@@ -940,7 +942,7 @@ export function MoodCanvas() {
                     color: isActive ? PALETTE.accent : 'rgba(45,45,45,0.78)',
                   }}
                 >
-                  {option.label}
+                  {t(option.key as any)}
                 </button>
               );
             })}
@@ -970,7 +972,7 @@ export function MoodCanvas() {
               backgroundColor: 'rgba(255,255,255,0.68)',
             }}
           >
-            + Note
+            {t('canvasAddNote')}
           </button>
           <button
             type="button"
@@ -985,7 +987,7 @@ export function MoodCanvas() {
               backgroundColor: 'rgba(255,255,255,0.68)',
             }}
           >
-            + Entry
+            {t('canvasAddEntry')}
           </button>
         </div>
       </div>

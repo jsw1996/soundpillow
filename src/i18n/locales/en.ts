@@ -208,6 +208,21 @@ const en = {
   moodTrends: 'Mood Trends',
   viewChart: 'Chart',
   viewCalendar: 'Calendar',
+
+  // Mood Canvas
+  canvasFilterAll: 'All',
+  canvasFilterWeek: 'This week',
+  canvasFilterMonth: 'This month',
+  canvasFilterYear: 'This year',
+  canvasNotePlaceholder: 'Jot down a thought…',
+  canvasEntryPlaceholder: 'Write a mood journal entry…',
+  canvasDone: 'Done',
+  canvasDrag: 'Drag',
+  canvasAddNote: '+ Note',
+  canvasAddEntry: '+ Entry',
+  canvasDemoNote: 'Today my mood is like thin clouds, slowly clearing. Give yourself a little patience.',
+  canvasDemoEntry: 'Walked for ten minutes after dinner. Heartbeat slowed down while listening to rain.',
+  canvasDemoCaption: 'Morning Light',
 };
 
 export default en;

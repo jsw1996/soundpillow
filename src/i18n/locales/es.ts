@@ -207,6 +207,21 @@ const es: Record<string, string> = {
   moodTrends: 'Tendencias de Ánimo',
   viewChart: 'Gráfico',
   viewCalendar: 'Calendario',
+
+  // Mood Canvas
+  canvasFilterAll: 'Todo',
+  canvasFilterWeek: 'Esta semana',
+  canvasFilterMonth: 'Este mes',
+  canvasFilterYear: 'Este año',
+  canvasNotePlaceholder: 'Apunta un pensamiento…',
+  canvasEntryPlaceholder: 'Escribe una entrada de ánimo…',
+  canvasDone: 'Listo',
+  canvasDrag: 'Arrastrar',
+  canvasAddNote: '+ Nota',
+  canvasAddEntry: '+ Entrada',
+  canvasDemoNote: 'Hoy mi ánimo es como nubes finas, despejándose poco a poco. Ten un poco de paciencia contigo.',
+  canvasDemoEntry: 'Caminé diez minutos después de cenar. El corazón se calmó escuchando la lluvia.',
+  canvasDemoCaption: 'Luz Matutina',
 };
 
 export default es;

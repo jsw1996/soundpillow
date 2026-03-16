@@ -207,6 +207,21 @@ const ja: Record<string, string> = {
   moodTrends: '気分の傾向',
   viewChart: 'チャート',
   viewCalendar: 'カレンダー',
+
+  // Mood Canvas
+  canvasFilterAll: 'すべて',
+  canvasFilterWeek: '今週',
+  canvasFilterMonth: '今月',
+  canvasFilterYear: '今年',
+  canvasNotePlaceholder: '今の気持ちを書き留めて…',
+  canvasEntryPlaceholder: '今日のムード日記を書いて…',
+  canvasDone: '完了',
+  canvasDrag: 'ドラッグ',
+  canvasAddNote: '+ メモ',
+  canvasAddEntry: '+ 日記',
+  canvasDemoNote: '今日の気分は薄い雲のよう、ゆっくり晴れていく。自分にもう少し優しくしよう。',
+  canvasDemoEntry: '夕食後10分散歩した。雨の音を聴いていたら心拍がゆっくりになった。',
+  canvasDemoCaption: '朝の光',
 };
 
 export default ja;

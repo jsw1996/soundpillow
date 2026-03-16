@@ -52,13 +52,11 @@ export function useMoodCheckIn({
 
   // Random splash image from tracks, stable across renders
   const splashConfig = useMemo<MoodConfig>(() => {
-    const fallback = MOODS[2];
+    const base = MOODS[2];
     const images = tracks.map((t) => t.imageUrl).filter(Boolean);
     return {
-      ...fallback,
-      imageUrl: images.length > 0
-        ? images[Math.floor(Math.random() * images.length)]
-        : fallback.imageUrl,
+      ...base,
+      imageUrl: images[Math.floor(Math.random() * images.length)],
     };
   }, [tracks]);
 

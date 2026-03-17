@@ -40,6 +40,26 @@ export const STICKER_CATALOG: StickerCategoryDefinition[] = [
         src: '/stickers/cat/cat5.png',
         label: 'Cat 5',
       },
+      {
+        id: 'cat6',
+        src: '/stickers/cat/cat6.png',
+        label: 'Cat 6',
+      },
+      {
+        id: 'cat7',
+        src: '/stickers/cat/cat7.png',
+        label: 'Cat 7',
+      },
+      {
+        id: 'cat8',
+        src: '/stickers/cat/cat8.png',
+        label: 'Cat 8',
+      },
+      {
+        id: 'cat9',
+        src: '/stickers/cat/cat9.png',
+        label: 'Cat 9',
+      }
     ],
   },
 ];

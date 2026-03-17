@@ -62,4 +62,40 @@ export const STICKER_CATALOG: StickerCategoryDefinition[] = [
       }
     ],
   },
+  {
+    id: 'coffee',
+    label: 'Coffee',
+    stickers: [
+      {
+        id: 'coffee1',
+        src: '/stickers/coffee/coffee1.png',
+        label: 'Coffee 1',
+      },
+      {
+        id: 'coffee2',
+        src: '/stickers/coffee/coffee2.png',
+        label: 'Coffee 2',
+      },
+      {
+        id: 'coffee3',
+        src: '/stickers/coffee/coffee3.png',
+        label: 'Coffee 3',
+      },
+      {
+        id: 'coffee4',
+        src: '/stickers/coffee/coffee4.png',
+        label: 'Coffee 4',
+      },
+      {
+        id: 'coffee5',
+        src: '/stickers/coffee/coffee5.png',
+        label: 'Coffee 5',
+      },
+      {
+        id: 'coffee6',
+        src: '/stickers/coffee/coffee6.png',
+        label: 'Coffee 6',
+      }
+    ],  
+  }
 ];

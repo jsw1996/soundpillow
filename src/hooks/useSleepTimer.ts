@@ -9,6 +9,8 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
   const [isActive, setIsActive] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onTimerEndRef = useRef(onTimerEnd);
+  // Wall-clock end time — immune to setInterval drift and background throttling
+  const endTimeRef = useRef<number>(0);
 
   // Keep callback ref current
   useEffect(() => {
@@ -31,25 +33,39 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
     }
   }, [timerMinutes]);
 
-  // Run countdown — only restarts when isActive changes
+  // Run countdown using wall-clock time
   useEffect(() => {
     if (!isActive) return;
 
-    intervalRef.current = setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          setIsActive(false);
-          setTimerMinutes(null);
-          onTimerEndRef.current();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // Record the absolute end time once when the timer starts
+    endTimeRef.current = Date.now() + secondsRemaining * 1000;
+
+    const tick = () => {
+      const remaining = Math.round((endTimeRef.current - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setSecondsRemaining(0);
+        setIsActive(false);
+        setTimerMinutes(null);
+        onTimerEndRef.current();
+        return;
+      }
+      setSecondsRemaining(remaining);
+    };
+
+    // Tick every second for UI updates; actual time comes from Date.now()
+    intervalRef.current = setInterval(tick, 1000);
+
+    // Also catch up immediately when the tab/app regains focus
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') tick();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
   const selectTimer = useCallback((mins: number | null) => {

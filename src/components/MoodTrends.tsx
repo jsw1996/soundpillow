@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Activity, Calendar as CalendarIcon, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Activity, Calendar as CalendarIcon, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from '../i18n';
 import { loadMoodHistory } from '../utils/mood';
@@ -10,6 +10,150 @@ import type { MoodLevel } from '../types';
 const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((mood) => [mood.level, mood.emoji]));
 const MOOD_VALUES: Record<MoodLevel, number> = { amazing: 4, good: 3, okay: 2, meh: 1, tired: 0 };
 const Y_AXIS_LABELS = ['tired', 'meh', 'okay', 'good', 'amazing'] as const;
+
+/* ── SVG Line Chart ─────────────────────────────────────── */
+
+const SVG_W = 300;
+const SVG_H = 140;
+const PAD = { top: 14, bottom: 28, left: 28, right: 12 };
+const PLOT_W = SVG_W - PAD.left - PAD.right;
+const PLOT_H = SVG_H - PAD.top - PAD.bottom;
+
+type ChartDay = { dateStr: string; label: number; entry: { mood: MoodLevel; date: string; message: string } | undefined };
+
+function toSVG(i: number, total: number, value: number): [number, number] {
+  const x = PAD.left + (i / (total - 1)) * PLOT_W;
+  const y = PAD.top + PLOT_H - (value / 4) * PLOT_H;
+  return [x, y];
+}
+
+/** Build a smooth cubic-bezier path through the given points */
+function smoothPath(points: [number, number][]): string {
+  if (points.length === 0) return '';
+  if (points.length === 1) return `M${points[0][0]},${points[0][1]}`;
+
+  let d = `M${points[0][0]},${points[0][1]}`;
+  for (let i = 1; i < points.length; i++) {
+    const [px, py] = points[i - 1];
+    const [cx, cy] = points[i];
+    const cpx = (px + cx) / 2;
+    d += ` C${cpx},${py} ${cpx},${cy} ${cx},${cy}`;
+  }
+  return d;
+}
+
+function LineChart({ chartDays }: { chartDays: ChartDay[] }) {
+  // Collect data points (only days with entries)
+  const dataPoints = useMemo(() => {
+    const pts: { idx: number; value: number; mood: MoodLevel }[] = [];
+    chartDays.forEach((day, i) => {
+      if (day.entry) pts.push({ idx: i, value: MOOD_VALUES[day.entry.mood], mood: day.entry.mood });
+    });
+    return pts;
+  }, [chartDays]);
+
+  const svgPoints = useMemo(
+    () => dataPoints.map(p => toSVG(p.idx, chartDays.length, p.value)),
+    [dataPoints, chartDays.length],
+  );
+
+  const linePath = useMemo(() => smoothPath(svgPoints), [svgPoints]);
+
+  // Gradient fill path (close to bottom)
+  const fillPath = useMemo(() => {
+    if (svgPoints.length < 2) return '';
+    const first = svgPoints[0];
+    const last = svgPoints[svgPoints.length - 1];
+    const bottom = PAD.top + PLOT_H;
+    return `${linePath} L${last[0]},${bottom} L${first[0]},${bottom} Z`;
+  }, [linePath, svgPoints]);
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full flex-1" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Horizontal grid lines */}
+        {Y_AXIS_LABELS.map((level, i) => {
+          const y = PAD.top + PLOT_H - (i / 4) * PLOT_H;
+          return (
+            <line
+              key={level}
+              x1={PAD.left}
+              x2={SVG_W - PAD.right}
+              y1={y}
+              y2={y}
+              stroke="currentColor"
+              strokeOpacity={0.08}
+              strokeDasharray="3 3"
+            />
+          );
+        })}
+
+        {/* Y-axis emoji labels */}
+        {Y_AXIS_LABELS.map((level, i) => {
+          const y = PAD.top + PLOT_H - (i / 4) * PLOT_H;
+          return (
+            <text key={level} x={PAD.left - 6} y={y + 4} textAnchor="end" fontSize="10" opacity={0.5}>
+              {MOOD_EMOJI_BY_LEVEL[level]}
+            </text>
+          );
+        })}
+
+        {/* X-axis labels */}
+        {chartDays.map((day, i) => {
+          if (i % 2 !== 0) return null;
+          const x = PAD.left + (i / (chartDays.length - 1)) * PLOT_W;
+          return (
+            <text key={day.dateStr} x={x} y={SVG_H - 4} textAnchor="middle" fontSize="8" fill="currentColor" opacity={0.3}>
+              {day.label}
+            </text>
+          );
+        })}
+
+        {/* Area fill */}
+        {fillPath && <path d={fillPath} fill="url(#lineGrad)" />}
+
+        {/* Line */}
+        {linePath && (
+          <motion.path
+            d={linePath}
+            fill="none"
+            stroke="var(--color-primary)"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+        )}
+
+        {/* Emoji markers on data points */}
+        {svgPoints.map(([x, y], i) => (
+          <motion.text
+            key={dataPoints[i].idx}
+            x={x}
+            y={y + 5}
+            textAnchor="middle"
+            fontSize="14"
+            className="drop-shadow-md"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3 + i * 0.04, type: 'spring', bounce: 0.5 }}
+          >
+            {MOOD_EMOJI_BY_LEVEL[dataPoints[i].mood]}
+          </motion.text>
+        ))}
+      </svg>
+    </div>
+  );
+}
 
 export function MoodTrends() {
   const { t } = useTranslation();
@@ -106,7 +250,7 @@ export function MoodTrends() {
                 view === 'chart' ? 'bg-primary text-white shadow-sm' : 'text-foreground/40 hover:text-foreground/60'
               }`}
             >
-              <BarChart3 size={10} />
+              <TrendingUp size={10} />
               {t('viewChart')}
             </button>
             <button
@@ -133,49 +277,7 @@ export function MoodTrends() {
                 transition={{ duration: 0.2 }}
                 className="absolute inset-0 flex flex-col"
               >
-                {/* Y-Axis labels & Grid lines */}
-                <div className="relative flex-1 mb-6 flex flex-col justify-between">
-                  {Y_AXIS_LABELS.slice().reverse().map((level, i) => (
-                    <div key={level} className="flex items-center w-full relative z-0 h-4">
-                      <span className="text-[10px] w-6 opacity-50">{MOOD_EMOJI_BY_LEVEL[level]}</span>
-                      <div className="flex-1 border-b border-dashed border-foreground/10"></div>
-                    </div>
-                  ))}
-
-                  {/* Plot Points */}
-                  <div className="absolute inset-0 left-6 flex justify-between z-10 items-end pb-2 pt-2">
-                    {chartDays.map((day, i) => {
-                      const hasEntry = !!day.entry;
-                      // Calculate bottom % based on 0-4 scale
-                      const bottomPercent = hasEntry ? (MOOD_VALUES[day.entry!.mood] / 4) * 100 : 0;
-
-                      return (
-                        <div key={day.dateStr} className="flex flex-col items-center w-4 h-full relative">
-                          {hasEntry && (
-                            <motion.div
-                              initial={{ scale: 0, y: 10 }}
-                              animate={{ scale: 1, y: 0 }}
-                              transition={{ delay: i * 0.03, type: "spring", bounce: 0.5 }}
-                              className="absolute -ml-1 text-sm filter drop-shadow-md"
-                              style={{ bottom: `calc(${bottomPercent}% - 10px)` }}
-                            >
-                              {MOOD_EMOJI_BY_LEVEL[day.entry!.mood]}
-                            </motion.div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* X-Axis labels */}
-                <div className="flex justify-between pl-6 text-[9px] text-foreground/30 font-medium">
-                  {chartDays.map((day, i) => (
-                    <div key={day.dateStr} className="w-4 text-center">
-                      {i % 2 === 0 ? day.label : ''}
-                    </div>
-                  ))}
-                </div>
+                <LineChart chartDays={chartDays} />
               </motion.div>
             ) : (
               <motion.div

@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Grip, Image as ImageIcon, RotateCw, Trash2, X } from 'lucide-react';
+import { RotateCw, Trash2, X } from 'lucide-react';
 import { loadMoodHistory, MOOD_HISTORY_UPDATED_EVENT } from '../../utils/mood';
 import { MOODS } from '../../data/moodMessages';
 import type { MoodEntry, MoodLevel } from '../../types';
@@ -1107,15 +1107,6 @@ export function MoodCanvas() {
               );
             })}
           </div>
-        </div>
-
-        <div
-          className="absolute bottom-24 right-3 rounded-lg border border-dashed px-2 py-1 text-[10px] flex items-center gap-1 z-40"
-          style={{ borderColor: palette.chromeBorder, color: palette.softText, backgroundColor: palette.helperBg }}
-        >
-          <Grip size={10} />
-          <RotateCw size={10} />
-          <ImageIcon size={10} />
         </div>
 
         <div className="absolute bottom-24 left-3 z-40 flex items-center gap-2">

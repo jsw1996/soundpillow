@@ -8,6 +8,7 @@ import type { MoodEntry, MoodLevel } from '../../types';
 import { STICKER_CATALOG, type StickerDefinition } from '../../data/stickerCatalog';
 import { getDateString } from '../../utils/date';
 import { useTranslation } from '../../i18n';
+import { useAppContext } from '../../context/AppContext';
 
 type MoodCanvasItemType = 'note' | 'entry' | 'photo' | 'sticker';
 
@@ -111,7 +112,8 @@ function buildInitialItems(t: (key: any) => string): MoodCanvasItem[] {
   ];
 }
 
-const MOOD_CARD_COLORS = ['#FFFBE0', '#FFFDF2', '#FFF9E6', '#FFFFFF'];
+const LIGHT_MOOD_CARD_COLORS = ['#FFFBE0', '#FFFDF2', '#FFF9E6', '#FFFFFF'] as const;
+const DARK_MOOD_CARD_COLORS = ['#3C3427', '#332D25', '#3A3125', '#232734'] as const;
 const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((m) => [m.level, m.emoji])) as Record<MoodLevel, string>;
 const MOOD_POLAROID_PREFIX = 'mood-polaroid-';
 const MOOD_CANVAS_FILTER_KEYS: Array<{ value: MoodCanvasFilter; key: string }> = [
@@ -214,14 +216,93 @@ function mergeMoodItems(prev: MoodCanvasItem[], generated: MoodCanvasItem[]): Mo
   return [...nonMoodItems, ...mergedMoodItems];
 }
 
-const PALETTE = {
+const LIGHT_PALETTE = {
   pageBg: '#F9F8F4',
   text: '#2D2D2D',
   accent: '#4a9e8e',
   line: 'rgba(0,0,0,0.03)',
   border: 'rgba(0,0,0,0.08)',
   softText: 'rgba(45,45,45,0.55)',
+  bodyText: 'rgba(45,45,45,0.85)',
+  bodyTextStrong: 'rgba(45,45,45,0.86)',
+  bodyTextSoft: 'rgba(45,45,45,0.82)',
+  placeholder: 'rgba(0,0,0,0.25)',
+  noteLine: 'rgba(0,0,0,0.08)',
+  sectionDivider: 'rgba(0,0,0,0.06)',
+  photoFrameBg: '#F1F0EB',
+  selectedBorder: 'rgba(74,158,142,0.5)',
+  selectedDashedBorder: 'rgba(74,158,142,0.62)',
+  selectedShadow: '0 20px 40px rgba(0,0,0,0.15)',
+  cardShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+  photoShadow: '0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04)',
+  controlBorder: 'rgba(74,158,142,0.6)',
+  controlBg: '#FFFFFF',
+  controlText: 'rgba(74,158,142,0.92)',
+  dangerBorder: 'rgba(220,60,60,0.5)',
+  dangerText: 'rgba(220,60,60,0.85)',
+  chromeBorder: 'rgba(0,0,0,0.25)',
+  chromeBg: 'rgba(255,255,255,0.68)',
+  chromeText: 'rgba(45,45,45,0.78)',
+  activeChipBorder: 'rgba(74,158,142,0.32)',
+  activeChipBg: 'rgba(230,244,240,0.92)',
+  helperBg: 'rgba(255,255,255,0.3)',
+  sheetBg: 'rgba(249,248,244,0.98)',
+  sheetBorder: 'rgba(0,0,0,0.1)',
+  sheetButtonBorder: 'rgba(0,0,0,0.08)',
+  sheetButtonBg: 'rgba(255,255,255,0.8)',
+  sheetEmptyBorder: 'rgba(0,0,0,0.16)',
+  sheetEmptyBg: 'rgba(255,255,255,0.4)',
 };
+
+const DARK_PALETTE = {
+  pageBg: '#151923',
+  text: 'rgba(241,243,247,0.94)',
+  accent: '#7fd1c3',
+  line: 'rgba(255,255,255,0.045)',
+  border: 'rgba(255,255,255,0.12)',
+  softText: 'rgba(228,232,240,0.56)',
+  bodyText: 'rgba(236,239,245,0.9)',
+  bodyTextStrong: 'rgba(236,239,245,0.92)',
+  bodyTextSoft: 'rgba(230,234,242,0.84)',
+  placeholder: 'rgba(255,255,255,0.28)',
+  noteLine: 'rgba(255,255,255,0.08)',
+  sectionDivider: 'rgba(255,255,255,0.08)',
+  photoFrameBg: '#222836',
+  selectedBorder: 'rgba(127,209,195,0.54)',
+  selectedDashedBorder: 'rgba(127,209,195,0.7)',
+  selectedShadow: '0 24px 46px rgba(0,0,0,0.42)',
+  cardShadow: '0 8px 18px rgba(0,0,0,0.26)',
+  photoShadow: '0 12px 22px rgba(0,0,0,0.3)',
+  controlBorder: 'rgba(127,209,195,0.5)',
+  controlBg: '#1b212d',
+  controlText: 'rgba(127,209,195,0.96)',
+  dangerBorder: 'rgba(248,113,113,0.5)',
+  dangerText: 'rgba(252,165,165,0.9)',
+  chromeBorder: 'rgba(255,255,255,0.16)',
+  chromeBg: 'rgba(20,24,33,0.82)',
+  chromeText: 'rgba(236,239,245,0.84)',
+  activeChipBorder: 'rgba(127,209,195,0.34)',
+  activeChipBg: 'rgba(127,209,195,0.14)',
+  helperBg: 'rgba(8,10,16,0.5)',
+  sheetBg: 'rgba(18,22,30,0.98)',
+  sheetBorder: 'rgba(255,255,255,0.08)',
+  sheetButtonBorder: 'rgba(255,255,255,0.14)',
+  sheetButtonBg: 'rgba(255,255,255,0.08)',
+  sheetEmptyBorder: 'rgba(255,255,255,0.14)',
+  sheetEmptyBg: 'rgba(255,255,255,0.06)',
+};
+
+function resolveCanvasItemColor(color: string | undefined, isDark: boolean) {
+  if (!color) return isDark ? DARK_MOOD_CARD_COLORS[3] : LIGHT_MOOD_CARD_COLORS[3];
+
+  const normalized = color.toUpperCase();
+  const index = LIGHT_MOOD_CARD_COLORS.findIndex((entry) => entry === normalized);
+  if (index >= 0) {
+    return isDark ? DARK_MOOD_CARD_COLORS[index] : LIGHT_MOOD_CARD_COLORS[index];
+  }
+
+  return color;
+}
 
 const angleFromPoint = (x: number, y: number, centerX: number, centerY: number) => {
   return (Math.atan2(y - centerY, x - centerX) * 180) / Math.PI;
@@ -316,6 +397,10 @@ function initCanvasItems(t: (key: any) => string): MoodCanvasItem[] {
 
 export function MoodCanvas() {
   const { t } = useTranslation();
+  const { settings } = useAppContext();
+  const isDark = settings.theme === 'dark';
+  const palette = useMemo(() => (isDark ? DARK_PALETTE : LIGHT_PALETTE), [isDark]);
+  const cardColors = useMemo(() => (isDark ? DARK_MOOD_CARD_COLORS : LIGHT_MOOD_CARD_COLORS), [isDark]);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const actionRef = useRef<ActionState | null>(null);
   const boardPointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -449,13 +534,13 @@ export function MoodCanvas() {
       ? {
           w: 176,
           h: 146,
-          color: '#FFFBE0',
+          color: cardColors[0],
           text: '',
         }
       : {
           w: 196,
           h: 178,
-          color: '#FFFDF2',
+          color: cardColors[1],
           title: getDateString(),
           text: '',
         };
@@ -479,7 +564,7 @@ export function MoodCanvas() {
     });
 
     setSelectedId(id);
-  }, [viewportOffset.x, viewportOffset.y, viewportScale]);
+  }, [cardColors, viewportOffset.x, viewportOffset.y, viewportScale]);
 
   const addStickerItem = useCallback((sticker: StickerDefinition, categoryId: string) => {
     const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -662,7 +747,7 @@ export function MoodCanvas() {
   }, [pointerToBoard, pointerToWorld, updateItem]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: PALETTE.pageBg }}>
+    <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: palette.pageBg }}>
       {/* Hidden focus relay — gains focus synchronously on double-tap so iOS keeps the keyboard open
           while React re-renders to mount the real textarea. */}
       <textarea
@@ -733,9 +818,9 @@ export function MoodCanvas() {
         className="relative h-full w-full overflow-hidden"
         style={{
           touchAction: 'none',
-          backgroundColor: PALETTE.pageBg,
+          backgroundColor: palette.pageBg,
           backgroundImage:
-            `linear-gradient(to right, ${PALETTE.line} 1px, transparent 1px), linear-gradient(to bottom, ${PALETTE.line} 1px, transparent 1px)`,
+            `linear-gradient(to right, ${palette.line} 1px, transparent 1px), linear-gradient(to bottom, ${palette.line} 1px, transparent 1px)`,
           backgroundSize: `${40 * viewportScale}px ${40 * viewportScale}px`,
           backgroundPosition: `${viewportOffset.x}px ${viewportOffset.y}px`,
         }}
@@ -794,24 +879,24 @@ export function MoodCanvas() {
                   zIndex: item.z,
                   border: isSticker
                     ? isSelected
-                      ? '1.5px dashed rgba(74,158,142,0.62)'
+                      ? `1.5px dashed ${palette.selectedDashedBorder}`
                       : '1px solid transparent'
                     : isSelected
-                      ? '1.5px solid rgba(74,158,142,0.5)'
-                      : `1px solid ${PALETTE.border}`,
-                  backgroundColor: isSticker ? 'transparent' : item.color,
+                      ? `1.5px solid ${palette.selectedBorder}`
+                      : `1px solid ${palette.border}`,
+                  backgroundColor: isSticker ? 'transparent' : resolveCanvasItemColor(item.color, isDark),
                   boxShadow: isSelected
-                    ? '0 20px 40px rgba(0,0,0,0.15)'
+                    ? palette.selectedShadow
                     : isSticker
                       ? 'none'
                     : item.type === 'photo'
-                      ? '0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04)'
-                      : '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+                      ? palette.photoShadow
+                      : palette.cardShadow,
                 }}
               >
                 {item.type === 'note' && (
                   <>
-                    <div className="h-0.5 w-8 mb-2" style={{ backgroundColor: 'rgba(0,0,0,0.08)' }} />
+                    <div className="h-0.5 w-8 mb-2" style={{ backgroundColor: palette.noteLine }} />
                     {isEditing ? (
                       <textarea
                         ref={editFocusRef}
@@ -820,12 +905,12 @@ export function MoodCanvas() {
                         onPointerDown={(event) => event.stopPropagation()}
                         onBlur={handleBlur}
                         placeholder={t('canvasNotePlaceholder')}
-                        className="w-full h-[80%] bg-transparent text-xs leading-relaxed outline-none resize-none placeholder:text-black/25"
-                        style={{ color: 'rgba(45,45,45,0.85)', caretColor: PALETTE.accent }}
+                        className={`w-full h-[80%] bg-transparent text-xs leading-relaxed outline-none resize-none ${isDark ? 'placeholder:text-white/30' : 'placeholder:text-black/25'}`}
+                        style={{ color: palette.bodyText, caretColor: palette.accent }}
                         autoFocus
                       />
                     ) : (
-                      <p className="leading-relaxed text-xs" style={{ color: item.text ? 'rgba(45,45,45,0.85)' : 'rgba(0,0,0,0.25)' }}>
+                      <p className="leading-relaxed text-xs" style={{ color: item.text ? palette.bodyText : palette.placeholder }}>
                         {item.text || t('canvasNotePlaceholder')}
                       </p>
                     )}
@@ -834,7 +919,7 @@ export function MoodCanvas() {
 
                 {item.type === 'entry' && (
                   <>
-                    <div className="flex items-center justify-between mb-2 pb-1.5" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                    <div className="flex items-center justify-between mb-2 pb-1.5" style={{ borderBottom: `1px solid ${palette.sectionDivider}` }}>
                       {isEditing ? (
                         <input
                           value={draftTitle}
@@ -842,14 +927,14 @@ export function MoodCanvas() {
                           onPointerDown={(event) => event.stopPropagation()}
                           onBlur={handleBlur}
                           className="uppercase tracking-wider text-[10px] bg-transparent outline-none w-[85%]"
-                          style={{ color: PALETTE.softText, caretColor: PALETTE.accent }}
+                          style={{ color: palette.softText, caretColor: palette.accent }}
                         />
                       ) : (
-                        <span className="uppercase tracking-wider text-[10px]" style={{ color: PALETTE.softText }}>
+                        <span className="uppercase tracking-wider text-[10px]" style={{ color: palette.softText }}>
                           {item.title}
                         </span>
                       )}
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: PALETTE.accent }} />
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: palette.accent }} />
                     </div>
                     {isEditing ? (
                       <textarea
@@ -859,12 +944,12 @@ export function MoodCanvas() {
                         onPointerDown={(event) => event.stopPropagation()}
                         onBlur={handleBlur}
                         placeholder={t('canvasEntryPlaceholder')}
-                        className="w-full h-[78%] bg-transparent text-xs leading-relaxed outline-none resize-none placeholder:text-black/25"
-                        style={{ color: 'rgba(45,45,45,0.86)', caretColor: PALETTE.accent }}
+                        className={`w-full h-[78%] bg-transparent text-xs leading-relaxed outline-none resize-none ${isDark ? 'placeholder:text-white/30' : 'placeholder:text-black/25'}`}
+                        style={{ color: palette.bodyTextStrong, caretColor: palette.accent }}
                         autoFocus
                       />
                     ) : (
-                      <p className="leading-relaxed text-xs" style={{ color: item.text ? 'rgba(45,45,45,0.86)' : 'rgba(0,0,0,0.25)' }}>
+                      <p className="leading-relaxed text-xs" style={{ color: item.text ? palette.bodyTextStrong : palette.placeholder }}>
                         {item.text || t('canvasEntryPlaceholder')}
                       </p>
                     )}
@@ -877,7 +962,7 @@ export function MoodCanvas() {
                       <div
                         className="relative w-full overflow-hidden"
                         style={{
-                          backgroundColor: '#F1F0EB',
+                          backgroundColor: palette.photoFrameBg,
                           aspectRatio: '1 / 1',
                         }}
                       >
@@ -904,14 +989,14 @@ export function MoodCanvas() {
                       </div>
 
                       <div className="pt-1">
-                        <p className="text-center italic text-[10px]" style={{ color: PALETTE.softText }}>
+                        <p className="text-center italic text-[10px]" style={{ color: palette.softText }}>
                           {item.caption}
                         </p>
                         {item.text && (
                           <p
                             className="leading-snug text-center mt-0.5 text-[10px]"
                             style={{
-                              color: 'rgba(45,45,45,0.82)',
+                              color: palette.bodyTextSoft,
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
                               WebkitBoxOrient: 'vertical',
@@ -947,7 +1032,7 @@ export function MoodCanvas() {
                     }}
                     onClick={commitEdit}
                     className="absolute -top-3 right-0 px-2 py-0.5 border text-[9px] uppercase tracking-widest"
-                    style={{ borderColor: 'rgba(74,158,142,0.6)', backgroundColor: '#FFFFFF', color: 'rgba(74,158,142,0.92)' }}
+                    style={{ borderColor: palette.controlBorder, backgroundColor: palette.controlBg, color: palette.controlText }}
                   >
                     {t('canvasDone')}
                   </button>
@@ -959,7 +1044,7 @@ export function MoodCanvas() {
                       type="button"
                       onPointerDown={(event) => startDrag(event, item)}
                       className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest cursor-grab active:cursor-grabbing"
-                      style={{ borderColor: 'rgba(74,158,142,0.6)', backgroundColor: '#FFFFFF', color: 'rgba(74,158,142,0.92)' }}
+                      style={{ borderColor: palette.controlBorder, backgroundColor: palette.controlBg, color: palette.controlText }}
                       aria-label={t('canvasDrag')}
                     >
                       {t('canvasDrag')}
@@ -969,7 +1054,7 @@ export function MoodCanvas() {
                       type="button"
                       onPointerDown={(event) => startRotate(event, item)}
                       className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full border flex items-center justify-center"
-                      style={{ borderColor: 'rgba(74,158,142,0.6)', backgroundColor: '#FFFFFF', color: PALETTE.accent }}
+                      style={{ borderColor: palette.controlBorder, backgroundColor: palette.controlBg, color: palette.accent }}
                       aria-label="Rotate"
                     >
                       <RotateCw size={11} />
@@ -983,7 +1068,7 @@ export function MoodCanvas() {
                         deleteItem(item.id);
                       }}
                       className="absolute -top-3 -right-3 w-5 h-5 rounded-full border flex items-center justify-center"
-                      style={{ borderColor: 'rgba(220,60,60,0.5)', backgroundColor: '#FFFFFF', color: 'rgba(220,60,60,0.85)' }}
+                      style={{ borderColor: palette.dangerBorder, backgroundColor: palette.controlBg, color: palette.dangerText }}
                       aria-label="Delete"
                     >
                       <Trash2 size={10} />
@@ -1012,9 +1097,9 @@ export function MoodCanvas() {
                   onClick={() => setFilter(option.value)}
                   className="px-2.5 py-1 text-[10px] uppercase tracking-widest border transition-colors"
                   style={{
-                    borderColor: isActive ? 'rgba(74,158,142,0.32)' : 'rgba(0,0,0,0.25)',
-                    backgroundColor: isActive ? 'rgba(230,244,240,0.92)' : 'rgba(255,255,255,0.68)',
-                    color: isActive ? PALETTE.accent : 'rgba(45,45,45,0.78)',
+                    borderColor: isActive ? palette.activeChipBorder : palette.chromeBorder,
+                    backgroundColor: isActive ? palette.activeChipBg : palette.chromeBg,
+                    color: isActive ? palette.accent : palette.chromeText,
                   }}
                 >
                   {t(option.key as any)}
@@ -1026,7 +1111,7 @@ export function MoodCanvas() {
 
         <div
           className="absolute bottom-24 right-3 rounded-lg border border-dashed px-2 py-1 text-[10px] flex items-center gap-1 z-40"
-          style={{ borderColor: 'rgba(0,0,0,0.25)', color: PALETTE.softText, backgroundColor: 'rgba(255,255,255,0.3)' }}
+          style={{ borderColor: palette.chromeBorder, color: palette.softText, backgroundColor: palette.helperBg }}
         >
           <Grip size={10} />
           <RotateCw size={10} />
@@ -1042,9 +1127,9 @@ export function MoodCanvas() {
             onClick={() => addCanvasItem('note')}
             className="px-2.5 py-1 text-[10px] uppercase tracking-widest border"
             style={{
-              borderColor: 'rgba(0,0,0,0.25)',
-              color: 'rgba(45,45,45,0.78)',
-              backgroundColor: 'rgba(255,255,255,0.68)',
+              borderColor: palette.chromeBorder,
+              color: palette.chromeText,
+              backgroundColor: palette.chromeBg,
             }}
           >
             {t('canvasAddNote')}
@@ -1057,9 +1142,9 @@ export function MoodCanvas() {
             onClick={() => addCanvasItem('entry')}
             className="px-2.5 py-1 text-[10px] uppercase tracking-widest border"
             style={{
-              borderColor: 'rgba(0,0,0,0.25)',
-              color: 'rgba(45,45,45,0.78)',
-              backgroundColor: 'rgba(255,255,255,0.68)',
+              borderColor: palette.chromeBorder,
+              color: palette.chromeText,
+              backgroundColor: palette.chromeBg,
             }}
           >
             {t('canvasAddEntry')}
@@ -1078,9 +1163,9 @@ export function MoodCanvas() {
             }}
             className="px-2.5 py-1 text-[10px] uppercase tracking-widest border"
             style={{
-              borderColor: 'rgba(0,0,0,0.25)',
-              color: 'rgba(45,45,45,0.78)',
-              backgroundColor: 'rgba(255,255,255,0.68)',
+              borderColor: palette.chromeBorder,
+              color: palette.chromeText,
+              backgroundColor: palette.chromeBg,
             }}
           >
             {t('canvasAddSticker')}
@@ -1094,7 +1179,7 @@ export function MoodCanvas() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="fixed inset-0 z-[70] flex items-end bg-black/30 backdrop-blur-[1px]"
+              className={`fixed inset-0 z-[70] flex items-end backdrop-blur-[1px] ${isDark ? 'bg-black/50' : 'bg-black/30'}`}
               onClick={() => setIsStickerDrawerOpen(false)}
             >
               <motion.div
@@ -1102,16 +1187,18 @@ export function MoodCanvas() {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                className="app-bottom-sheet w-full rounded-t-[2rem] border-t border-black/10 bg-[rgba(249,248,244,0.98)] px-4 pt-3 shadow-2xl"
+                className="app-bottom-sheet w-full rounded-t-[2rem] border-t px-4 pt-3 shadow-2xl"
                 style={{
                   minHeight: 'min(32rem, 68dvh)',
+                  borderColor: palette.sheetBorder,
+                  backgroundColor: palette.sheetBg,
                   paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
                 }}
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="relative mb-4 flex items-center justify-end gap-4">
                   <div className="absolute inset-x-0 flex justify-center pointer-events-none">
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-center" style={{ color: PALETTE.text }}>
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-center" style={{ color: palette.text }}>
                       {t('canvasStickerDrawerTitle')}
                     </h3>
                   </div>
@@ -1120,7 +1207,7 @@ export function MoodCanvas() {
                     type="button"
                     onClick={() => setIsStickerDrawerOpen(false)}
                     className="flex h-8 w-8 items-center justify-center rounded-full border"
-                    style={{ borderColor: 'rgba(0,0,0,0.08)', color: PALETTE.softText, backgroundColor: 'rgba(255,255,255,0.8)' }}
+                    style={{ borderColor: palette.sheetButtonBorder, color: palette.softText, backgroundColor: palette.sheetButtonBg }}
                     aria-label={t('canvasStickerDrawerClose')}
                   >
                     <X size={14} />
@@ -1137,9 +1224,9 @@ export function MoodCanvas() {
                         onClick={() => setActiveStickerCategoryId(category.id)}
                         className="shrink-0 rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-widest transition-colors"
                         style={{
-                          borderColor: isActive ? 'rgba(74,158,142,0.32)' : 'rgba(0,0,0,0.18)',
-                          backgroundColor: isActive ? 'rgba(230,244,240,0.92)' : 'rgba(255,255,255,0.7)',
-                          color: isActive ? PALETTE.accent : 'rgba(45,45,45,0.78)',
+                          borderColor: isActive ? palette.activeChipBorder : palette.sheetButtonBorder,
+                          backgroundColor: isActive ? palette.activeChipBg : palette.sheetButtonBg,
+                          color: isActive ? palette.accent : palette.chromeText,
                         }}
                       >
                         {t(`canvasStickerCategory_${category.id}` as any) === `canvasStickerCategory_${category.id}`
@@ -1173,7 +1260,7 @@ export function MoodCanvas() {
                 ) : (
                   <div
                     className="rounded-3xl border border-dashed px-4 py-8 text-center text-xs"
-                    style={{ borderColor: 'rgba(0,0,0,0.16)', color: PALETTE.softText, backgroundColor: 'rgba(255,255,255,0.4)' }}
+                    style={{ borderColor: palette.sheetEmptyBorder, color: palette.softText, backgroundColor: palette.sheetEmptyBg }}
                   >
                     {t('canvasStickerDrawerEmpty')}
                   </div>

@@ -69,8 +69,8 @@ function LineChart({ chartDays }: { chartDays: ChartDay[] }) {
   }, [linePath, svgPoints]);
 
   return (
-    <div className="flex-1 flex flex-col">
-      <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full flex-1" preserveAspectRatio="none">
+    <div className="flex-1 flex items-center">
+      <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full h-auto max-h-full" preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.35" />

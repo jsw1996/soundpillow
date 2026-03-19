@@ -6,11 +6,13 @@ import {
   type StoryCategory,
 } from '../../data/stories';
 import { useTranslation } from '../../i18n';
+import { useAppContext } from '../../context/AppContext';
 import { screenTransition } from '../../utils/animations';
 import { PillRow } from '../shared/PillRow';
 import { useScrollSync } from '../../hooks/useScrollSync';
 
-const SLEEPCAST_BACKGROUND = 'linear-gradient(315deg, #ffffff, #def1ff)';
+const SLEEPCAST_LIGHT_BACKGROUND = 'linear-gradient(315deg, #ffffff, #def1ff)';
+const SLEEPCAST_DARK_BACKGROUND = 'linear-gradient(180deg, #0f1219 0%, #141925 46%, #0c1016 100%)';
 
 function renderCategoryIcon(categoryId: string, className = 'h-5 w-5') {
   switch (categoryId) {
@@ -138,18 +140,20 @@ function CategorySection({
   stories,
   onPlay,
   innerRef,
+  isDark,
 }: {
   category: StoryCategory;
   stories: Story[];
   onPlay: (story: Story) => void;
   innerRef: (node: HTMLDivElement | null) => void;
+  isDark: boolean;
 }) {
   const { t } = useTranslation();
   const leadStory = stories[0] ?? null;
 
   return (
     <section ref={innerRef}>
-      <h2 className="text-[1.15rem] font-semibold tracking-[-0.035em] text-[#111217]">
+      <h2 className={`text-[1.15rem] font-semibold tracking-[-0.035em] ${isDark ? 'text-white/92' : 'text-[#111217]'}`}>
         {category.label}
       </h2>
 
@@ -166,7 +170,7 @@ function CategorySection({
           </div>
         </div>
       ) : (
-        <div className="mt-4 pb-4 text-sm text-black/36">
+        <div className={`mt-4 pb-4 text-sm ${isDark ? 'text-white/40' : 'text-black/36'}`}>
           {t('sleepcastNoResults')}
         </div>
       )}
@@ -184,6 +188,9 @@ export function ThemeGrid({
   storyCategories: StoryCategory[];
 }) {
   const { t } = useTranslation();
+  const { settings } = useAppContext();
+  const isDark = settings.theme === 'dark';
+  const sleepcastBackground = isDark ? SLEEPCAST_DARK_BACKGROUND : SLEEPCAST_LIGHT_BACKGROUND;
 
   const categoryIds = useMemo(
     () => storyCategories.map((c) => c.id),
@@ -220,13 +227,13 @@ export function ThemeGrid({
     <motion.div
       {...screenTransition}
       className="absolute inset-0 overflow-hidden"
-      style={{ background: SLEEPCAST_BACKGROUND }}
+      style={{ background: sleepcastBackground }}
     >
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute inset-0" style={{ background: SLEEPCAST_BACKGROUND }} />
-        <div className="absolute inset-x-6 top-24 h-44 rounded-[3rem] bg-[radial-gradient(circle,rgba(168,139,250,0.12)_0%,transparent_72%)] opacity-80 blur-3xl" />
-        <div className="absolute -right-10 top-52 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.12)_0%,transparent_72%)] blur-3xl" />
-        <div className="absolute -left-12 bottom-28 h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.12)_0%,transparent_74%)] blur-3xl" />
+        <div className="absolute inset-0" style={{ background: sleepcastBackground }} />
+        <div className={`absolute inset-x-6 top-24 h-44 rounded-[3rem] bg-[radial-gradient(circle,rgba(168,139,250,0.12)_0%,transparent_72%)] blur-3xl ${isDark ? 'opacity-100' : 'opacity-80'}`} />
+        <div className={`absolute -right-10 top-52 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.12)_0%,transparent_72%)] blur-3xl ${isDark ? 'opacity-80' : 'opacity-100'}`} />
+        <div className={`absolute -left-12 bottom-28 h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.12)_0%,transparent_74%)] blur-3xl ${isDark ? 'opacity-80' : 'opacity-100'}`} />
       </div>
 
       <div
@@ -268,29 +275,29 @@ export function ThemeGrid({
                 className="group relative w-full overflow-hidden rounded-[1.6rem] text-left"
               >
                 {/* layered watercolor-ish background */}
-                <div className="absolute inset-0 bg-linear-to-br from-[#ede9fe] via-[#e0e7ff] to-[#dbeafe]" />
-                <div className="absolute -left-6 -top-6 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(167,139,250,0.35)_0%,transparent_70%)] blur-2xl" />
-                <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.3)_0%,transparent_70%)] blur-2xl" />
-                <div className="absolute right-12 top-2 h-16 w-16 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.18)_0%,transparent_70%)] blur-xl" />
+                <div className={`absolute inset-0 ${isDark ? 'bg-linear-to-br from-[#232439] via-[#182235] to-[#122031]' : 'bg-linear-to-br from-[#ede9fe] via-[#e0e7ff] to-[#dbeafe]'}`} />
+                <div className={`absolute -left-6 -top-6 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(167,139,250,0.35)_0%,transparent_70%)] blur-2xl ${isDark ? 'opacity-90' : ''}`} />
+                <div className={`absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.3)_0%,transparent_70%)] blur-2xl ${isDark ? 'opacity-90' : ''}`} />
+                <div className={`absolute right-12 top-2 h-16 w-16 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.18)_0%,transparent_70%)] blur-xl ${isDark ? 'opacity-70' : ''}`} />
 
                 <div className="relative flex items-center gap-4 px-5 py-5">
                   {/* icon */}
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/50 bg-white/70 shadow-sm backdrop-blur-sm">
-                    <Shuffle size={19} className="text-indigo-500" strokeWidth={2.4} />
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border shadow-sm backdrop-blur-sm ${isDark ? 'border-white/12 bg-white/8' : 'border-white/50 bg-white/70'}`}>
+                    <Shuffle size={19} className={isDark ? 'text-indigo-100' : 'text-indigo-500'} strokeWidth={2.4} />
                   </div>
 
                   {/* copy */}
                   <div className="min-w-0 flex-1">
-                    <p className="text-[0.95rem] font-semibold tracking-[-0.02em] text-[#1e1b4b]">
+                    <p className={`text-[0.95rem] font-semibold tracking-[-0.02em] ${isDark ? 'text-white/92' : 'text-[#1e1b4b]'}`}>
                       {t('sleepcastRandomTitle')}
                     </p>
-                    <p className="mt-1 text-[0.78rem] leading-snug text-indigo-900/45">
+                    <p className={`mt-1 text-[0.78rem] leading-snug ${isDark ? 'text-white/58' : 'text-indigo-900/45'}`}>
                       {t('sleepcastRandomSubtitle')}
                     </p>
                   </div>
 
                   {/* play arrow */}
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500/90 text-white shadow-md shadow-indigo-400/30 transition-transform duration-300 group-active:scale-90">
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-300 group-active:scale-90 ${isDark ? 'bg-white/14 shadow-md shadow-black/30' : 'bg-indigo-500/90 shadow-md shadow-indigo-400/30'}`}>
                     <Play size={14} fill="currentColor" className="ml-0.5" />
                   </div>
                 </div>
@@ -321,6 +328,7 @@ export function ThemeGrid({
                 category={category}
                 stories={stories}
                 onPlay={handleStoryPlay}
+                isDark={isDark}
                 innerRef={(node) => {
                   setSectionRef(category.id, node);
                 }}

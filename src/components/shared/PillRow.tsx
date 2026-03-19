@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { animate, motion } from 'motion/react';
+import { useAppContext } from '../../context/AppContext';
 
 interface PillRowProps<T extends { id: string }> {
   items: T[];
@@ -22,6 +23,8 @@ export function PillRow<T extends { id: string }>({
   containerClassName = 'overflow-x-auto no-scrollbar px-6',
   listClassName = 'flex min-w-max gap-3',
 }: PillRowProps<T>) {
+  const { settings } = useAppContext();
+  const isDark = settings.theme === 'dark';
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const pillRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
@@ -87,12 +90,16 @@ export function PillRow<T extends { id: string }>({
               style={{
                 background: isActive
                   ? 'linear-gradient(135deg, color-mix(in srgb, var(--color-primary, #8c2bee) 72%, white 16%) 0%, color-mix(in srgb, var(--color-primary, #8c2bee) 85%, black 8%) 100%)'
-                  : 'linear-gradient(135deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.55) 100%)',
+                  : isDark
+                    ? 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.06) 100%)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.55) 100%)',
                 backdropFilter: 'blur(24px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(24px) saturate(180%)',
                 boxShadow: isActive
                   ? 'none'
-                  : 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(255,255,255,0.15)',
+                  : isDark
+                    ? 'inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 24px rgba(0,0,0,0.18), 0 0 0 0.5px rgba(255,255,255,0.05)'
+                    : 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(255,255,255,0.15)',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >

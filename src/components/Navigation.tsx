@@ -28,7 +28,6 @@ interface BottomNavProps {
 export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPlayer }: BottomNavProps) {
   const { currentScreen, setCurrentScreen } = useAppContext();
   const { t } = useTranslation();
-  const isSleepcastScreen = currentScreen === 'sleepcast';
 
   const handleNavClick = (item: typeof NAV_ITEMS[number]) => {
     if (item.screen === 'sleepcast' && onSleepcastNav) {
@@ -60,7 +59,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
         className={`relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl transition-colors duration-300 ${
           active
             ? 'text-primary nav-indicator'
-            : isSleepcastScreen ? 'text-gray-500' : 'text-gray-500'
+            : 'text-gray-500'
         }`}
       >
         <Icon size={20} fill={active ? 'currentColor' : 'none'} strokeWidth={active ? 2 : 1.8} />
@@ -77,11 +76,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
       <motion.div
         layout="position"
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-        className={`mx-auto flex max-w-[32rem] items-center justify-around px-1 py-1 rounded-[22px] ${
-          isSleepcastScreen
-            ? 'sleepcast-flat-pill'
-            : 'glass-dock'
-        }`}
+        className="glass-dock mx-auto flex max-w-[32rem] items-center justify-around rounded-[22px] px-1 py-1"
       >
         {leftItems.map(renderNavButton)}
 

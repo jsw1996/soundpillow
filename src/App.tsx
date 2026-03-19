@@ -73,6 +73,9 @@ function AppContent() {
 
   const defaultShellColor = settings.theme === 'light' ? '#F1F5F9' : '#1e1c23';
   const isSleepcastGrid = currentScreen === 'sleepcast' && !coordinator.showSleepcastPlayer;
+  const sleepcastShellBackground = settings.theme === 'light'
+    ? 'linear-gradient(315deg, #ffffff, #def1ff)'
+    : 'linear-gradient(180deg, #0f1219 0%, #141925 46%, #0c1016 100%)';
 
   useEffect(() => {
     const html = document.documentElement;
@@ -183,7 +186,7 @@ function AppContent() {
   return (
     <div
       className={`app-shell h-dvh flex flex-col ${isSleepcastGrid ? '' : 'bg-bg-dark'}`}
-      style={isSleepcastGrid ? { background: 'linear-gradient(315deg, #ffffff, #def1ff)' } : undefined}
+      style={isSleepcastGrid ? { background: sleepcastShellBackground } : undefined}
     >
       {!isSleepcastGrid && <div className="ambient-bg" />}
       <AnimatePresence mode="wait">

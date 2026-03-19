@@ -3,11 +3,14 @@ import { Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { SleepcastTheme } from '../../types';
 import { useTranslation } from '../../i18n';
+import { useAppContext } from '../../context/AppContext';
 import { ScreenFrame, HeaderBadge, ThemeArtwork } from './SleepcastShared';
 import { getSceneVisual, getThemeName } from './utils';
 
 export function LoadingView({ theme }: { theme: SleepcastTheme }) {
   const { t } = useTranslation();
+  const { settings } = useAppContext();
+  const isDark = settings.theme === 'dark';
   const visual = getSceneVisual(theme.id);
 
   return (
@@ -15,14 +18,14 @@ export function LoadingView({ theme }: { theme: SleepcastTheme }) {
       <ScreenFrame theme={theme}>
         <div className="flex items-center justify-between">
           <HeaderBadge imageUrl={theme.imageUrl} />
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-black/8 bg-white/65 shadow-[0_10px_24px_rgba(23,24,28,0.08)] backdrop-blur-md">
+          <div className={`flex h-14 w-14 items-center justify-center rounded-full border shadow-[0_10px_24px_rgba(23,24,28,0.08)] backdrop-blur-md ${isDark ? 'border-white/10 bg-white/8' : 'border-black/8 bg-white/65'}`}>
             <Sparkles size={22} style={{ color: visual.accent }} />
           </div>
         </div>
 
         <div className="mt-8 max-w-[16rem]">
-          <p className="text-sm font-medium text-black/45">{t('sleepcastGreetingSubline')}</p>
-          <h1 className="mt-3 text-[3.1rem] font-black italic leading-[0.9] tracking-[-0.08em] text-[#111217]">
+          <p className={`text-sm font-medium ${isDark ? 'text-white/52' : 'text-black/45'}`}>{t('sleepcastGreetingSubline')}</p>
+          <h1 className={`mt-3 text-[3.1rem] font-black italic leading-[0.9] tracking-[-0.08em] ${isDark ? 'text-white' : 'text-[#111217]'}`}>
             {t('sleepcastTraceTitle')}
           </h1>
         </div>
@@ -31,7 +34,7 @@ export function LoadingView({ theme }: { theme: SleepcastTheme }) {
           className="mt-8 rounded-[2.25rem] p-5"
           style={{ background: visual.card, boxShadow: `0 24px 50px ${visual.shadow}` }}
         >
-          <div className="relative min-h-[17.5rem] overflow-hidden rounded-[1.7rem] bg-black/6 px-5 py-5">
+          <div className={`relative min-h-[17.5rem] overflow-hidden rounded-[1.7rem] px-5 py-5 ${isDark ? 'bg-black/18' : 'bg-black/6'}`}>
             <div className="relative z-10 max-w-[12rem]">
               <div className="text-[11px] font-black uppercase tracking-[0.02em] opacity-55" style={{ color: visual.cardInk }}>
                 {t('sleepcastGenerating')}

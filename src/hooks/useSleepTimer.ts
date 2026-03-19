@@ -71,9 +71,19 @@ export function useSleepTimer(onTimerEnd: () => void, defaultMinutes: number | n
   const selectTimer = useCallback((mins: number | null) => {
     setTimerMinutes(mins);
     if (mins === null) {
+      endTimeRef.current = 0;
       setIsActive(false);
+      setSecondsRemaining(0);
+      return;
     }
-  }, []);
+
+    const nextSeconds = mins * 60;
+    setSecondsRemaining(nextSeconds);
+
+    if (isActive) {
+      endTimeRef.current = Date.now() + nextSeconds * 1000;
+    }
+  }, [isActive]);
 
   const start = useCallback(() => {
     if (timerMinutes === null) return;

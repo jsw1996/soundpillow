@@ -205,7 +205,7 @@ const AMBIENT_TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         category: 'Meditation',
         imageSourceUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80',
         blobCoverPath: 'audios/covers/rain-on-window.jpg',
-        blobAudioPath: 'audios/tracks/calming_rain2.mp3', 
+        blobAudioPath: 'audios/tracks/relaxing_rain.mp3', 
         description: 'Soft rain pattering against a windowpane.',
     },
     {
@@ -229,6 +229,28 @@ const AMBIENT_TRACK_DEFINITIONS: AudioTrackDefinition[] = [
         blobCoverPath: 'audios/covers/delta-waves.jpg',
         blobAudioPath: 'audios/tracks/binaural_delta.mp3',
         description: 'Delta binaural beats to guide you into deep sleep.',
+    },
+    {
+        id: '15',
+        title: 'Counting Sheep',
+        artist: 'Gentle Slumber',
+        duration: '30 mins',
+        category: 'Animals',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1575014912260-91c2b5ad7441?q=80',
+        blobCoverPath: 'audios/covers/sheep.jpg',
+        blobAudioPath: 'audios/tracks/sheep.mp3',
+        description: 'Soft bleating of sheep in a peaceful meadow.',
+    },
+    {
+        id: '16',
+        title: 'Morning Chickens',
+        artist: 'Farmyard Calm',
+        duration: '25 mins',
+        category: 'Animals',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1589922583749-6b8473a85048',
+        blobCoverPath: 'audios/covers/chicken.jpg',
+        blobAudioPath: 'audios/tracks/chicken.mp3',
+        description: 'Gentle clucking of chickens on a quiet farm morning.',
     },
 ];
 

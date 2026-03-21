@@ -90,4 +90,16 @@ export const TRACK_ASSETS: Record<string, TrackAsset> = {
     sourceImageUrl: 'https://images.unsplash.com/photo-1621975081039-c814938ea869?q=80&w=1041&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     blobCoverPath: 'audios/covers/delta-waves.jpg',
   },
+  '15': {
+    localAudioPath: 'audio_normalized/sheep.mp3',
+    blobAudioPath: 'audios/tracks/sheep.mp3',
+    sourceImageUrl: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?q=80&w=1200&auto=format&fit=crop',
+    blobCoverPath: 'audios/covers/sheep.jpg',
+  },
+  '16': {
+    localAudioPath: 'audio_normalized/chicken.mp3',
+    blobAudioPath: 'audios/tracks/chicken.mp3',
+    sourceImageUrl: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=1200&auto=format&fit=crop',
+    blobCoverPath: 'audios/covers/chicken.jpg',
+  },
 };

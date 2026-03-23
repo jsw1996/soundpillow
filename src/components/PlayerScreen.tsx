@@ -186,17 +186,21 @@ export function PlayerScreen({
           transition={{ delay: 0.35 }}
           className="flex items-center justify-between gap-4 md:gap-8"
         >
-          {/* Timer toggle */}
-          <button
-            onClick={handleTimerToggle}
-            className={`p-3 rounded-full liquid-glass-sm transition-all duration-300 active:scale-90 ${
-              timerMinutes !== null
-                ? 'text-primary'
-                : showTimer ? 'text-white/90' : 'text-white/60'
-            }`}
-          >
-            <Moon size={18} />
-          </button>
+          {/* Timer toggle (hidden during sleepcast) */}
+          {sleepcastMode ? (
+            <div className="w-[44px]" />
+          ) : (
+            <button
+              onClick={handleTimerToggle}
+              className={`p-3 rounded-full liquid-glass-sm transition-all duration-300 active:scale-90 ${
+                timerMinutes !== null
+                  ? 'text-primary'
+                  : showTimer ? 'text-white/90' : 'text-white/60'
+              }`}
+            >
+              <Moon size={18} />
+            </button>
+          )}
 
           <div className="flex items-center gap-6 md:gap-10">
             <button
@@ -216,9 +220,9 @@ export function PlayerScreen({
             </button>
           </div>
 
-          {/* Timer countdown display */}
+          {/* Timer countdown display (hidden during sleepcast) */}
           <div className="w-[44px] text-center">
-            {timerMinutes !== null && (
+            {!sleepcastMode && timerMinutes !== null && (
               <span className="text-[10px] font-semibold text-primary tabular-nums">
                 {formatTimerDisplay(timerSecondsRemaining)}
               </span>
@@ -226,8 +230,10 @@ export function PlayerScreen({
           </div>
         </motion.div>
 
-        {/* ── Sleep timer drawer ── */}
-        <TimerSelector show={showTimer} timerMinutes={timerMinutes} onSetTimer={onSetTimer} />
+        {/* ── Sleep timer drawer (hidden during sleepcast) ── */}
+        {!sleepcastMode && (
+          <TimerSelector show={showTimer} timerMinutes={timerMinutes} onSetTimer={onSetTimer} />
+        )}
       </div>
     </motion.div>
   );

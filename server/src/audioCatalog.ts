@@ -39,6 +39,7 @@ const STORY_CATEGORIES = [
     { id: 'animal-friends', labels: { en: 'Animal Friends', zh: '动物伙伴', ja: '動物の友だち', es: 'Amigos animales' } },
     { id: 'fairy-tale', labels: { en: 'Fairy Tales', zh: '童话故事', ja: 'おとぎ話', es: 'Cuentos' } },
     { id: 'guided-relaxation', labels: { en: 'Guided Relaxation', zh: '冥想引导', ja: 'リラクゼーション', es: 'Relajación guiada' } },
+    { id: 'classical-chinese', labels: { en: 'Classical Chinese', zh: '古风故事', ja: '古典中国', es: 'China clásica' } },
 ] as const satisfies readonly StoryCategoryDefinition[];
 
 export type StoryCategoryId = (typeof STORY_CATEGORIES)[number]['id'];
@@ -391,6 +392,21 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
         description: '在云朵上的花园里，跟随呼吸放松身体，让柔软的微风和花香带你慢慢入睡。',
         subtitle: '轻柔呼吸引导，在云端花园中找到最深的放松。',
         storyPreview: '躺在柔软的云朵上，身体像羽毛一样轻盈，跟随温柔的声音走进一座只属于你的空中花园，让每一次呼吸都变成安眠的摇篮。',
+        paragraphCount: 1,
+    },
+    {
+        id: 'story-10',
+        title: '月下抄经人',
+        artist: '半刻 Stories',
+        duration: '9 min',
+        category: 'classical-chinese',
+        imageSourceUrl: '',
+        imageUrl: 'audios/covers/moonlight-scribe.jpg',
+        blobAudioPath: 'audios/stories/10_月下抄经人.wav',
+        backgroundMusic: 'audios/music/kaazoom-when-the-full-moon-rises-chinese-music-traditional-instruments_normalized.mp3',
+        description: '亥时将至，寺里灯火渐熄，年轻僧人慧真在月光与竹影中，一笔一画地抄写《金刚经》，墨香与松涛织成深夜最安静的陪伴。',
+        subtitle: '月光禅房、墨香竹影和一卷经文里的深夜宁静。',
+        storyPreview: '亥时将至，寺里的灯火一盏一盏地熄了，只剩禅房窗口一点微光。年轻僧人慧真提起笔，在月光铺满的经纸上落下第一个字，墨色与夜色一起慢慢沉入最深的安静。',
         paragraphCount: 1,
     },
 ];

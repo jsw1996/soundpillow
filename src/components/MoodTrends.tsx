@@ -266,7 +266,7 @@ export function MoodTrends() {
         </div>
 
         {/* Content Area */}
-        <div className="relative min-h-[180px]">
+        <div className="relative">
           <AnimatePresence mode="wait" initial={false}>
             {view === 'chart' ? (
               <motion.div
@@ -275,7 +275,7 @@ export function MoodTrends() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-0 flex flex-col"
+                className="flex flex-col min-h-[180px]"
               >
                 <LineChart chartDays={chartDays} />
               </motion.div>
@@ -286,7 +286,7 @@ export function MoodTrends() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-0 flex flex-col"
+                className="flex flex-col"
               >
                 <div className="flex justify-between items-center mb-3 text-xs font-bold px-1">
                   <button onClick={prevMonth} className="p-1 hover:bg-foreground/5 rounded text-foreground/50"><ChevronLeft size={14}/></button>

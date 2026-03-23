@@ -4,6 +4,7 @@ import { config, validateConfig } from './config.js';
 import audiosRouter from './routes/audios.js';
 import storiesRouter from './routes/stories.js';
 import moodRouter from './routes/mood.js';
+import mixesRouter from './routes/mixes.js';
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/audios', audiosRouter);
 app.use('/api/stories', storiesRouter);
 app.use('/api/mood', moodRouter);
+app.use('/api/mixes', mixesRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {

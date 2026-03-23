@@ -1,4 +1,4 @@
-import type { Track } from '../types';
+import type { Track, MixPreset } from '../types';
 import type { StoryCategory } from '../data/stories';
 
 // dev → local server; prod build (iOS + GitHub Pages) → online server
@@ -66,6 +66,16 @@ export async function fetchStoryCatalog(locale: string = 'zh'): Promise<StoryCat
     `${SERVER_URL}/api/stories?locale=${encodeURIComponent(locale)}`,
     {},
     8000,
+  );
+  if (!res.ok) throw new Error(`Server error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchMixes(locale: string = 'en'): Promise<MixPreset[]> {
+  const res = await fetchWithTimeout(
+    `${SERVER_URL}/api/mixes?locale=${encodeURIComponent(locale)}`,
+    {},
+    5000,
   );
   if (!res.ok) throw new Error(`Server error: ${res.status}`);
   return res.json();

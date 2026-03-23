@@ -28,7 +28,7 @@ function AppContent() {
   const [showStartupOverlay, setShowStartupOverlay] = useState(true);
   const [miniPlayerCollapsed, setMiniPlayerCollapsed] = useState(false);
 
-  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks, catalogStories, storyCategories, mixPresets } = useAppContext();
+  const { currentScreen, setCurrentScreen, recordSession, settings, checkIn, tracks, catalogStories, storyCategories, mixPresets, defaultMixes } = useAppContext();
   const { t } = useTranslation();
 
   const playerRef = useRef<{ pause: () => void }>({ pause() {} });
@@ -55,7 +55,7 @@ function AppContent() {
 
   const coordinator = useAudioCoordinator(
     { player, mixer, sleepcast, timer },
-    { tracks, catalogStories, mixPresets, recordSession },
+    { tracks, catalogStories, mixPresets, defaultMixes, recordSession },
   );
 
   // Load shared mix from URL

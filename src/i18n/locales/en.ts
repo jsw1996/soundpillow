@@ -140,13 +140,6 @@ const en = {
   shareCurrentMix: 'Share Current Mix',
   listenTo: 'Listen to "{{name}}" on 半刻',
 
-  // Default mix names
-  mix_default_1: 'Summer Bonfire Night',
-  mix_default_2: 'Rainy Forest',
-  mix_default_3: 'Ocean Breeze',
-  mix_default_4: 'Cozy Campfire',
-  mix_default_5: 'Zen Meditation',
-
   // Navigation
   navSleepcast: 'Stories',
 

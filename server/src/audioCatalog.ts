@@ -470,3 +470,102 @@ export function getStoryAudioCatalog(locale: Locale = 'zh'): StoryCatalogRespons
         stories,
     };
 }
+
+/* ── Default Mix Presets ────────────────────────────────────────────── */
+
+export interface MixTrack {
+    trackId: string;
+    volume: number;
+    isActive: boolean;
+}
+
+export interface MixPresetDefinition {
+    id: string;
+    names: Record<Locale, string>;
+    tracks: MixTrack[];
+}
+
+export interface MixPresetResponse {
+    id: string;
+    name: string;
+    tracks: MixTrack[];
+    createdAt: number;
+}
+
+const DEFAULT_MIX_DEFINITIONS: MixPresetDefinition[] = [
+    {
+        id: 'default-1',
+        names: {
+            en: 'Summer Bonfire Night',
+            zh: '夏夜篝火',
+            ja: '夏の焚き火の夜',
+            es: 'Noche de Fogata de Verano',
+        },
+        tracks: [
+            { trackId: '2', volume: 52, isActive: true },  // Midnight Forest
+            { trackId: '7', volume: 50, isActive: true },  // Forest Bonfire
+        ],
+    },
+    {
+        id: 'default-2',
+        names: {
+            en: 'Misty Creek',
+            zh: '晨雾溪流',
+            ja: '霧の小川',
+            es: 'Arroyo Brumoso',
+        },
+        tracks: [
+            { trackId: '11', volume: 40, isActive: true },  // Gentle River
+            { trackId: '5', volume: 55, isActive: true },   // Morning Mist
+        ],
+    },
+    {
+        id: 'default-3',
+        names: {
+            en: 'Ocean Breeze',
+            zh: '海风轻拂',
+            ja: '海のそよ風',
+            es: 'Brisa Marina',
+        },
+        tracks: [
+            { trackId: '3', volume: 65, isActive: true },  // Ocean Waves
+            { trackId: '6', volume: 65, isActive: true },  // Wind Howling
+        ],
+    },
+    {
+        id: 'default-4',
+        names: {
+            en: 'Cozy Campfire',
+            zh: '温馨营火',
+            ja: '心地よい焚き火',
+            es: 'Fogata Acogedora',
+        },
+        tracks: [
+            { trackId: '7', volume: 55, isActive: true },  // Forest Bonfire
+            { trackId: '4', volume: 40, isActive: true },  // Purring Cat
+            { trackId: '8', volume: 25, isActive: true },  // Rustling Wind
+        ],
+    },
+    {
+        id: 'default-5',
+        names: {
+            en: 'Zen Meditation',
+            zh: '禅意冥想',
+            ja: '禅メディテーション',
+            es: 'Meditación Zen',
+        },
+        tracks: [
+            { trackId: '9', volume: 50, isActive: true },   // Singing Bowl
+            { trackId: '12', volume: 40, isActive: true },  // Calming Rain
+        ],
+    },
+];
+
+export function getMixCatalog(locale: Locale = 'en'): MixPresetResponse[] {
+    return DEFAULT_MIX_DEFINITIONS.map((mix) => ({
+        id: mix.id,
+        name: mix.names[locale] || mix.names.en,
+        tracks: mix.tracks,
+        createdAt: 0,
+    }));
+}

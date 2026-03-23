@@ -140,13 +140,6 @@ const ja: Record<string, string> = {
   shareCurrentMix: '現在のミックスを共有',
   listenTo: '半刻で「{{name}}」を聴く',
 
-  // Default mix names
-  mix_default_1: '夏の焚き火の夜',
-  mix_default_2: '雨の森',
-  mix_default_3: '海のそよ風',
-  mix_default_4: '心地よい焚き火',
-  mix_default_5: '禅メディテーション',
-
   // Navigation
   navSleepcast: 'ストーリー',
 

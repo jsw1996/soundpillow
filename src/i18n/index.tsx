@@ -126,22 +126,3 @@ export function useTrackTranslation() {
     [t],
   );
 }
-
-/**
- * Translates a default mix name by its ID (e.g. "default-1" → "mix_default_1").
- * User-created presets are returned as-is.
- */
-export function useMixNameTranslation() {
-  const { t } = useTranslation();
-
-  return useCallback(
-    (mixId: string, originalName: string): string => {
-      if (!mixId.startsWith('default-')) return originalName;
-      const num = mixId.replace('default-', '');
-      const key = `mix_default_${num}` as TranslationKeys;
-      const translated = t(key);
-      return translated !== key ? translated : originalName;
-    },
-    [t],
-  );
-}

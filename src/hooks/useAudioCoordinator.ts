@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GeneratedSleepcast, MixerTrack, MixPreset, SleepcastStatus, SleepcastTheme, Track } from '../types';
-import { DEFAULT_MIXES } from '../constants';
-import { useMixNameTranslation, useTranslation } from '../i18n';
+import { useTranslation } from '../i18n';
 import { getStoryCast, getStoryTheme } from '../data/stories';
 import { getThemeName } from '../components/sleepcast/utils';
 import type { UseMediaSessionProps } from './useMediaSession';
@@ -52,6 +51,7 @@ interface CoordinatorOptions {
   tracks: Track[];
   catalogStories: Story[];
   mixPresets: MixPreset[];
+  defaultMixes: MixPreset[];
   recordSession: (trackId?: string) => void;
 }
 
@@ -60,7 +60,7 @@ export function useAudioCoordinator(
   options: CoordinatorOptions,
 ) {
   const { player, mixer, sleepcast, timer } = systems;
-  const { tracks, catalogStories, mixPresets, recordSession } = options;
+  const { tracks, catalogStories, mixPresets, defaultMixes, recordSession } = options;
   const { t } = useTranslation();
 
   const [activeMix, setActiveMix] = useState<{ id: string; name: string } | null>(null);
@@ -68,9 +68,8 @@ export function useAudioCoordinator(
   const [sleepcastView, setSleepcastView] = useState<'grid' | 'player'>('grid');
   const wasMixPlayingRef = useRef(false);
 
-  const getMixName = useMixNameTranslation();
-  const activeMixName = activeMix ? getMixName(activeMix.id, activeMix.name) : null;
-  const availableMixes = useMemo(() => [...DEFAULT_MIXES, ...mixPresets], [mixPresets]);
+  const activeMixName = activeMix?.name ?? null;
+  const availableMixes = useMemo(() => [...defaultMixes, ...mixPresets], [defaultMixes, mixPresets]);
 
   // Sync timer with mixer playback
   useEffect(() => {

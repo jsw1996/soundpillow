@@ -140,13 +140,6 @@ const zh: Record<string, string> = {
   shareCurrentMix: '分享当前混音',
   listenTo: '在半刻上收听「{{name}}」',
 
-  // Default mix names
-  mix_default_1: '夏夜篝火',
-  mix_default_2: '雨中森林',
-  mix_default_3: '海风轻拂',
-  mix_default_4: '温馨营火',
-  mix_default_5: '禅意冥想',
-
   // Navigation
   navSleepcast: '故事',
 

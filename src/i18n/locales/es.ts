@@ -140,13 +140,6 @@ const es: Record<string, string> = {
   shareCurrentMix: 'Compartir Mezcla Actual',
   listenTo: 'Escucha "{{name}}" en 半刻',
 
-  // Default mix names
-  mix_default_1: 'Noche de Fogata de Verano',
-  mix_default_2: 'Bosque Lluvioso',
-  mix_default_3: 'Brisa Marina',
-  mix_default_4: 'Fogata Acogedora',
-  mix_default_5: 'Meditación Zen',
-
   // Navigation
   navSleepcast: 'Historias',
 

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
-import { fetchAudios, fetchStoryCatalog } from '../services/api';
+import { fetchAudios, fetchStoryCatalog, fetchMixes } from '../services/api';
 import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats, Track } from '../types';
 import { getDateString, getYesterday } from '../utils/date';
 import { loadFromStorage } from '../utils/storage';
@@ -23,6 +23,7 @@ interface AppContextValue {
   tracksError: string | null;
   catalogStories: Story[];
   storyCategories: StoryCategory[];
+  defaultMixes: MixPreset[];
   settings: UserSettings;
   updateSettings: (patch: Partial<UserSettings>) => void;
   stats: ListeningStats;
@@ -85,6 +86,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [tracksError, setTracksError] = useState<string | null>(null);
   const [catalogStories, setCatalogStories] = useState<Story[]>([]);
   const [storyCategories, setStoryCategories] = useState<StoryCategory[]>([]);
+  const [defaultMixes, setDefaultMixes] = useState<MixPreset[]>([]);
   const [settings, setSettings] = useState<UserSettings>(() =>
     loadFromStorage(SETTINGS_KEY, DEFAULT_SETTINGS, (v) => ({ ...DEFAULT_SETTINGS, ...v })),
   );
@@ -138,6 +140,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setTracks(nextTracks);
         setTracksError(null);
         setTracksLoading(false);
+
+        // Prefetch audio + cover assets in the background so the SW caches them.
+        // Uses low-priority fetch to avoid competing with user-initiated playback.
+        for (const track of nextTracks) {
+          fetch(track.audioUrl, { priority: 'low' } as RequestInit).catch(() => {});
+          fetch(track.imageUrl, { priority: 'low' } as RequestInit).catch(() => {});
+        }
+
         return;
       } catch (error) {
         console.error(`Failed to load audio catalog (attempt ${attempt + 1}/3):`, error);
@@ -172,6 +182,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const loadDefaultMixes = useCallback(async (locale: string) => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const mixes = await fetchMixes(locale);
+        setDefaultMixes(mixes);
+        return;
+      } catch (error) {
+        console.warn(`Failed to load mix catalog (attempt ${attempt + 1}/3).`, error);
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        }
+      }
+    }
+  }, []);
+
   // Load tracks on mount
   useEffect(() => {
     loadTracks();
@@ -181,6 +206,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     loadCatalogStories(locale);
   }, [loadCatalogStories, locale]);
+
+  // Load default mixes on mount and when locale changes
+  useEffect(() => {
+    loadDefaultMixes(locale);
+  }, [loadDefaultMixes, locale]);
 
   // Retry loading tracks when app returns to foreground if they failed
   useEffect(() => {
@@ -192,10 +222,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (document.visibilityState === 'visible' && catalogStories.length === 0) {
         loadCatalogStories(locale);
       }
+
+      if (document.visibilityState === 'visible' && defaultMixes.length === 0) {
+        loadDefaultMixes(locale);
+      }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [tracks.length, catalogStories.length, loadTracks, loadCatalogStories, locale]);
+  }, [tracks.length, catalogStories.length, defaultMixes.length, loadTracks, loadCatalogStories, loadDefaultMixes, locale]);
 
   const toggleFavorite = useCallback((trackId: string) => {
     setFavorites((prev) => {
@@ -338,6 +372,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     tracksError,
     catalogStories,
     storyCategories,
+    defaultMixes,
     settings,
     updateSettings,
     stats,
@@ -353,7 +388,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     getWeekEntries,
   }), [
     currentScreen, searchQuery, favorites, showFavoritesOnly, menuOpen,
-    tracks, tracksLoading, tracksError, catalogStories, storyCategories, settings, stats, mixPresets, journal, streakStats,
+    tracks, tracksLoading, tracksError, catalogStories, storyCategories, defaultMixes, settings, stats, mixPresets, journal, streakStats,
     setCurrentScreen, setSearchQuery, toggleFavorite, isFavorite,
     setShowFavoritesOnly, setMenuOpen, updateSettings,
     recordSession, resetStats, saveMixPreset, deleteMixPreset,

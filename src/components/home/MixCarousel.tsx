@@ -1,9 +1,8 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { Share2, SlidersHorizontal } from 'lucide-react';
-import { DEFAULT_MIXES } from '../../constants';
 import { Track, MixPreset } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { useTranslation, useTrackTranslation, useMixNameTranslation } from '../../i18n';
+import { useTranslation, useTrackTranslation } from '../../i18n';
 import { shareAndNotify } from '../../utils/mixShare';
 import { showToast } from '../Toast';
 
@@ -17,10 +16,9 @@ interface MixCarouselProps {
 
 export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying, onOpenMixer }: MixCarouselProps) {
   const [activeMixIdx, setActiveMixIdx] = useState(0);
-  const { tracks } = useAppContext();
+  const { tracks, defaultMixes } = useAppContext();
   const { t } = useTranslation();
   const tt = useTrackTranslation();
-  const getMixName = useMixNameTranslation();
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const handleCarouselScroll = useCallback(() => {
@@ -37,8 +35,7 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
 
   const handleShareMix = async (e: React.MouseEvent, mix: MixPreset) => {
     e.stopPropagation();
-    const name = getMixName(mix.id, mix.name);
-    await shareAndNotify(name, mix.tracks, t('listenTo', { name }), t('linkCopied'), t('mixShared'), showToast);
+    await shareAndNotify(mix.name, mix.tracks, t('listenTo', { name: mix.name }), t('linkCopied'), t('mixShared'), showToast);
   };
 
   return (
@@ -50,11 +47,10 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
         className="flex overflow-x-auto no-scrollbar"
         style={{ scrollSnapType: 'x mandatory' }}
       >
-        {DEFAULT_MIXES.map((mix) => {
+        {defaultMixes.map((mix) => {
           const mixTracks = mix.tracks
             .map((mt) => tracks.find((t) => t.id === mt.trackId))
             .filter(Boolean) as Track[];
-          const translatedMixName = getMixName(mix.id, mix.name);
           const translatedMixTracks = mixTracks.map(tt);
           const isActive = playingMixId === mix.id && isMixPlaying;
 
@@ -115,7 +111,7 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
                 <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between gap-4">
                   <div className="min-w-0">
                     <h3 className="font-bold text-xl text-foreground leading-tight truncate">
-                      {translatedMixName}
+                      {mix.name}
                     </h3>
                     <p className="text-xs text-foreground/50 mt-1 truncate">
                       {translatedMixTracks.map((t) => t.title).join(' · ')}
@@ -155,7 +151,7 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
 
       {/* Dot indicators */}
       <div className="flex justify-center items-center gap-1.5 pt-3 pb-5">
-        {DEFAULT_MIXES.map((_, i) => (
+        {defaultMixes.map((_, i) => (
           <button
             key={i}
             onClick={() => scrollToSlide(i)}

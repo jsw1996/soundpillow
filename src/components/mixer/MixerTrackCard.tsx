@@ -4,7 +4,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Track, MixerTrack } from '../../types';
-import { useTrackTranslation } from '../../i18n';
 
 const TRACK_ICONS: Record<string, React.ReactNode> = {
   '1': <CloudRain size={24} />,
@@ -44,7 +43,6 @@ interface MixerTrackCardProps {
 }
 
 export function MixerTrackCard({ track, mixerTrack, onToggleTrack, onSetVolume }: MixerTrackCardProps) {
-  const tt = useTrackTranslation();
   const isActive = mixerTrack?.isActive ?? false;
   const volume = mixerTrack?.volume ?? 70;
 
@@ -69,9 +67,9 @@ export function MixerTrackCard({ track, mixerTrack, onToggleTrack, onSetVolume }
         </div>
         <div className="text-left min-w-0">
           <p className={`text-sm font-bold truncate ${isActive ? 'text-foreground' : 'text-foreground/60'}`}>
-            {tt(track).title}
+            {track.title}
           </p>
-          <p className="text-[10px] text-foreground/30 font-medium">{tt(track).artist}</p>
+          <p className="text-[10px] text-foreground/30 font-medium">{track.artist}</p>
         </div>
       </button>
 

@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback } from 'react';
 import { Share2, SlidersHorizontal } from 'lucide-react';
 import { Track, MixPreset } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { useTranslation, useTrackTranslation } from '../../i18n';
+import { useTranslation } from '../../i18n';
 import { shareAndNotify } from '../../utils/mixShare';
 import { showToast } from '../Toast';
 
@@ -18,7 +18,6 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
   const [activeMixIdx, setActiveMixIdx] = useState(0);
   const { tracks, defaultMixes } = useAppContext();
   const { t } = useTranslation();
-  const tt = useTrackTranslation();
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const handleCarouselScroll = useCallback(() => {
@@ -51,7 +50,6 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
           const mixTracks = mix.tracks
             .map((mt) => tracks.find((t) => t.id === mt.trackId))
             .filter(Boolean) as Track[];
-          const translatedMixTracks = mixTracks.map(tt);
           const isActive = playingMixId === mix.id && isMixPlaying;
 
           return (
@@ -114,7 +112,7 @@ export function MixCarousel({ onMixSelect, onMixStop, playingMixId, isMixPlaying
                       {mix.name}
                     </h3>
                     <p className="text-xs text-foreground/50 mt-1 truncate">
-                      {translatedMixTracks.map((t) => t.title).join(' · ')}
+                      {mixTracks.map((t) => t.title).join(' · ')}
                     </p>
                   </div>
                   <button

@@ -3,8 +3,6 @@ import en, { TranslationKeys } from './locales/en';
 import zh from './locales/zh';
 import ja from './locales/ja';
 import es from './locales/es';
-import type { Track } from '../types';
-
 export type Locale = 'en' | 'zh' | 'ja' | 'es';
 
 export interface LocaleOption {
@@ -102,27 +100,3 @@ export function useCategoryName() {
   );
 }
 
-/**
- * Returns a translated copy of a Track object (title, artist, description).
- */
-export function useTrackTranslation() {
-  const { t } = useTranslation();
-
-  return useCallback(
-    (track: Track): Track => {
-      const titleKey = `track_${track.id}_title` as TranslationKeys;
-      const artistKey = `track_${track.id}_artist` as TranslationKeys;
-      const descKey = `track_${track.id}_desc` as TranslationKeys;
-      const translatedTitle = t(titleKey);
-      const translatedArtist = t(artistKey);
-      const translatedDesc = t(descKey);
-      return {
-        ...track,
-        title: translatedTitle !== titleKey ? translatedTitle : track.title,
-        artist: translatedArtist !== artistKey ? translatedArtist : track.artist,
-        description: translatedDesc !== descKey ? translatedDesc : track.description,
-      };
-    },
-    [t],
-  );
-}

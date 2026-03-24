@@ -132,11 +132,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STREAK_KEY, JSON.stringify(streakStats));
   }, [streakStats]);
 
-  const loadTracks = useCallback(async () => {
+  const loadTracks = useCallback(async (locale: string) => {
     setTracksLoading(true);
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const nextTracks = await fetchAudios();
+        const nextTracks = await fetchAudios(locale);
         setTracks(nextTracks);
         setTracksError(null);
         setTracksLoading(false);
@@ -197,10 +197,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Load tracks on mount
+  // Load tracks on mount and when locale changes
   useEffect(() => {
-    loadTracks();
-  }, [loadTracks]);
+    loadTracks(locale);
+  }, [loadTracks, locale]);
 
   // Load story catalog on mount and when locale changes
   useEffect(() => {
@@ -216,7 +216,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && tracks.length === 0) {
-        loadTracks();
+        loadTracks(locale);
       }
 
       if (document.visibilityState === 'visible' && catalogStories.length === 0) {

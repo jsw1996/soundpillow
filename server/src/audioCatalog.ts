@@ -56,207 +56,458 @@ export interface StoryCatalogResponse {
     stories: StoryCatalogItem[];
 }
 
-interface AudioTrackDefinition {
+/* ── Shared base fields for track definitions ────────────────────────── */
+
+interface BaseTrackFields {
     id: string;
-    title: string;
-    artist: string;
     duration: string;
-    category: string;
     imageSourceUrl: string;
     blobCoverPath?: string;
     imageUrl?: string;
     blobAudioPath: string;
+}
+
+/* ── Ambient track definitions (localized) ───────────────────────────── */
+
+interface AudioTrackDefinition extends BaseTrackFields {
+    titles: Record<Locale, string>;
+    artists: Record<Locale, string>;
+    descriptions: Record<Locale, string>;
+    category: string;
+}
+
+const AMBIENT_TRACK_DEFINITIONS: AudioTrackDefinition[] = [
+    {
+        id: '1',
+        titles: {
+            en: 'Heavy Rain',
+            zh: '大雨倾盆',
+            ja: 'ヘビーレイン',
+            es: 'Lluvia Intensa',
+        },
+        artists: {
+            en: 'Nature Sounds',
+            zh: '自然之音',
+            ja: 'ネイチャーサウンド',
+            es: 'Sonidos Naturales',
+        },
+        duration: '45 mins',
+        category: 'Nature',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1616871154852-e4ba46e8b413?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/heavy-rain.jpg',
+        blobAudioPath: 'audios/tracks/heavy_rain2.mp3',
+        descriptions: {
+            en: 'Gentle rain falling on tropical leaves.',
+            zh: '热带树叶上轻柔的雨声。',
+            ja: '熱帯の葉に降り注ぐ優しい雨の音。',
+            es: 'Lluvia suave cayendo sobre hojas tropicales.',
+        },
+    },
+    {
+        id: '2',
+        titles: {
+            en: 'Midnight Forest',
+            zh: '午夜森林',
+            ja: '真夜中の森',
+            es: 'Bosque de Medianoche',
+        },
+        artists: {
+            en: 'Deep Sleep',
+            zh: '深度睡眠',
+            ja: 'ディープスリープ',
+            es: 'Sueño Profundo',
+        },
+        duration: '60 mins',
+        category: 'Nature',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1514735555661-d3278da9d5ca?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/midnight-forest.jpg',
+        blobAudioPath: 'audios/tracks/forest_night2.mp3',
+        descriptions: {
+            en: 'The peaceful sounds of a forest.',
+            zh: '森林中宁静的声音。',
+            ja: '森の穏やかな音。',
+            es: 'Los sonidos pacíficos de un bosque.',
+        },
+    },
+    {
+        id: '3',
+        titles: {
+            en: 'Ocean Waves',
+            zh: '海浪',
+            ja: '波の音',
+            es: 'Olas del Mar',
+        },
+        artists: {
+            en: 'Calming Rhythm',
+            zh: '宁静节奏',
+            ja: '静寂のリズム',
+            es: 'Ritmo Calmante',
+        },
+        duration: '30 mins',
+        category: 'Nature',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1612387364395-9338e6423547?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/ocean-waves.jpg',
+        blobAudioPath: 'audios/tracks/sea_wave2.mp3',
+        descriptions: {
+            en: 'Rhythmic waves crashing on a sandy shore.',
+            zh: '有节奏的海浪拍打沙滩。',
+            ja: '砂浜に打ち寄せるリズミカルな波の音。',
+            es: 'Olas rítmicas rompiendo en la orilla arenosa.',
+        },
+    },
+    {
+        id: '4',
+        titles: {
+            en: 'Purring Cat',
+            zh: '猫咪呼噜',
+            ja: '猫のゴロゴロ',
+            es: 'Ronroneo de Gato',
+        },
+        artists: {
+            en: 'Deep Comfort',
+            zh: '深度舒适',
+            ja: '深い安らぎ',
+            es: 'Confort Profundo',
+        },
+        duration: '20 mins',
+        category: 'Animals',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1596921825946-d738194fac80?q=80&w=986&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/purring-cat.jpg',
+        blobAudioPath: 'audios/tracks/cat_purr2.mp3',
+        descriptions: {
+            en: 'The soothing vibration of a happy cat.',
+            zh: '一只幸福猫咪舒缓的呼噜声。',
+            ja: '幸せな猫の心地よいゴロゴロ音。',
+            es: 'La vibración reconfortante de un gato feliz.',
+        },
+    },
+    {
+        id: '5',
+        titles: {
+            en: 'Morning Mist',
+            zh: '晨间薄雾',
+            ja: '朝もやの音',
+            es: 'Neblina Matutina',
+        },
+        artists: {
+            en: 'Focus & Calm',
+            zh: '专注与宁静',
+            ja: '集中と静けさ',
+            es: 'Enfoque y Calma',
+        },
+        duration: '40 mins',
+        category: 'Nature',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1570554797963-c9e212bc8e60?q=80&w=1364&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/morning-mist.jpg',
+        blobAudioPath: 'audios/tracks/morning_birds.mp3',
+        descriptions: {
+            en: 'Ethereal sounds of a misty morning.',
+            zh: '薄雾弥漫的清晨空灵之声。',
+            ja: '霧の立ち込める朝の幻想的な音。',
+            es: 'Sonidos etéreos de una mañana brumosa.',
+        },
+    },
+    {
+        id: '6',
+        titles: {
+            en: 'Wind Howling',
+            zh: '狂风呼啸',
+            ja: '風の唸り声',
+            es: 'Viento Aullador',
+        },
+        artists: {
+            en: 'Pure Relaxation',
+            zh: '纯粹放松',
+            ja: 'ピュアリラクゼーション',
+            es: 'Relajación Pura',
+        },
+        duration: '50 mins',
+        category: 'Nature',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1694433847591-ad261b35e38e?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/wind-howling.jpg',
+        blobAudioPath: 'audios/tracks/wind_howling.mp3',
+        descriptions: {
+            en: 'The sound of wind howling through the trees.',
+            zh: '狂风呼啸穿过树林的声音。',
+            ja: '木々の間を吹き抜ける風の唸り声。',
+            es: 'El sonido del viento aullando entre los árboles.',
+        },
+    },
+    {
+        id: '7',
+        titles: {
+            en: 'Forest Bonfire',
+            zh: '森林篝火',
+            ja: '森の焚き火',
+            es: 'Fogata en el Bosque',
+        },
+        artists: {
+            en: 'Warm Glow',
+            zh: '温暖光芒',
+            ja: '暖かな光',
+            es: 'Resplandor Cálido',
+        },
+        duration: '35 mins',
+        category: 'Nature',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1620224027739-3d0e4cc395a5?q=80&w=1035&auto=format&fit=crop&w=800&q=80',
+        blobCoverPath: 'audios/covers/forest-bonfire.jpg',
+        blobAudioPath: 'audios/tracks/bonfire2.mp3',
+        descriptions: {
+            en: 'The comforting crackle of a campfire in the woods.',
+            zh: '森林中篝火令人安心的噼啪声。',
+            ja: '森の中の焚き火の心地よいパチパチ音。',
+            es: 'El reconfortante crepitar de una fogata en el bosque.',
+        },
+    },
+    {
+        id: '8',
+        titles: {
+            en: 'Rustling Wind',
+            zh: '沙沙风声',
+            ja: '葉のざわめき',
+            es: 'Viento Susurrante',
+        },
+        artists: {
+            en: 'Nature Sounds',
+            zh: '自然之音',
+            ja: 'ネイチャーサウンド',
+            es: 'Sonidos Naturales',
+        },
+        duration: '40 mins',
+        category: 'Nature',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1656340998995-336456a573ef?q=80&w=1015&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/rustling-wind.jpg',
+        blobAudioPath: 'audios/tracks/rustling_wind2.mp3',
+        descriptions: {
+            en: 'The sound of wind blowing through the trees in a forest.',
+            zh: '风吹过森林树木的声音。',
+            ja: '森の木々を吹き抜ける風の音。',
+            es: 'El sonido del viento soplando entre los árboles.',
+        },
+    },
+    {
+        id: '9',
+        titles: {
+            en: 'Singing Bowl',
+            zh: '颂钵',
+            ja: 'シンギングボウル',
+            es: 'Cuenco Tibetano',
+        },
+        artists: {
+            en: 'Mindful Meditation',
+            zh: '正念冥想',
+            ja: 'マインドフル瞑想',
+            es: 'Meditación Consciente',
+        },
+        duration: '30 mins',
+        category: 'Meditation',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1619968747226-67769140323a?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/singing-bowl.jpg',
+        blobAudioPath: 'audios/tracks/singing_bowl.mp3',
+        descriptions: {
+            en: 'Resonant tones of a Tibetan singing bowl for deep meditation.',
+            zh: '藏族颂钵深沉的共鸣音，用于深度冥想。',
+            ja: 'チベタンシンギングボウルの深い共鳴音。',
+            es: 'Tonos resonantes de un cuenco tibetano para meditación profunda.',
+        },
+    },
+    {
+        id: '10',
+        titles: {
+            en: 'Wind Chimes',
+            zh: '风铃',
+            ja: '風鈴',
+            es: 'Campanillas de Viento',
+        },
+        artists: {
+            en: 'Zen Garden',
+            zh: '禅意花园',
+            ja: '禅ガーデン',
+            es: 'Jardín Zen',
+        },
+        duration: '35 mins',
+        category: 'Meditation',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1765895193943-35550897cc2d?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/wind-chimes.jpg',
+        blobAudioPath: 'audios/tracks/wind_chimes.mp3',
+        descriptions: {
+            en: 'Delicate wind chimes swaying in a gentle breeze.',
+            zh: '微风中轻柔摇曳的风铃声。',
+            ja: 'そよ風に揺れる繊細な風鈴の音。',
+            es: 'Delicadas campanillas de viento mecidas por la brisa.',
+        },
+    },
+    {
+        id: '11',
+        titles: {
+            en: 'Gentle River',
+            zh: '潺潺溪流',
+            ja: '穏やかな川',
+            es: 'Río Tranquilo',
+        },
+        artists: {
+            en: 'Meditation Flow',
+            zh: '冥想之流',
+            ja: '瞑想フロー',
+            es: 'Flujo Meditativo',
+        },
+        duration: '45 mins',
+        category: 'Meditation',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1506318039632-e5626c0c1394?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/gentle-river.jpg',
+        blobAudioPath: 'audios/tracks/river.mp3',
+        descriptions: {
+            en: 'A calm river flowing through a peaceful valley.',
+            zh: '一条平静的小河流过宁静的山谷。',
+            ja: '静かな谷を流れる穏やかな川の音。',
+            es: 'Un río tranquilo fluyendo por un valle pacífico.',
+        },
+    },
+    {
+        id: '12',
+        titles: {
+            en: 'Rain on Window',
+            zh: '窗外雨声',
+            ja: '窓の雨音',
+            es: 'Lluvia en la Ventana',
+        },
+        artists: {
+            en: 'Inner Peace',
+            zh: '内心平静',
+            ja: 'インナーピース',
+            es: 'Paz Interior',
+        },
+        duration: '40 mins',
+        category: 'Meditation',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80',
+        blobCoverPath: 'audios/covers/rain-on-window.jpg',
+        blobAudioPath: 'audios/tracks/relaxing_rain.mp3',
+        descriptions: {
+            en: 'Soft rain pattering against a windowpane.',
+            zh: '柔和的雨滴轻轻敲打窗户。',
+            ja: '窓ガラスを叩く柔らかな雨の音。',
+            es: 'Suave lluvia golpeando contra el cristal de la ventana.',
+        },
+    },
+    {
+        id: '13',
+        titles: {
+            en: 'Theta Waves',
+            zh: 'Theta 脑波',
+            ja: 'シータ波',
+            es: 'Ondas Theta',
+        },
+        artists: {
+            en: 'Binaural Beats',
+            zh: '双耳节拍',
+            ja: 'バイノーラルビート',
+            es: 'Ritmos Binaurales',
+        },
+        duration: '30 mins',
+        category: 'Meditation',
+        imageSourceUrl: 'https://plus.unsplash.com/premium_photo-1679785652664-5893d9829aed?q=80&w=1090&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/theta-waves.jpg',
+        blobAudioPath: 'audios/tracks/binaural_theta.mp3',
+        descriptions: {
+            en: 'Theta binaural beats for deep relaxation and meditation.',
+            zh: 'Theta 双耳节拍，用于深度放松和冥想。',
+            ja: '深いリラクゼーションと瞑想のためのシータバイノーラルビート。',
+            es: 'Ritmos binaurales theta para relajación y meditación profunda.',
+        },
+    },
+    {
+        id: '14',
+        titles: {
+            en: 'Delta Waves',
+            zh: 'Delta 脑波',
+            ja: 'デルタ波',
+            es: 'Ondas Delta',
+        },
+        artists: {
+            en: 'Deep Sleep Binaural',
+            zh: '深度睡眠双耳',
+            ja: 'ディープスリープバイノーラル',
+            es: 'Binaural Sueño Profundo',
+        },
+        duration: '45 mins',
+        category: 'Meditation',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1621975081039-c814938ea869?q=80&w=1041&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        blobCoverPath: 'audios/covers/delta-waves.jpg',
+        blobAudioPath: 'audios/tracks/binaural_delta.mp3',
+        descriptions: {
+            en: 'Delta binaural beats to guide you into deep sleep.',
+            zh: 'Delta 双耳节拍，引导你进入深度睡眠。',
+            ja: '深い眠りへ導くデルタバイノーラルビート。',
+            es: 'Ritmos binaurales delta para guiarte al sueño profundo.',
+        },
+    },
+    {
+        id: '15',
+        titles: {
+            en: 'Counting Sheep',
+            zh: '数羊入眠',
+            ja: '羊を数えて',
+            es: 'Contando Ovejas',
+        },
+        artists: {
+            en: 'Gentle Slumber',
+            zh: '温柔入梦',
+            ja: 'やさしい眠り',
+            es: 'Sueño Suave',
+        },
+        duration: '30 mins',
+        category: 'Animals',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1575014912260-91c2b5ad7441?q=80',
+        blobCoverPath: 'audios/covers/sheep.jpg',
+        blobAudioPath: 'audios/tracks/sheep.mp3',
+        descriptions: {
+            en: 'Soft bleating of sheep in a peaceful meadow.',
+            zh: '宁静草地上绵羊柔和的咩咩声。',
+            ja: '静かな草原で羊がやさしく鳴く音。',
+            es: 'Suaves balidos de ovejas en un prado tranquilo.',
+        },
+    },
+    {
+        id: '16',
+        titles: {
+            en: 'Morning Chickens',
+            zh: '晨间鸡鸣',
+            ja: '朝のニワトリ',
+            es: 'Gallinas Matutinas',
+        },
+        artists: {
+            en: 'Farmyard Calm',
+            zh: '农场宁静',
+            ja: '農場の静けさ',
+            es: 'Calma Rural',
+        },
+        duration: '25 mins',
+        category: 'Animals',
+        imageSourceUrl: 'https://images.unsplash.com/photo-1589922583749-6b8473a85048',
+        blobCoverPath: 'audios/covers/chicken.jpg',
+        blobAudioPath: 'audios/tracks/chicken.mp3',
+        descriptions: {
+            en: 'Gentle clucking of chickens on a quiet farm morning.',
+            zh: '宁静的农场清晨，鸡群轻声咕咕。',
+            ja: '静かな農場の朝、ニワトリがやさしく鳴く音。',
+            es: 'Suave cacareo de gallinas en una mañana tranquila de granja.',
+        },
+    },
+];
+
+/* ── Story track definitions (single-locale) ─────────────────────────── */
+
+interface StoryTrackDefinition extends BaseTrackFields {
+    title: string;
+    artist: string;
     description: string;
-    // Story-specific optional fields
+    category: RealStoryCategoryId;
     subtitle?: string;
     storyPreview?: string;
     paragraphCount?: number;
     backgroundMusic?: string;
     isTrending?: boolean;
     isTodaysPick?: boolean;
-}
-
-const AMBIENT_TRACK_DEFINITIONS: AudioTrackDefinition[] = [
-    {
-        id: '1',
-        title: 'Heavy Rain',
-        artist: 'Nature Sounds',
-        duration: '45 mins',
-        category: 'Nature',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1616871154852-e4ba46e8b413?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/heavy-rain.jpg',
-        blobAudioPath: 'audios/tracks/heavy_rain2.mp3',
-        description: 'Gentle rain falling on tropical leaves.',
-    },
-    {
-        id: '2',
-        title: 'Midnight Forest',
-        artist: 'Deep Sleep',
-        duration: '60 mins',
-        category: 'Nature',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1514735555661-d3278da9d5ca?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/midnight-forest.jpg',
-        blobAudioPath: 'audios/tracks/forest_night2.mp3',
-        description: 'The peaceful sounds of a forest.',
-    },
-    {
-        id: '3',
-        title: 'Ocean Waves',
-        artist: 'Calming Rhythm',
-        duration: '30 mins',
-        category: 'Nature',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1612387364395-9338e6423547?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/ocean-waves.jpg',
-        blobAudioPath: 'audios/tracks/sea_wave2.mp3',
-        description: 'Rhythmic waves crashing on a sandy shore.',
-    },
-    {
-        id: '4',
-        title: 'Purring Cat',
-        artist: 'Deep Comfort',
-        duration: '20 mins',
-        category: 'Animals',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1596921825946-d738194fac80?q=80&w=986&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/purring-cat.jpg',
-        blobAudioPath: 'audios/tracks/cat_purr2.mp3',
-        description: 'The soothing vibration of a happy cat.',
-    },
-    {
-        id: '5',
-        title: 'Morning Mist',
-        artist: 'Focus & Calm',
-        duration: '40 mins',
-        category: 'Nature',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1570554797963-c9e212bc8e60?q=80&w=1364&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/morning-mist.jpg',
-        blobAudioPath: 'audios/tracks/morning_birds.mp3',
-        description: 'Ethereal sounds of a misty morning.',
-    },
-    {
-        id: '6',
-        title: 'Wind Howling',
-        artist: 'Pure Relaxation',
-        duration: '50 mins',
-        category: 'Nature',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1694433847591-ad261b35e38e?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/wind-howling.jpg',
-        blobAudioPath: 'audios/tracks/wind_howling.mp3',
-        description: 'The sound of wind howling through the trees.',
-    },
-    {
-        id: '7',
-        title: 'Forest Bonfire',
-        artist: 'Warm Glow',
-        duration: '35 mins',
-        category: 'Nature',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1620224027739-3d0e4cc395a5?q=80&w=1035&auto=format&fit=crop&w=800&q=80',
-        blobCoverPath: 'audios/covers/forest-bonfire.jpg',
-        blobAudioPath: 'audios/tracks/bonfire2.mp3',
-        description: 'The comforting crackle of a campfire in the woods.',
-    },
-    {
-        id: '8',
-        title: 'Rustling Wind',
-        artist: 'Nature Sounds',
-        duration: '40 mins',
-        category: 'Nature',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1656340998995-336456a573ef?q=80&w=1015&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/rustling-wind.jpg',
-        blobAudioPath: 'audios/tracks/rustling_wind2.mp3',
-        description: 'The sound of wind blowing through the trees in a forest.',
-    },
-    {
-        id: '9',
-        title: 'Singing Bowl',
-        artist: 'Mindful Meditation',
-        duration: '30 mins',
-        category: 'Meditation',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1619968747226-67769140323a?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/singing-bowl.jpg',
-        blobAudioPath: 'audios/tracks/singing_bowl.mp3',
-        description: 'Resonant tones of a Tibetan singing bowl for deep meditation.',
-    },
-    {
-        id: '10',
-        title: 'Wind Chimes',
-        artist: 'Zen Garden',
-        duration: '35 mins',
-        category: 'Meditation',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1765895193943-35550897cc2d?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/wind-chimes.jpg',
-        blobAudioPath: 'audios/tracks/wind_chimes.mp3',
-        description: 'Delicate wind chimes swaying in a gentle breeze.',
-    },
-    {
-        id: '11',
-        title: 'Gentle River',
-        artist: 'Meditation Flow',
-        duration: '45 mins',
-        category: 'Meditation',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1506318039632-e5626c0c1394?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/gentle-river.jpg',
-        blobAudioPath: 'audios/tracks/river.mp3',
-        description: 'A calm river flowing through a peaceful valley.',
-    },
-    {
-        id: '12',
-        title: 'Calming Rain',
-        artist: 'Inner Peace',
-        duration: '40 mins',
-        category: 'Meditation',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80',
-        blobCoverPath: 'audios/covers/rain-on-window.jpg',
-        blobAudioPath: 'audios/tracks/relaxing_rain.mp3', 
-        description: 'Soft rain pattering against a windowpane.',
-    },
-    {
-        id: '13',
-        title: 'Theta Waves',
-        artist: 'Binaural Beats',
-        duration: '30 mins',
-        category: 'Meditation',
-        imageSourceUrl: 'https://plus.unsplash.com/premium_photo-1679785652664-5893d9829aed?q=80&w=1090&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/theta-waves.jpg',
-        blobAudioPath: 'audios/tracks/binaural_theta.mp3',
-        description: 'Theta binaural beats for deep relaxation and meditation.',
-    },
-    {
-        id: '14',
-        title: 'Delta Waves',
-        artist: 'Deep Sleep Binaural',
-        duration: '45 mins',
-        category: 'Meditation',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1621975081039-c814938ea869?q=80&w=1041&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        blobCoverPath: 'audios/covers/delta-waves.jpg',
-        blobAudioPath: 'audios/tracks/binaural_delta.mp3',
-        description: 'Delta binaural beats to guide you into deep sleep.',
-    },
-    {
-        id: '15',
-        title: 'Counting Sheep',
-        artist: 'Gentle Slumber',
-        duration: '30 mins',
-        category: 'Animals',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1575014912260-91c2b5ad7441?q=80',
-        blobCoverPath: 'audios/covers/sheep.jpg',
-        blobAudioPath: 'audios/tracks/sheep.mp3',
-        description: 'Soft bleating of sheep in a peaceful meadow.',
-    },
-    {
-        id: '16',
-        title: 'Morning Chickens',
-        artist: 'Farmyard Calm',
-        duration: '25 mins',
-        category: 'Animals',
-        imageSourceUrl: 'https://images.unsplash.com/photo-1589922583749-6b8473a85048',
-        blobCoverPath: 'audios/covers/chicken.jpg',
-        blobAudioPath: 'audios/tracks/chicken.mp3',
-        description: 'Gentle clucking of chickens on a quiet farm morning.',
-    },
-];
-
-interface StoryTrackDefinition extends Omit<AudioTrackDefinition, 'category'> {
-    category: RealStoryCategoryId;
 }
 
 const STORY_DEFINITIONS: StoryTrackDefinition[] = [
@@ -411,11 +662,13 @@ const STORY_DEFINITIONS: StoryTrackDefinition[] = [
     },
 ];
 
+/* ── Asset URL helpers ────────────────────────────────────────────────── */
+
 function resolveAssetUrl(assetPath: string): string {
     return `${config.assetBaseUrl.replace(/\/+$/, '')}/${assetPath}`;
 }
 
-function resolveImageUrl(track: AudioTrackDefinition | StoryTrackDefinition): string {
+function resolveImageUrl(track: BaseTrackFields): string {
     if (track.blobCoverPath) {
         return resolveAssetUrl(track.blobCoverPath);
     }
@@ -428,7 +681,23 @@ function resolveImageUrl(track: AudioTrackDefinition | StoryTrackDefinition): st
     return track.imageSourceUrl;
 }
 
-function mapTrackDefinition(track: AudioTrackDefinition | StoryTrackDefinition): AudioTrack {
+/* ── Mapping helpers ──────────────────────────────────────────────────── */
+
+function mapAudioTrackDefinition(track: AudioTrackDefinition, locale: Locale = 'en'): AudioTrack {
+    return {
+        id: track.id,
+        title: track.titles[locale] || track.titles.en,
+        artist: track.artists[locale] || track.artists.en,
+        duration: track.duration,
+        category: track.category,
+        imageUrl: resolveImageUrl(track),
+        imageSourceUrl: track.imageSourceUrl,
+        audioUrl: resolveAssetUrl(track.blobAudioPath),
+        description: track.descriptions[locale] || track.descriptions.en,
+    };
+}
+
+function mapStoryTrackDefinition(track: StoryTrackDefinition): AudioTrack {
     return {
         id: track.id,
         title: track.title,
@@ -442,8 +711,10 @@ function mapTrackDefinition(track: AudioTrackDefinition | StoryTrackDefinition):
     };
 }
 
-export function getAudioCatalog(): AudioTrack[] {
-    return AMBIENT_TRACK_DEFINITIONS.map(mapTrackDefinition);
+/* ── Public catalog accessors ─────────────────────────────────────────── */
+
+export function getAudioCatalog(locale: Locale = 'en'): AudioTrack[] {
+    return AMBIENT_TRACK_DEFINITIONS.map((t) => mapAudioTrackDefinition(t, locale));
 }
 
 export function getStoryCategories(locale: Locale = 'zh'): StoryCategory[] {
@@ -456,7 +727,7 @@ export function getStoryAudioCatalog(locale: Locale = 'zh'): StoryCatalogRespons
             !!(t.subtitle && t.storyPreview && t.paragraphCount !== undefined)
         )
         .map((track): StoryCatalogItem => ({
-            ...mapTrackDefinition(track),
+            ...mapStoryTrackDefinition(track),
             subtitle: track.subtitle,
             storyPreview: track.storyPreview,
             paragraphCount: track.paragraphCount,

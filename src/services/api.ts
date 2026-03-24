@@ -81,8 +81,12 @@ export async function fetchMixes(locale: string = 'en'): Promise<MixPreset[]> {
   return res.json();
 }
 
-export async function fetchAudios(): Promise<Track[]> {
-  const res = await fetchWithTimeout(`${SERVER_URL}/api/audios`, {}, 5000);
+export async function fetchAudios(locale: string = 'en'): Promise<Track[]> {
+  const res = await fetchWithTimeout(
+    `${SERVER_URL}/api/audios?locale=${encodeURIComponent(locale)}`,
+    {},
+    5000,
+  );
   if (!res.ok) {
     throw new Error(`Server error: ${res.status}`);
   }

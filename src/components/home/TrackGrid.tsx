@@ -1,7 +1,7 @@
 import { Heart } from 'lucide-react';
 import { Track } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { useTranslation, useTrackTranslation } from '../../i18n';
+import { useTranslation } from '../../i18n';
 
 interface TrackCardProps {
   track: Track;
@@ -10,14 +10,11 @@ interface TrackCardProps {
 
 function TrackCard({ track, onSelect }: TrackCardProps) {
   const { isFavorite, toggleFavorite } = useAppContext();
-  const tt = useTrackTranslation();
-  const translated = tt(track);
 
   const handleSelect = () => {
     console.log('[QuickSleep] track card tapped', {
       id: track.id,
       title: track.title,
-      translatedTitle: translated.title,
       audioUrl: track.audioUrl,
       timestamp: new Date().toISOString(),
     });
@@ -48,8 +45,8 @@ function TrackCard({ track, onSelect }: TrackCardProps) {
         </button>
       </div>
       <div className="px-1">
-        <h3 className="font-bold text-sm leading-tight">{translated.title}</h3>
-        <p className="text-[10px] text-foreground/40 font-medium mt-0.5">{translated.artist}</p>
+        <h3 className="font-bold text-sm leading-tight">{track.title}</h3>
+        <p className="text-[10px] text-foreground/40 font-medium mt-0.5">{track.artist}</p>
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ import { PlayPauseButton } from './PlayPauseButton';
 import { TimerSelector } from './shared/TimerSelector';
 import { Track } from '../types';
 import { useAppContext } from '../context/AppContext';
-import { useTranslation, useTrackTranslation } from '../i18n';
+import { useTranslation } from '../i18n';
 import { AmbientParticles } from './AmbientParticles';
 
 interface PlayerScreenProps {
@@ -59,8 +59,6 @@ export function PlayerScreen({
 }: PlayerScreenProps) {
   const { isFavorite, toggleFavorite } = useAppContext();
   const { t } = useTranslation();
-  const tt = useTrackTranslation();
-  const translatedTrack = tt(track);
   const [showTimer, setShowTimer] = useState(false);
 
   const handleTimerToggle = useCallback(() => {
@@ -150,10 +148,10 @@ export function PlayerScreen({
           className="space-y-1"
         >
           <h1 className="text-[28px] font-extrabold tracking-tight leading-tight text-white drop-shadow-lg">
-            {mixName ?? translatedTrack.title}
+            {mixName ?? track.title}
           </h1>
           <p className="text-[15px] text-white/60 font-medium">
-            {mixName ? (mixSubtitle ?? translatedTrack.title) : translatedTrack.artist}
+            {mixName ? (mixSubtitle ?? track.title) : track.artist}
           </p>
         </motion.div>
 

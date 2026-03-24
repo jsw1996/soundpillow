@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { screenTransition } from '../utils/animations';
 import { MixerTrack, MixPreset } from '../types';
 import { useAppContext } from '../context/AppContext';
-import { useTranslation, useTrackTranslation } from '../i18n';
+import { useTranslation } from '../i18n';
 import { shareAndNotify } from '../utils/mixShare';
 import { showToast } from './Toast';
 import { MixerTrackCard } from './mixer/MixerTrackCard';
@@ -24,14 +24,13 @@ export function MixerScreen({
 }: MixerScreenProps) {
   const { mixPresets, deleteMixPreset, tracks } = useAppContext();
   const { t } = useTranslation();
-  const tt = useTrackTranslation();
 
   const activeMixerTracks = mixerTracks.filter((t) => t.isActive);
 
   const handleShareActive = async () => {
     if (activeMixerTracks.length === 0) return;
     const trackNames = activeMixerTracks
-      .map((mt) => { const tr = tracks.find((t) => t.id === mt.trackId); return tr ? tt(tr).title : ''; })
+      .map((mt) => { const tr = tracks.find((t) => t.id === mt.trackId); return tr ? tr.title : ''; })
       .filter(Boolean)
       .join(' + ');
     const name = trackNames || t('mix');

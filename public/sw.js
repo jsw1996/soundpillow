@@ -2,8 +2,11 @@
 // This caches ambient track audio and cover images after first fetch so subsequent
 // plays load instantly without re-downloading.
 
-const CACHE_NAME = 'soundpillow-assets-v1';
-const BLOB_ORIGIN = 'soundpillow0308001430.blob.core.windows.net';
+const CACHE_NAME = 'soundpillow-assets-v2';
+const CACHEABLE_ORIGINS = [
+  'soundpillow0308001430.blob.core.windows.net',
+  'soundpillow-g4fhcxevg7dudwce.z02.azurefd.net',
+];
 
 // Only cache ambient track audio and cover images, not story narrations or music
 // (those are larger one-off files that would fill the cache quickly).
@@ -13,7 +16,7 @@ const CACHEABLE_PATH_PREFIXES = [
 ];
 
 function isCacheableRequest(url) {
-  if (!url.hostname.includes(BLOB_ORIGIN)) return false;
+  if (!CACHEABLE_ORIGINS.some((origin) => url.hostname.includes(origin))) return false;
   return CACHEABLE_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
 }
 

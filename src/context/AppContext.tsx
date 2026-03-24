@@ -3,6 +3,8 @@ import { fetchAudios, fetchStoryCatalog, fetchMixes } from '../services/api';
 import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats, Track } from '../types';
 import { getDateString, getYesterday } from '../utils/date';
 import { loadFromStorage } from '../utils/storage';
+import { fetchWithRetry } from '../utils/fetchWithRetry';
+import { useLocalStorageSync } from '../hooks/useLocalStorageSync';
 import { type Story, type StoryCategory } from '../data/stories';
 import { useTranslation } from '../i18n';
 
@@ -107,94 +109,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     saveFavorites(favorites);
   }, [favorites]);
 
-  useEffect(() => {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  }, [settings]);
+  useLocalStorageSync(SETTINGS_KEY, settings);
+  useLocalStorageSync(STATS_KEY, stats);
+  useLocalStorageSync(PRESETS_KEY, mixPresets);
+  useLocalStorageSync(JOURNAL_KEY, journal);
+  useLocalStorageSync(STREAK_KEY, streakStats);
 
   // Sync theme to document root
   useEffect(() => {
     document.documentElement.dataset.theme = settings.theme;
   }, [settings.theme]);
 
-  useEffect(() => {
-    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-  }, [stats]);
-
-  useEffect(() => {
-    localStorage.setItem(PRESETS_KEY, JSON.stringify(mixPresets));
-  }, [mixPresets]);
-
-  useEffect(() => {
-    localStorage.setItem(JOURNAL_KEY, JSON.stringify(journal));
-  }, [journal]);
-
-  useEffect(() => {
-    localStorage.setItem(STREAK_KEY, JSON.stringify(streakStats));
-  }, [streakStats]);
-
   const loadTracks = useCallback(async (locale: string) => {
     setTracksLoading(true);
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const nextTracks = await fetchAudios(locale);
-        setTracks(nextTracks);
-        setTracksError(null);
-        setTracksLoading(false);
+    try {
+      const nextTracks = await fetchWithRetry(() => fetchAudios(locale), { label: 'audio catalog' });
+      setTracks(nextTracks);
+      setTracksError(null);
 
-        // Prefetch audio + cover assets in the background so the SW caches them.
-        // Uses low-priority fetch to avoid competing with user-initiated playback.
-        for (const track of nextTracks) {
-          fetch(track.audioUrl, { priority: 'low' } as RequestInit).catch(() => {});
-          fetch(track.imageUrl, { priority: 'low' } as RequestInit).catch(() => {});
-        }
-
-        return;
-      } catch (error) {
-        console.error(`Failed to load audio catalog (attempt ${attempt + 1}/3):`, error);
-        if (attempt < 2) {
-          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-        } else {
-          setTracks([]);
-          setTracksError(error instanceof Error ? error.message : 'Failed to load audio catalog');
-          setTracksLoading(false);
-        }
+      // Prefetch audio + cover assets in the background so the SW caches them.
+      for (const track of nextTracks) {
+        fetch(track.audioUrl, { priority: 'low' } as RequestInit).catch(() => {});
+        fetch(track.imageUrl, { priority: 'low' } as RequestInit).catch(() => {});
       }
+    } catch (error) {
+      setTracks([]);
+      setTracksError(error instanceof Error ? error.message : 'Failed to load audio catalog');
+    } finally {
+      setTracksLoading(false);
     }
   }, []);
 
   const loadCatalogStories = useCallback(async (locale: string) => {
-
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const { categories, stories } = await fetchStoryCatalog(locale);
-        setStoryCategories(categories);
-        setCatalogStories(stories as Story[]);
-        return;
-      } catch (error) {
-        console.warn(`Failed to load story catalog (attempt ${attempt + 1}/3).`, error);
-
-        if (attempt < 2) {
-          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-          continue;
-        }
-
-      }
-    }
+    try {
+      const { categories, stories } = await fetchWithRetry(() => fetchStoryCatalog(locale), { label: 'story catalog' });
+      setStoryCategories(categories);
+      setCatalogStories(stories as Story[]);
+    } catch { /* exhausted retries — silently degrade */ }
   }, []);
 
   const loadDefaultMixes = useCallback(async (locale: string) => {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const mixes = await fetchMixes(locale);
-        setDefaultMixes(mixes);
-        return;
-      } catch (error) {
-        console.warn(`Failed to load mix catalog (attempt ${attempt + 1}/3).`, error);
-        if (attempt < 2) {
-          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-        }
-      }
-    }
+    try {
+      const mixes = await fetchWithRetry(() => fetchMixes(locale), { label: 'mix catalog' });
+      setDefaultMixes(mixes);
+    } catch { /* exhausted retries — silently degrade */ }
   }, []);
 
   // Load tracks on mount and when locale changes

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Track } from '../types';
+import { useCircularNavigation } from './useCircularNavigation';
 
 export function useAudioPlayer(tracks: Track[], fadeMultiplier: number = 1.0) {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(tracks[0] ?? null);
@@ -102,21 +103,12 @@ export function useAudioPlayer(tracks: Track[], fadeMultiplier: number = 1.0) {
     setCurrentTrack(track);
   }, []);
 
-  const skipNext = useCallback(() => {
-    if (!tracks.length || !currentTrack) return;
-    const idx = tracks.findIndex((t) => t.id === currentTrack.id);
-    const next = tracks[(idx + 1) % tracks.length];
-    setCurrentTrack(next);
-    setIsPlaying(true);
-  }, [tracks, currentTrack?.id]);
-
-  const skipPrev = useCallback(() => {
-    if (!tracks.length || !currentTrack) return;
-    const idx = tracks.findIndex((t) => t.id === currentTrack.id);
-    const prev = tracks[(idx - 1 + tracks.length) % tracks.length];
-    setCurrentTrack(prev);
-    setIsPlaying(true);
-  }, [tracks, currentTrack?.id]);
+  const { skipNext, skipPrev } = useCircularNavigation(
+    tracks,
+    currentTrack?.id ?? null,
+    (t) => t.id,
+    selectTrack,
+  );
 
   const seek = useCallback((percent: number) => {
     const audio = audioRef.current;

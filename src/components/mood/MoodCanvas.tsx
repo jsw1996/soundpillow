@@ -1,399 +1,26 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { RotateCw, Trash2, X } from 'lucide-react';
 import { loadMoodHistory, MOOD_HISTORY_UPDATED_EVENT } from '../../utils/mood';
-import { MOODS } from '../../data/moodMessages';
-import type { MoodEntry, MoodLevel } from '../../types';
 import { STICKER_CATALOG, type StickerDefinition } from '../../data/stickerCatalog';
 import { getDateString } from '../../utils/date';
 import { useTranslation } from '../../i18n';
 import { useAppContext } from '../../context/AppContext';
 
-type MoodCanvasItemType = 'note' | 'entry' | 'photo' | 'sticker';
-
-interface MoodCanvasItem {
-  id: string;
-  type: MoodCanvasItemType;
-  x: number;
-  y: number;
-  r: number;
-  w: number;
-  h: number;
-  z: number;
-  title?: string;
-  text?: string;
-  caption?: string;
-  color?: string;
-  imageUrl?: string;
-  moodEmoji?: string;
-  date?: string;
-  stickerCategory?: string;
-}
-
-type MoodCanvasFilter = 'all' | 'week' | 'month' | 'year';
-
-type ActionState =
-  | {
-      mode: 'pan';
-      startOffsetX: number;
-      startOffsetY: number;
-      pointerStartX: number;
-      pointerStartY: number;
-    }
-  | {
-      mode: 'pinch';
-      pointerA: number;
-      pointerB: number;
-      startScale: number;
-      startDistance: number;
-      worldCenterX: number;
-      worldCenterY: number;
-    }
-  | {
-      mode: 'drag';
-      itemId: string;
-      startX: number;
-      startY: number;
-      pointerStartX: number;
-      pointerStartY: number;
-    }
-  | {
-      mode: 'rotate';
-      itemId: string;
-      startR: number;
-      centerX: number;
-      centerY: number;
-      pointerStartAngle: number;
-    };
-
-const MIN_SCALE = 0.65;
-const MAX_SCALE = 2.2;
-
-function buildInitialItems(t: (key: any) => string): MoodCanvasItem[] {
-  return [
-    {
-      id: 'note-1',
-      type: 'note',
-      x: 18,
-      y: 24,
-      r: -3,
-      w: 170,
-      h: 142,
-      z: 1,
-      color: '#FFFBE0',
-      text: t('canvasDemoNote'),
-    },
-    {
-      id: 'entry-1',
-      type: 'entry',
-      x: 130,
-      y: 174,
-      r: 2,
-      w: 186,
-      h: 170,
-      z: 2,
-      color: '#FFFDF2',
-      title: '2026-03-13',
-      text: t('canvasDemoEntry'),
-    },
-    {
-      id: 'photo-1',
-      type: 'photo',
-      x: 12,
-      y: 246,
-      r: -5,
-      w: 124,
-      h: 152,
-      z: 3,
-      color: '#FFFFFF',
-      caption: t('canvasDemoCaption'),
-    },
-  ];
-}
-
-const LIGHT_MOOD_CARD_COLORS = ['#FFFBE0', '#FFFDF2', '#FFF9E6', '#FFFFFF'] as const;
-const DARK_MOOD_CARD_COLORS = ['#3C3427', '#332D25', '#3A3125', '#232734'] as const;
-const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((m) => [m.level, m.emoji])) as Record<MoodLevel, string>;
-const MOOD_POLAROID_PREFIX = 'mood-polaroid-';
-const MOOD_CANVAS_FILTER_KEYS: Array<{ value: MoodCanvasFilter; key: string }> = [
-  { value: 'all', key: 'canvasFilterAll' },
-  { value: 'week', key: 'canvasFilterWeek' },
-  { value: 'month', key: 'canvasFilterMonth' },
-  { value: 'year', key: 'canvasFilterYear' },
-];
-
-function parseLocalDateString(value: string): Date | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return null;
-
-  const [, year, month, day] = match;
-  return new Date(Number(year), Number(month) - 1, Number(day));
-}
-
-function isDateInFilter(date: string | undefined, filter: MoodCanvasFilter, now: Date): boolean {
-  if (!date || filter === 'all') return true;
-
-  const target = parseLocalDateString(date);
-  if (!target) return false;
-
-  if (filter === 'year') {
-    return target.getFullYear() === now.getFullYear();
-  }
-
-  if (filter === 'month') {
-    return target.getFullYear() === now.getFullYear() && target.getMonth() === now.getMonth();
-  }
-
-  const startOfWeek = new Date(now);
-  startOfWeek.setHours(0, 0, 0, 0);
-  startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 7);
-
-  return target >= startOfWeek && target < endOfWeek;
-}
-
-function buildItemsFromMoodHistory(history: MoodEntry[]): MoodCanvasItem[] {
-  if (history.length === 0) return [];
-  const ascHistory = [...history].sort((a, b) => a.date.localeCompare(b.date));
-
-  return ascHistory.map((entry, index) => {
-    const config = MOODS.find((m) => m.level === entry.mood);
-    const emoji = MOOD_EMOJI_BY_LEVEL[entry.mood] ?? '🙂';
-    const column = index % 3;
-    const row = Math.floor(index / 3);
-    const x = 26 + column * 196;
-    const y = 24 + row * 246;
-    const rotation = [-4, 3, -2, 2, -3, 1][index % 6] ?? 0;
-
-    return {
-      id: `${MOOD_POLAROID_PREFIX}${entry.date}`,
-      type: 'photo',
-      date: entry.date,
-      x,
-      y,
-      r: rotation,
-      w: 178,
-      h: 228,
-      z: index + 1,
-      color: '#FFFFFF',
-      imageUrl: config?.imageUrl,
-      moodEmoji: emoji,
-      caption: `${entry.date} · ${emoji}`,
-      title: `${entry.date} · ${emoji}`,
-      text: entry.message,
-    } satisfies MoodCanvasItem;
-  });
-}
-
-function mergeMoodItems(prev: MoodCanvasItem[], generated: MoodCanvasItem[]): MoodCanvasItem[] {
-  if (generated.length === 0) return prev;
-
-  const prevMap = new Map(prev.map((item) => [item.id, item]));
-  const nonMoodItems = prev.filter((item) => !item.id.startsWith(MOOD_POLAROID_PREFIX));
-  let maxZ = prev.reduce((max, item) => Math.max(max, item.z), 0);
-
-  const mergedMoodItems = generated.map((item) => {
-    const existing = prevMap.get(item.id);
-    if (!existing) {
-      maxZ += 1;
-      return { ...item, z: maxZ };
-    }
-    return {
-      ...existing,
-      imageUrl: item.imageUrl,
-      moodEmoji: item.moodEmoji,
-      caption: item.caption,
-      title: item.title,
-      text: item.text,
-      color: item.color,
-      date: item.date,
-    };
-  });
-
-  return [...nonMoodItems, ...mergedMoodItems];
-}
-
-const LIGHT_PALETTE = {
-  pageBg: '#F9F8F4',
-  text: '#2D2D2D',
-  accent: '#4a9e8e',
-  line: 'rgba(0,0,0,0.03)',
-  border: 'rgba(0,0,0,0.08)',
-  softText: 'rgba(45,45,45,0.55)',
-  bodyText: 'rgba(45,45,45,0.85)',
-  bodyTextStrong: 'rgba(45,45,45,0.86)',
-  bodyTextSoft: 'rgba(45,45,45,0.82)',
-  placeholder: 'rgba(0,0,0,0.25)',
-  noteLine: 'rgba(0,0,0,0.08)',
-  sectionDivider: 'rgba(0,0,0,0.06)',
-  photoFrameBg: '#F1F0EB',
-  selectedBorder: 'rgba(74,158,142,0.5)',
-  selectedDashedBorder: 'rgba(74,158,142,0.62)',
-  selectedShadow: '0 20px 40px rgba(0,0,0,0.15)',
-  cardShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
-  photoShadow: '0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04)',
-  controlBorder: 'rgba(74,158,142,0.6)',
-  controlBg: '#FFFFFF',
-  controlText: 'rgba(74,158,142,0.92)',
-  dangerBorder: 'rgba(220,60,60,0.5)',
-  dangerText: 'rgba(220,60,60,0.85)',
-  chromeBorder: 'rgba(0,0,0,0.25)',
-  chromeBg: 'rgba(255,255,255,0.68)',
-  chromeText: 'rgba(45,45,45,0.78)',
-  activeChipBorder: 'rgba(74,158,142,0.32)',
-  activeChipBg: 'rgba(230,244,240,0.92)',
-  helperBg: 'rgba(255,255,255,0.3)',
-  sheetBg: 'rgba(249,248,244,0.98)',
-  sheetBorder: 'rgba(0,0,0,0.1)',
-  sheetButtonBorder: 'rgba(0,0,0,0.08)',
-  sheetButtonBg: 'rgba(255,255,255,0.8)',
-  sheetEmptyBorder: 'rgba(0,0,0,0.16)',
-  sheetEmptyBg: 'rgba(255,255,255,0.4)',
-};
-
-const DARK_PALETTE = {
-  pageBg: '#151923',
-  text: 'rgba(241,243,247,0.94)',
-  accent: '#7fd1c3',
-  line: 'rgba(255,255,255,0.045)',
-  border: 'rgba(255,255,255,0.12)',
-  softText: 'rgba(228,232,240,0.56)',
-  bodyText: 'rgba(236,239,245,0.9)',
-  bodyTextStrong: 'rgba(236,239,245,0.92)',
-  bodyTextSoft: 'rgba(230,234,242,0.84)',
-  placeholder: 'rgba(255,255,255,0.28)',
-  noteLine: 'rgba(255,255,255,0.08)',
-  sectionDivider: 'rgba(255,255,255,0.08)',
-  photoFrameBg: '#222836',
-  selectedBorder: 'rgba(127,209,195,0.54)',
-  selectedDashedBorder: 'rgba(127,209,195,0.7)',
-  selectedShadow: '0 24px 46px rgba(0,0,0,0.42)',
-  cardShadow: '0 8px 18px rgba(0,0,0,0.26)',
-  photoShadow: '0 12px 22px rgba(0,0,0,0.3)',
-  controlBorder: 'rgba(127,209,195,0.5)',
-  controlBg: '#1b212d',
-  controlText: 'rgba(127,209,195,0.96)',
-  dangerBorder: 'rgba(248,113,113,0.5)',
-  dangerText: 'rgba(252,165,165,0.9)',
-  chromeBorder: 'rgba(255,255,255,0.16)',
-  chromeBg: 'rgba(20,24,33,0.82)',
-  chromeText: 'rgba(236,239,245,0.84)',
-  activeChipBorder: 'rgba(127,209,195,0.34)',
-  activeChipBg: 'rgba(127,209,195,0.14)',
-  helperBg: 'rgba(8,10,16,0.5)',
-  sheetBg: 'rgba(18,22,30,0.98)',
-  sheetBorder: 'rgba(255,255,255,0.08)',
-  sheetButtonBorder: 'rgba(255,255,255,0.14)',
-  sheetButtonBg: 'rgba(255,255,255,0.08)',
-  sheetEmptyBorder: 'rgba(255,255,255,0.14)',
-  sheetEmptyBg: 'rgba(255,255,255,0.06)',
-};
-
-function resolveCanvasItemColor(color: string | undefined, isDark: boolean) {
-  if (!color) return isDark ? DARK_MOOD_CARD_COLORS[3] : LIGHT_MOOD_CARD_COLORS[3];
-
-  const normalized = color.toUpperCase();
-  const index = LIGHT_MOOD_CARD_COLORS.findIndex((entry) => entry === normalized);
-  if (index >= 0) {
-    return isDark ? DARK_MOOD_CARD_COLORS[index] : LIGHT_MOOD_CARD_COLORS[index];
-  }
-
-  return color;
-}
-
-const angleFromPoint = (x: number, y: number, centerX: number, centerY: number) => {
-  return (Math.atan2(y - centerY, x - centerX) * 180) / Math.PI;
-};
-
-const distanceBetween = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-};
-
-const midpointBetween = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-};
-
-
-const CANVAS_STORAGE_KEY = 'sleepyhub-mood-canvas';
-const VIEWPORT_STORAGE_KEY = 'sleepyhub-mood-canvas-viewport';
-const DELETED_IDS_STORAGE_KEY = 'sleepyhub-mood-canvas-deleted';
-
-function saveCanvasItems(items: MoodCanvasItem[]) {
-  try {
-    // Persist non-mood items fully and keep mood card positions without storing derived image URLs.
-    const toSave = items.map((item) => {
-      if (item.type === 'photo' && item.id.startsWith(MOOD_POLAROID_PREFIX)) {
-        const { imageUrl, ...rest } = item;
-        return rest;
-      }
-      return item;
-    });
-    localStorage.setItem(CANVAS_STORAGE_KEY, JSON.stringify(toSave));
-  } catch { /* quota exceeded — ignore */ }
-}
-
-function loadCanvasItems(): MoodCanvasItem[] | null {
-  try {
-    const raw = localStorage.getItem(CANVAS_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as MoodCanvasItem[];
-  } catch {
-    return null;
-  }
-}
-
-function loadDeletedIds(): Set<string> {
-  try {
-    const raw = localStorage.getItem(DELETED_IDS_STORAGE_KEY);
-    if (!raw) return new Set();
-    return new Set(JSON.parse(raw) as string[]);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveDeletedIds(ids: Set<string>) {
-  try {
-    localStorage.setItem(DELETED_IDS_STORAGE_KEY, JSON.stringify([...ids]));
-  } catch { /* ignore */ }
-}
-
-function saveViewport(offset: { x: number; y: number }, scale: number) {
-  try {
-    localStorage.setItem(VIEWPORT_STORAGE_KEY, JSON.stringify({ x: offset.x, y: offset.y, scale }));
-  } catch { /* ignore */ }
-}
-
-function loadViewport(): { x: number; y: number; scale: number } | null {
-  try {
-    const raw = localStorage.getItem(VIEWPORT_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Initialize canvas items: load saved items from localStorage, then merge
- * with freshly generated mood polaroids (to pick up new mood entries or
- * updated images).
- */
-function initCanvasItems(t: (key: any) => string): MoodCanvasItem[] {
-  const deleted = loadDeletedIds();
-  const moodItems = buildItemsFromMoodHistory(loadMoodHistory()).filter((i: MoodCanvasItem) => !deleted.has(i.id));
-  const saved = loadCanvasItems();
-  if (!saved) {
-    // No saved canvas: use mood items if any, otherwise show initial demo items
-    if (moodItems.length > 0) return moodItems;
-    return buildInitialItems(t).filter((i) => !deleted.has(i.id));
-  }
-  const merged = mergeMoodItems(saved, moodItems);
-  return merged.filter((i) => !deleted.has(i.id));
-}
+import type { MoodCanvasItem, MoodCanvasFilter, ActionState } from './canvasTypes';
+import {
+  MIN_SCALE, MAX_SCALE,
+  MOOD_CANVAS_FILTER_KEYS,
+  LIGHT_MOOD_CARD_COLORS, DARK_MOOD_CARD_COLORS,
+  angleFromPoint, distanceBetween, midpointBetween,
+  isDateInFilter, buildItemsFromMoodHistory, mergeMoodItems,
+} from './canvasTypes';
+import { LIGHT_PALETTE, DARK_PALETTE } from './canvasTheme';
+import {
+  saveCanvasItems, loadDeletedIds, saveDeletedIds,
+  saveViewport, loadViewport, initCanvasItems,
+} from './canvasStorage';
+import { StickerDrawer } from './StickerDrawer';
+import { CanvasItemView } from './CanvasItemView';
 
 export function MoodCanvas() {
   const { t } = useTranslation();
@@ -423,24 +50,19 @@ export function MoodCanvas() {
   const lastTapRef = useRef<{ id: string; at: number } | null>(null);
   const focusRelayRef = useRef<HTMLTextAreaElement | null>(null);
   const editingRef = useRef<string | null>(null);
-  // Timestamp when editing began — blur within a short window is iOS implicit blur (guard it)
   const editStartedAtRef = useRef(0);
-  // How long to guard against iOS implicit blur after entering edit mode
   const BLUR_GUARD_MS = 400;
 
-  // Persist items to localStorage whenever they change
-  useEffect(() => {
-    saveCanvasItems(items);
-  }, [items]);
+  // ── Persistence ──
 
-  // Persist viewport position/scale (debounced via the state settling)
-  useEffect(() => {
-    saveViewport(viewportOffset, viewportScale);
-  }, [viewportOffset, viewportScale]);
+  useEffect(() => { saveCanvasItems(items); }, [items]);
+  useEffect(() => { saveViewport(viewportOffset, viewportScale); }, [viewportOffset, viewportScale]);
 
-  const stickerCategories = useMemo(() => STICKER_CATALOG.filter((category) => category.stickers.length > 0), []);
+  // ── Sticker categories ──
+
+  const stickerCategories = useMemo(() => STICKER_CATALOG.filter((c) => c.stickers.length > 0), []);
   const activeStickerCategory = useMemo(
-    () => stickerCategories.find((category) => category.id === activeStickerCategoryId) ?? stickerCategories[0] ?? null,
+    () => stickerCategories.find((c) => c.id === activeStickerCategoryId) ?? stickerCategories[0] ?? null,
     [activeStickerCategoryId, stickerCategories],
   );
 
@@ -449,6 +71,8 @@ export function MoodCanvas() {
       setActiveStickerCategoryId(stickerCategories[0].id);
     }
   }, [activeStickerCategory, stickerCategories]);
+
+  // ── Item operations ──
 
   const bringToFront = useCallback((id: string) => {
     setItems((prev) => {
@@ -473,32 +97,20 @@ export function MoodCanvas() {
     editingRef.current = null;
   }, [draftText, draftTitle, editingItemId]);
 
-  /**
-   * iOS blur guard — only active for BLUR_GUARD_MS after entering edit mode.
-   * Covers the iOS implicit blur caused by finger-lift (touchend on card div).
-   * After the guard window, any blur is intentional → commit and exit editing.
-   */
   const handleBlur = useCallback((event: React.FocusEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     if (!editingRef.current) return;
-
     const elapsed = Date.now() - editStartedAtRef.current;
     if (elapsed < BLUR_GUARD_MS) {
-      // iOS implicit blur right after entering edit — re-focus
       const el = event.target;
       setTimeout(() => {
-        if (editingRef.current && document.activeElement !== el) {
-          el.focus();
-        }
+        if (editingRef.current && document.activeElement !== el) el.focus();
       }, 10);
       return;
     }
-
-    // Outside guard window → intentional blur (keyboard ✓, tap elsewhere, etc.)
     editingRef.current = null;
     commitEdit();
   }, [commitEdit]);
 
-  /** Callback ref: transfer focus from relay → real textarea after React renders it */
   const editFocusRef = useCallback((el: HTMLTextAreaElement | HTMLInputElement | null) => {
     if (el) {
       setTimeout(() => {
@@ -511,8 +123,6 @@ export function MoodCanvas() {
 
   const beginEdit = useCallback((item: MoodCanvasItem) => {
     if (item.type === 'photo') return;
-    // Synchronously focus hidden relay so iOS opens the keyboard
-    // (must happen in the user-gesture call stack)
     focusRelayRef.current?.focus();
     editStartedAtRef.current = Date.now();
     setSelectedId(item.id);
@@ -522,79 +132,59 @@ export function MoodCanvas() {
     setDraftText(item.text ?? '');
   }, []);
 
+  // ── Add items ──
+
+  const screenToWorld = useCallback((screenX: number, screenY: number) => ({
+    x: (screenX - viewportOffset.x) / viewportScale,
+    y: (screenY - viewportOffset.y) / viewportScale,
+  }), [viewportOffset.x, viewportOffset.y, viewportScale]);
+
+  const getBoardCenter = useCallback(() => {
+    const rect = boardRef.current?.getBoundingClientRect();
+    return screenToWorld(rect ? rect.width / 2 : 180, rect ? rect.height / 2 : 300);
+  }, [screenToWorld]);
+
   const addCanvasItem = useCallback((type: 'note' | 'entry') => {
     const id = `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const boardRect = boardRef.current?.getBoundingClientRect();
-    const boardCenterX = boardRect ? boardRect.width / 2 : 180;
-    const boardCenterY = boardRect ? boardRect.height / 2 : 300;
-    const worldCenterX = (boardCenterX - viewportOffset.x) / viewportScale;
-    const worldCenterY = (boardCenterY - viewportOffset.y) / viewportScale;
-
+    const center = getBoardCenter();
     const base = type === 'note'
-      ? {
-          w: 176,
-          h: 146,
-          color: cardColors[0],
-          text: '',
-        }
-      : {
-          w: 196,
-          h: 178,
-          color: cardColors[1],
-          title: getDateString(),
-          text: '',
-        };
+      ? { w: 176, h: 146, color: cardColors[0], text: '' }
+      : { w: 196, h: 178, color: cardColors[1], title: getDateString(), text: '' };
 
     setItems((prev) => {
       const maxZ = prev.reduce((max, item) => Math.max(max, item.z), 0);
-      const newItem: MoodCanvasItem = {
-        id,
-        type,
-        x: worldCenterX - base.w / 2,
-        y: worldCenterY - base.h / 2,
+      return [...prev, {
+        id, type,
+        x: center.x - base.w / 2, y: center.y - base.h / 2,
         r: type === 'note' ? -2 : 2,
-        w: base.w,
-        h: base.h,
+        w: base.w, h: base.h,
         z: maxZ + 1,
         color: base.color,
         title: 'title' in base ? base.title : undefined,
         text: base.text,
-      };
-      return [...prev, newItem];
+      }];
     });
-
     setSelectedId(id);
-  }, [cardColors, viewportOffset.x, viewportOffset.y, viewportScale]);
+  }, [cardColors, getBoardCenter]);
 
   const addStickerItem = useCallback((sticker: StickerDefinition, categoryId: string) => {
     const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const boardRect = boardRef.current?.getBoundingClientRect();
-    const boardCenterX = boardRect ? boardRect.width / 2 : 180;
-    const boardCenterY = boardRect ? boardRect.height / 2 : 300;
-    const worldCenterX = (boardCenterX - viewportOffset.x) / viewportScale;
-    const worldCenterY = (boardCenterY - viewportOffset.y) / viewportScale;
-
+    const center = getBoardCenter();
     setItems((prev) => {
       const maxZ = prev.reduce((max, item) => Math.max(max, item.z), 0);
-      const newItem: MoodCanvasItem = {
-        id,
-        type: 'sticker',
-        x: worldCenterX - 56,
-        y: worldCenterY - 56,
-        r: 0,
-        w: 112,
-        h: 112,
+      return [...prev, {
+        id, type: 'sticker' as const,
+        x: center.x - 56, y: center.y - 56,
+        r: 0, w: 112, h: 112,
         z: maxZ + 1,
         title: sticker.label,
         imageUrl: sticker.src,
         stickerCategory: categoryId,
-      };
-      return [...prev, newItem];
+      }];
     });
-
     setSelectedId(id);
     setIsStickerDrawerOpen(false);
-  }, [viewportOffset.x, viewportOffset.y, viewportScale]);
+  }, [getBoardCenter]);
 
   const deletedIdsRef = useRef(loadDeletedIds());
 
@@ -605,6 +195,8 @@ export function MoodCanvas() {
     setSelectedId(null);
   }, []);
 
+  // ── Sync mood cards from history ──
+
   const syncMoodCards = useCallback(() => {
     const deleted = deletedIdsRef.current;
     const generated = buildItemsFromMoodHistory(loadMoodHistory()).filter((i) => !deleted.has(i.id));
@@ -613,18 +205,14 @@ export function MoodCanvas() {
 
   useEffect(() => {
     syncMoodCards();
-
-    const onMoodUpdate = () => syncMoodCards();
-    const onFocus = () => syncMoodCards();
-
-    window.addEventListener(MOOD_HISTORY_UPDATED_EVENT, onMoodUpdate as EventListener);
-    window.addEventListener('focus', onFocus);
-    window.addEventListener('storage', onMoodUpdate as EventListener);
-
+    const handler = () => syncMoodCards();
+    window.addEventListener(MOOD_HISTORY_UPDATED_EVENT, handler as EventListener);
+    window.addEventListener('focus', handler);
+    window.addEventListener('storage', handler as EventListener);
     return () => {
-      window.removeEventListener(MOOD_HISTORY_UPDATED_EVENT, onMoodUpdate as EventListener);
-      window.removeEventListener('focus', onFocus);
-      window.removeEventListener('storage', onMoodUpdate as EventListener);
+      window.removeEventListener(MOOD_HISTORY_UPDATED_EVENT, handler as EventListener);
+      window.removeEventListener('focus', handler);
+      window.removeEventListener('storage', handler as EventListener);
     };
   }, [syncMoodCards]);
 
@@ -633,34 +221,27 @@ export function MoodCanvas() {
     return items.filter((item) => item.type !== 'photo' || isDateInFilter(item.date, filter, now));
   }, [filter, items]);
 
+  // ── Pointer / gesture helpers ──
+
   const pointerToBoard = useCallback((event: PointerEvent | ReactPointerEvent) => {
     const rect = boardRef.current?.getBoundingClientRect();
     if (!rect) return { x: 0, y: 0 };
-    return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    };
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   }, []);
 
   const pointerToWorld = useCallback((event: PointerEvent | ReactPointerEvent) => {
     const p = pointerToBoard(event);
-    return {
-      x: (p.x - viewportOffset.x) / viewportScale,
-      y: (p.y - viewportOffset.y) / viewportScale,
-    };
-  }, [pointerToBoard, viewportOffset.x, viewportOffset.y, viewportScale]);
+    return screenToWorld(p.x, p.y);
+  }, [pointerToBoard, screenToWorld]);
 
   const startDrag = useCallback((event: ReactPointerEvent, item: MoodCanvasItem) => {
     event.preventDefault();
     event.stopPropagation();
     const point = pointerToWorld(event);
     actionRef.current = {
-      mode: 'drag',
-      itemId: item.id,
-      startX: item.x,
-      startY: item.y,
-      pointerStartX: point.x,
-      pointerStartY: point.y,
+      mode: 'drag', itemId: item.id,
+      startX: item.x, startY: item.y,
+      pointerStartX: point.x, pointerStartY: point.y,
     };
   }, [pointerToWorld]);
 
@@ -670,29 +251,25 @@ export function MoodCanvas() {
     const centerX = item.x + item.w / 2;
     const centerY = item.y + item.h / 2;
     actionRef.current = {
-      mode: 'rotate',
-      itemId: item.id,
-      startR: item.r,
-      centerX,
-      centerY,
+      mode: 'rotate', itemId: item.id, startR: item.r,
+      centerX, centerY,
       pointerStartAngle: angleFromPoint(p.x, p.y, centerX, centerY),
     };
   }, [pointerToWorld]);
+
+  // ── Global pointer move / up ──
 
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
       if (boardPointersRef.current.has(event.pointerId)) {
         boardPointersRef.current.set(event.pointerId, pointerToBoard(event));
       }
-
       if (!actionRef.current) return;
       const action = actionRef.current;
 
       if (action.mode === 'pan') {
         const point = pointerToBoard(event);
-        const dx = point.x - action.pointerStartX;
-        const dy = point.y - action.pointerStartY;
-        setViewportOffset({ x: action.startOffsetX + dx, y: action.startOffsetY + dy });
+        setViewportOffset({ x: action.startOffsetX + point.x - action.pointerStartX, y: action.startOffsetY + point.y - action.pointerStartY });
         return;
       }
 
@@ -700,33 +277,24 @@ export function MoodCanvas() {
         const pA = boardPointersRef.current.get(action.pointerA);
         const pB = boardPointersRef.current.get(action.pointerB);
         if (!pA || !pB) return;
-
         const center = midpointBetween(pA, pB);
         const distance = Math.max(1, distanceBetween(pA, pB));
         const nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, action.startScale * (distance / action.startDistance)));
-
         setViewportScale(nextScale);
-        setViewportOffset({
-          x: center.x - action.worldCenterX * nextScale,
-          y: center.y - action.worldCenterY * nextScale,
-        });
+        setViewportOffset({ x: center.x - action.worldCenterX * nextScale, y: center.y - action.worldCenterY * nextScale });
         return;
       }
 
       const point = pointerToWorld(event);
 
       if (action.mode === 'drag') {
-        const dx = point.x - action.pointerStartX;
-        const dy = point.y - action.pointerStartY;
-        updateItem(action.itemId, (item) => ({ ...item, x: action.startX + dx, y: action.startY + dy }));
+        updateItem(action.itemId, (item) => ({ ...item, x: action.startX + point.x - action.pointerStartX, y: action.startY + point.y - action.pointerStartY }));
         return;
       }
 
       if (action.mode === 'rotate') {
         const angle = angleFromPoint(point.x, point.y, action.centerX, action.centerY);
-        const delta = angle - action.pointerStartAngle;
-        updateItem(action.itemId, (item) => ({ ...item, r: Math.round((action.startR + delta) * 10) / 10 }));
-        return;
+        updateItem(action.itemId, (item) => ({ ...item, r: Math.round((action.startR + angle - action.pointerStartAngle) * 10) / 10 }));
       }
     };
 
@@ -738,7 +306,6 @@ export function MoodCanvas() {
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
-
     return () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
@@ -746,10 +313,11 @@ export function MoodCanvas() {
     };
   }, [pointerToBoard, pointerToWorld, updateItem]);
 
+  // ── Render ──
+
   return (
     <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: palette.pageBg }}>
-      {/* Hidden focus relay — gains focus synchronously on double-tap so iOS keeps the keyboard open
-          while React re-renders to mount the real textarea. */}
+      {/* Hidden focus relay for iOS keyboard */}
       <textarea
         ref={focusRelayRef}
         aria-hidden
@@ -763,14 +331,9 @@ export function MoodCanvas() {
           if (isStickerDrawerOpen) return;
           const hitCard = !!(event.target as HTMLElement).closest('[data-board-item]');
           if (!hitCard) {
-            if (editingItemId) {
-              editingRef.current = null;
-              commitEdit();
-            }
+            if (editingItemId) { editingRef.current = null; commitEdit(); }
             setSelectedId(null);
           }
-
-          // Don't start pan/pinch while editing
           if (editingItemId) return;
 
           const point = pointerToBoard(event);
@@ -782,13 +345,10 @@ export function MoodCanvas() {
             const pB = second[1];
             const center = midpointBetween(pA, pB);
             const startDistance = Math.max(1, distanceBetween(pA, pB));
-
             actionRef.current = {
               mode: 'pinch',
-              pointerA: first[0],
-              pointerB: second[0],
-              startScale: viewportScale,
-              startDistance,
+              pointerA: first[0], pointerB: second[0],
+              startScale: viewportScale, startDistance,
               worldCenterX: (center.x - viewportOffset.x) / viewportScale,
               worldCenterY: (center.y - viewportOffset.y) / viewportScale,
             };
@@ -797,30 +357,23 @@ export function MoodCanvas() {
 
           actionRef.current = {
             mode: 'pan',
-            startOffsetX: viewportOffset.x,
-            startOffsetY: viewportOffset.y,
-            pointerStartX: point.x,
-            pointerStartY: point.y,
+            startOffsetX: viewportOffset.x, startOffsetY: viewportOffset.y,
+            pointerStartX: point.x, pointerStartY: point.y,
           };
         }}
         onPointerUp={(event) => {
           boardPointersRef.current.delete(event.pointerId);
-          if (actionRef.current?.mode === 'pinch') {
-            actionRef.current = null;
-          }
+          if (actionRef.current?.mode === 'pinch') actionRef.current = null;
         }}
         onPointerCancel={(event) => {
           boardPointersRef.current.delete(event.pointerId);
-          if (actionRef.current?.mode === 'pinch') {
-            actionRef.current = null;
-          }
+          if (actionRef.current?.mode === 'pinch') actionRef.current = null;
         }}
         className="relative h-full w-full overflow-hidden"
         style={{
           touchAction: 'none',
           backgroundColor: palette.pageBg,
-          backgroundImage:
-            `linear-gradient(to right, ${palette.line} 1px, transparent 1px), linear-gradient(to bottom, ${palette.line} 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(to right, ${palette.line} 1px, transparent 1px), linear-gradient(to bottom, ${palette.line} 1px, transparent 1px)`,
           backgroundSize: `${40 * viewportScale}px ${40 * viewportScale}px`,
           backgroundPosition: `${viewportOffset.x}px ${viewportOffset.y}px`,
         }}
@@ -833,253 +386,51 @@ export function MoodCanvas() {
             transform: `translate3d(${viewportOffset.x}px, ${viewportOffset.y}px, 0) scale(${viewportScale})`,
           }}
         >
-          {visibleItems.map((item) => {
-            const isSelected = item.id === selectedId;
-            const isEditing = item.id === editingItemId;
-            const isSticker = item.type === 'sticker';
-            return (
-              <div
-                key={item.id}
-                data-board-item="1"
-                onPointerDown={(event) => {
-                  setSelectedId(item.id);
-                  bringToFront(item.id);
-
-                  // If multiple fingers are down, this is a pinch gesture — not a double-tap
-                  if (boardPointersRef.current.size >= 1) {
-                    lastTapRef.current = null;
-                    return;
-                  }
-
-                  const now = Date.now();
-                  const lastTap = lastTapRef.current;
-                  const dt = lastTap ? now - lastTap.at : -1;
-                  if ((item.type === 'note' || item.type === 'entry') && lastTap && lastTap.id === item.id && dt < 500) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    beginEdit(item);
-                    lastTapRef.current = null;
-                    return;
-                  }
-                  lastTapRef.current = { id: item.id, at: now };
-                }}
-                onDoubleClick={(event) => {
+          {visibleItems.map((item) => (
+            <CanvasItemView
+              key={item.id}
+              item={item}
+              isSelected={item.id === selectedId}
+              isEditing={item.id === editingItemId}
+              isDark={isDark}
+              palette={palette}
+              draftTitle={draftTitle}
+              draftText={draftText}
+              onDraftTitleChange={setDraftTitle}
+              onDraftTextChange={setDraftText}
+              editFocusRef={editFocusRef}
+              handleBlur={handleBlur}
+              onPointerDown={(event) => {
+                setSelectedId(item.id);
+                bringToFront(item.id);
+                if (boardPointersRef.current.size >= 1) { lastTapRef.current = null; return; }
+                const now = Date.now();
+                const lastTap = lastTapRef.current;
+                const dt = lastTap ? now - lastTap.at : -1;
+                if ((item.type === 'note' || item.type === 'entry') && lastTap && lastTap.id === item.id && dt < 500) {
                   event.stopPropagation();
                   event.preventDefault();
                   beginEdit(item);
-                }}
-                className={`absolute transition-shadow ${item.type === 'photo' ? 'p-2 pb-7' : isSticker ? 'p-0' : 'p-3'}`}
-                style={{
-                  touchAction: 'manipulation',
-                  width: item.w,
-                  height: item.h,
-                  left: item.x,
-                  top: item.y,
-                  transform: `rotate(${item.r}deg)`,
-                  zIndex: item.z,
-                  border: isSticker
-                    ? isSelected
-                      ? `1.5px dashed ${palette.selectedDashedBorder}`
-                      : '1px solid transparent'
-                    : isSelected
-                      ? `1.5px solid ${palette.selectedBorder}`
-                      : `1px solid ${palette.border}`,
-                  backgroundColor: isSticker ? 'transparent' : resolveCanvasItemColor(item.color, isDark),
-                  boxShadow: isSelected
-                    ? palette.selectedShadow
-                    : isSticker
-                      ? 'none'
-                    : item.type === 'photo'
-                      ? palette.photoShadow
-                      : palette.cardShadow,
-                }}
-              >
-                {item.type === 'note' && (
-                  <>
-                    <div className="h-0.5 w-8 mb-2" style={{ backgroundColor: palette.noteLine }} />
-                    {isEditing ? (
-                      <textarea
-                        ref={editFocusRef}
-                        value={draftText}
-                        onChange={(event) => setDraftText(event.target.value)}
-                        onPointerDown={(event) => event.stopPropagation()}
-                        onBlur={handleBlur}
-                        placeholder={t('canvasNotePlaceholder')}
-                        className={`w-full h-[80%] bg-transparent text-xs leading-relaxed outline-none resize-none ${isDark ? 'placeholder:text-white/30' : 'placeholder:text-black/25'}`}
-                        style={{ color: palette.bodyText, caretColor: palette.accent }}
-                        autoFocus
-                      />
-                    ) : (
-                      <p className="leading-relaxed text-xs" style={{ color: item.text ? palette.bodyText : palette.placeholder }}>
-                        {item.text || t('canvasNotePlaceholder')}
-                      </p>
-                    )}
-                  </>
-                )}
-
-                {item.type === 'entry' && (
-                  <>
-                    <div className="flex items-center justify-between mb-2 pb-1.5" style={{ borderBottom: `1px solid ${palette.sectionDivider}` }}>
-                      {isEditing ? (
-                        <input
-                          value={draftTitle}
-                          onChange={(event) => setDraftTitle(event.target.value)}
-                          onPointerDown={(event) => event.stopPropagation()}
-                          onBlur={handleBlur}
-                          className="uppercase tracking-wider text-[10px] bg-transparent outline-none w-[85%]"
-                          style={{ color: palette.softText, caretColor: palette.accent }}
-                        />
-                      ) : (
-                        <span className="uppercase tracking-wider text-[10px]" style={{ color: palette.softText }}>
-                          {item.title}
-                        </span>
-                      )}
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: palette.accent }} />
-                    </div>
-                    {isEditing ? (
-                      <textarea
-                        ref={editFocusRef}
-                        value={draftText}
-                        onChange={(event) => setDraftText(event.target.value)}
-                        onPointerDown={(event) => event.stopPropagation()}
-                        onBlur={handleBlur}
-                        placeholder={t('canvasEntryPlaceholder')}
-                        className={`w-full h-[78%] bg-transparent text-xs leading-relaxed outline-none resize-none ${isDark ? 'placeholder:text-white/30' : 'placeholder:text-black/25'}`}
-                        style={{ color: palette.bodyTextStrong, caretColor: palette.accent }}
-                        autoFocus
-                      />
-                    ) : (
-                      <p className="leading-relaxed text-xs" style={{ color: item.text ? palette.bodyTextStrong : palette.placeholder }}>
-                        {item.text || t('canvasEntryPlaceholder')}
-                      </p>
-                    )}
-                  </>
-                )}
-
-                {item.type === 'photo' && (
-                  <>
-                    <div className="h-full w-full flex flex-col">
-                      <div
-                        className="relative w-full overflow-hidden"
-                        style={{
-                          backgroundColor: palette.photoFrameBg,
-                          aspectRatio: '1 / 1',
-                        }}
-                      >
-                        {item.imageUrl ? (
-                          <>
-                            <img
-                              src={item.imageUrl}
-                              alt=""
-                              className="absolute inset-0 w-full h-full object-cover"
-                              aria-hidden
-                              referrerPolicy="no-referrer"
-                            />
-                            <div
-                              className="absolute inset-x-0 bottom-0 h-16"
-                              style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.36), transparent)' }}
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom right, #d4a883 0%, #e8d5c4 55%, #c7bca5 100%)', opacity: 0.5 }} />
-                            <div className="absolute inset-x-3 top-4 h-16 rounded-full blur-2xl" style={{ backgroundColor: 'rgba(255,236,209,0.7)' }} />
-                          </>
-                        )}
-                      </div>
-
-                      <div className="pt-1">
-                        <p className="text-center italic text-[10px]" style={{ color: palette.softText }}>
-                          {item.caption}
-                        </p>
-                        {item.text && (
-                          <p
-                            className="leading-snug text-center mt-0.5 text-[10px]"
-                            style={{
-                              color: palette.bodyTextSoft,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            “{item.text}”
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {item.type === 'sticker' && item.imageUrl && (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title ?? ''}
-                      className="h-full w-full object-contain select-none pointer-events-none"
-                      style={{ filter: 'drop-shadow(0 10px 16px rgba(0,0,0,0.16))' }}
-                      draggable={false}
-                    />
-                  </div>
-                )}
-
-                {isEditing && (
-                  <button
-                    type="button"
-                    onPointerDown={(event) => {
-                      event.stopPropagation();
-                      editingRef.current = null;
-                    }}
-                    onClick={commitEdit}
-                    className="absolute -top-3 right-0 px-2 py-0.5 border text-[9px] uppercase tracking-widest"
-                    style={{ borderColor: palette.controlBorder, backgroundColor: palette.controlBg, color: palette.controlText }}
-                  >
-                    {t('canvasDone')}
-                  </button>
-                )}
-
-                {isSelected && !isEditing && (
-                  <>
-                    <button
-                      type="button"
-                      onPointerDown={(event) => startDrag(event, item)}
-                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest cursor-grab active:cursor-grabbing"
-                      style={{ borderColor: palette.controlBorder, backgroundColor: palette.controlBg, color: palette.controlText }}
-                      aria-label={t('canvasDrag')}
-                    >
-                      {t('canvasDrag')}
-                    </button>
-
-                    <button
-                      type="button"
-                      onPointerDown={(event) => startRotate(event, item)}
-                      className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full border flex items-center justify-center"
-                      style={{ borderColor: palette.controlBorder, backgroundColor: palette.controlBg, color: palette.accent }}
-                      aria-label="Rotate"
-                    >
-                      <RotateCw size={11} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onPointerDown={(event) => {
-                        event.stopPropagation();
-                        event.preventDefault();
-                        deleteItem(item.id);
-                      }}
-                      className="absolute -top-3 -right-3 w-5 h-5 rounded-full border flex items-center justify-center"
-                      style={{ borderColor: palette.dangerBorder, backgroundColor: palette.controlBg, color: palette.dangerText }}
-                      aria-label="Delete"
-                    >
-                      <Trash2 size={10} />
-                    </button>
-                  </>
-                )}
-              </div>
-            );
-          })}
+                  lastTapRef.current = null;
+                  return;
+                }
+                lastTapRef.current = { id: item.id, at: now };
+              }}
+              onDoubleClick={(event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                beginEdit(item);
+              }}
+              onStartDrag={(event) => startDrag(event, item)}
+              onStartRotate={(event) => startRotate(event, item)}
+              onDelete={() => deleteItem(item.id)}
+              onCommitEdit={commitEdit}
+              t={t}
+            />
+          ))}
         </div>
 
+        {/* ── Filter chips ── */}
         <div
           className="absolute left-3 right-3 z-40 flex items-start gap-3"
           style={{ top: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
@@ -1091,9 +442,7 @@ export function MoodCanvas() {
                 <button
                   key={option.value}
                   type="button"
-                  onPointerDown={(event) => {
-                    event.stopPropagation();
-                  }}
+                  onPointerDown={(event) => event.stopPropagation()}
                   onClick={() => setFilter(option.value)}
                   className="px-2.5 py-1 text-[10px] uppercase tracking-widest border transition-colors"
                   style={{
@@ -1109,157 +458,45 @@ export function MoodCanvas() {
           </div>
         </div>
 
+        {/* ── Action buttons ── */}
         <div className="absolute bottom-24 left-3 z-40 flex items-center gap-2">
+          {(['note', 'entry'] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={() => addCanvasItem(type)}
+              className="px-2.5 py-1 text-[10px] uppercase tracking-widest border"
+              style={{ borderColor: palette.chromeBorder, color: palette.chromeText, backgroundColor: palette.chromeBg }}
+            >
+              {t(type === 'note' ? 'canvasAddNote' : 'canvasAddEntry')}
+            </button>
+          ))}
           <button
             type="button"
-            onPointerDown={(event) => {
-              event.stopPropagation();
-            }}
-            onClick={() => addCanvasItem('note')}
-            className="px-2.5 py-1 text-[10px] uppercase tracking-widest border"
-            style={{
-              borderColor: palette.chromeBorder,
-              color: palette.chromeText,
-              backgroundColor: palette.chromeBg,
-            }}
-          >
-            {t('canvasAddNote')}
-          </button>
-          <button
-            type="button"
-            onPointerDown={(event) => {
-              event.stopPropagation();
-            }}
-            onClick={() => addCanvasItem('entry')}
-            className="px-2.5 py-1 text-[10px] uppercase tracking-widest border"
-            style={{
-              borderColor: palette.chromeBorder,
-              color: palette.chromeText,
-              backgroundColor: palette.chromeBg,
-            }}
-          >
-            {t('canvasAddEntry')}
-          </button>
-          <button
-            type="button"
-            onPointerDown={(event) => {
-              event.stopPropagation();
-            }}
+            onPointerDown={(event) => event.stopPropagation()}
             onClick={() => {
-              if (editingItemId) {
-                editingRef.current = null;
-                commitEdit();
-              }
+              if (editingItemId) { editingRef.current = null; commitEdit(); }
               setIsStickerDrawerOpen(true);
             }}
             className="px-2.5 py-1 text-[10px] uppercase tracking-widest border"
-            style={{
-              borderColor: palette.chromeBorder,
-              color: palette.chromeText,
-              backgroundColor: palette.chromeBg,
-            }}
+            style={{ borderColor: palette.chromeBorder, color: palette.chromeText, backgroundColor: palette.chromeBg }}
           >
             {t('canvasAddSticker')}
           </button>
         </div>
 
-        <AnimatePresence>
-          {isStickerDrawerOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className={`fixed inset-0 z-[70] flex items-end backdrop-blur-[1px] ${isDark ? 'bg-black/50' : 'bg-black/30'}`}
-              onClick={() => setIsStickerDrawerOpen(false)}
-            >
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                className="app-bottom-sheet w-full rounded-t-[2rem] border-t px-4 pt-3 shadow-2xl"
-                style={{
-                  minHeight: 'min(32rem, 68dvh)',
-                  borderColor: palette.sheetBorder,
-                  backgroundColor: palette.sheetBg,
-                  paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
-                }}
-                onClick={(event) => event.stopPropagation()}
-              >
-                <div className="relative mb-4 flex items-center justify-end gap-4">
-                  <div className="absolute inset-x-0 flex justify-center pointer-events-none">
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-center" style={{ color: palette.text }}>
-                      {t('canvasStickerDrawerTitle')}
-                    </h3>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsStickerDrawerOpen(false)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border"
-                    style={{ borderColor: palette.sheetButtonBorder, color: palette.softText, backgroundColor: palette.sheetButtonBg }}
-                    aria-label={t('canvasStickerDrawerClose')}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-
-                <div className="mb-4 flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                  {stickerCategories.map((category) => {
-                    const isActive = category.id === activeStickerCategory?.id;
-                    return (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => setActiveStickerCategoryId(category.id)}
-                        className="shrink-0 rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-widest transition-colors"
-                        style={{
-                          borderColor: isActive ? palette.activeChipBorder : palette.sheetButtonBorder,
-                          backgroundColor: isActive ? palette.activeChipBg : palette.sheetButtonBg,
-                          color: isActive ? palette.accent : palette.chromeText,
-                        }}
-                      >
-                        {t(`canvasStickerCategory_${category.id}` as any) === `canvasStickerCategory_${category.id}`
-                          ? category.label
-                          : t(`canvasStickerCategory_${category.id}` as any)}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {activeStickerCategory ? (
-                  <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
-                    {activeStickerCategory.stickers.map((sticker) => (
-                      <button
-                        key={sticker.id}
-                        type="button"
-                        onClick={() => addStickerItem(sticker, activeStickerCategory.id)}
-                        className="flex aspect-square items-center justify-center p-2 transition-transform active:scale-95"
-                        aria-label={sticker.label}
-                      >
-                        <img
-                          src={sticker.src}
-                          alt={sticker.label}
-                          className="h-full w-full object-contain"
-                          style={{ filter: 'drop-shadow(0 12px 20px rgba(0,0,0,0.14))' }}
-                          draggable={false}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div
-                    className="rounded-3xl border border-dashed px-4 py-8 text-center text-xs"
-                    style={{ borderColor: palette.sheetEmptyBorder, color: palette.softText, backgroundColor: palette.sheetEmptyBg }}
-                  >
-                    {t('canvasStickerDrawerEmpty')}
-                  </div>
-                )}
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <StickerDrawer
+          isOpen={isStickerDrawerOpen}
+          onClose={() => setIsStickerDrawerOpen(false)}
+          palette={palette}
+          isDark={isDark}
+          categories={stickerCategories}
+          activeCategory={activeStickerCategory}
+          onCategoryChange={setActiveStickerCategoryId}
+          onSelectSticker={addStickerItem}
+          t={t}
+        />
       </div>
     </div>
   );

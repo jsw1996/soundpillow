@@ -4,6 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { Screen, Track } from '../types';
 import { useTranslation } from '../i18n';
 import type { TranslationKeys } from '../i18n/locales/en';
+import { useRef, useCallback } from 'react';
 
 const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationKeys }[] = [
   { screen: 'home', icon: HomeIcon, labelKey: 'navHome' },
@@ -28,13 +29,22 @@ interface BottomNavProps {
 export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPlayer }: BottomNavProps) {
   const { currentScreen, setCurrentScreen } = useAppContext();
   const { t } = useTranslation();
+  const pillRef = useRef<HTMLDivElement>(null);
 
-  const handleNavClick = (item: typeof NAV_ITEMS[number]) => {
+  const handleNavClick = useCallback((item: typeof NAV_ITEMS[number]) => {
     if (item.screen === 'sleepcast' && onSleepcastNav) {
       onSleepcastNav();
     }
     setCurrentScreen(item.screen);
-  };
+
+    // Trigger squish animation on the pill
+    if (pillRef.current) {
+      pillRef.current.style.animation = 'none';
+      // Force reflow
+      void pillRef.current.offsetHeight;
+      pillRef.current.style.animation = 'nav-pill-squish 440ms ease';
+    }
+  }, [onSleepcastNav, setCurrentScreen]);
 
   const isActive = (item: typeof NAV_ITEMS[number]) => {
     return currentScreen === item.screen;
@@ -56,13 +66,34 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
         layout
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
         onClick={() => handleNavClick(item)}
-        className={`relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-2xl transition-colors duration-300 ${
-          active
-            ? 'text-primary nav-indicator'
-            : 'text-gray-500'
+        className={`relative flex flex-col items-center justify-center gap-0.5 px-7 py-1.5 rounded-3xl transition-colors duration-300 z-[1] ${
+          active ? 'text-primary' : 'text-gray-500'
         }`}
       >
-        <Icon size={20} fill={active ? 'currentColor' : 'none'} strokeWidth={active ? 2 : 1.8} />
+        {/* Shared layout sliding pill indicator */}
+        <AnimatePresence>
+          {active && (
+            <motion.div
+              ref={pillRef}
+              layoutId="nav-active-pill"
+              className="liquid-glass-nav-pill absolute inset-0 rounded-3xl"
+              style={{ zIndex: -1 }}
+              initial={false}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 32,
+                mass: 0.8,
+              }}
+            />
+          )}
+        </AnimatePresence>
+
+        <Icon
+          size={20}
+          fill={active ? 'currentColor' : 'none'}
+          strokeWidth={active ? 2 : 1.8}
+        />
         <span className="text-[9px] font-bold tracking-wider uppercase">{t(item.labelKey)}</span>
       </motion.button>
     );
@@ -76,7 +107,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
       <motion.div
         layout="position"
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-        className="glass-dock mx-auto flex max-w-[32rem] items-center justify-around rounded-[22px] px-1 py-1"
+        className="liquid-glass-nav mx-auto flex max-w-[32rem] items-center justify-around rounded-[99em] px-1 py-1"
       >
         {leftItems.map(renderNavButton)}
 

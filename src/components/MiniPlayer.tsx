@@ -46,7 +46,7 @@ export function MiniPlayer({ track, isPlaying, onTogglePlay, mixName, onTap, col
             className="mx-auto max-w-[32rem]"
             onClick={() => onTap ? onTap() : setCurrentScreen('player')}
           >
-            <div className="relative glass-dock glass-noise rounded-full px-3.5 py-1.5 cursor-pointer active:scale-[0.97] transition-all duration-200">
+            <div className="relative liquid-glass-nav glass-noise rounded-full px-3.5 py-1.5 cursor-pointer active:scale-[0.97] transition-all duration-200">
               <div className="flex items-center gap-3">
                 {/* Artwork with glow */}
                 <div className="relative w-9 h-9 shrink-0">

@@ -456,52 +456,76 @@ textarea,
     z-index: 1;
   }
 
-  /* ── Floating dock glass (navigation) ── */
-  .glass-dock {
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.06) 100%);
-    backdrop-filter: blur(48px) saturate(200%) brightness(1.08);
-    -webkit-backdrop-filter: blur(48px) saturate(200%) brightness(1.08);
-    border: 0.5px solid rgba(255,255,255,0.18);
+  /* ── Liquid-glass floating dock (navigation) ── */
+  .liquid-glass-nav {
+    --lg-glass: #bbbbbc;
+    --lg-light: #fff;
+    --lg-dark: #000;
+    --lg-reflex-dark: 1.6;
+    --lg-reflex-light: 0.8;
+    --lg-saturation: 180%;
+
+    background-color: color-mix(in srgb, var(--lg-glass) 12%, transparent);
+    backdrop-filter: blur(28px) saturate(var(--lg-saturation)) brightness(1.06);
+    -webkit-backdrop-filter: blur(28px) saturate(var(--lg-saturation)) brightness(1.06);
+    border: none;
     box-shadow:
-      inset 0 1px 0 0 rgba(255,255,255,0.25),
-      inset 0 -0.5px 0 0 rgba(0,0,0,0.08),
-      0 10px 40px rgba(0,0,0,0.32),
-      0 3px 10px rgba(0,0,0,0.16),
-      0 0 0 0.5px rgba(255,255,255,0.05),
-      0 0 30px -8px var(--glow-2);
+      inset 0 0 0 1px
+        color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 10%), transparent),
+      inset 1.8px 3px 0px -2px
+        color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 90%), transparent),
+      inset -2px -2px 0px -2px
+        color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 80%), transparent),
+      inset -3px -8px 1px -6px
+        color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 60%), transparent),
+      inset -0.3px -1px 4px 0px
+        color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 12%), transparent),
+      inset -1.5px 2.5px 0px -2px
+        color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 20%), transparent),
+      inset 0px 3px 4px -2px
+        color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 20%), transparent),
+      inset 2px -6.5px 1px -4px
+        color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 10%), transparent),
+      0px 1px 5px 0px
+        color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 10%), transparent),
+      0px 6px 16px 0px
+        color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 8%), transparent);
+    transition: background-color 400ms cubic-bezier(1, 0, 0.4, 1),
+      box-shadow 400ms cubic-bezier(1, 0, 0.4, 1);
   }
 
-  :root[data-theme="light"] .glass-dock {
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.72) 40%, rgba(255,255,255,0.78) 100%);
-    backdrop-filter: blur(48px) saturate(180%);
-    -webkit-backdrop-filter: blur(48px) saturate(180%);
-    border: 0.5px solid rgba(255,255,255,0.7);
-    box-shadow:
-      inset 0 1px 0 0 rgba(255,255,255,0.9),
-      0 6px 28px rgba(0,0,0,0.1),
-      0 1px 4px rgba(0,0,0,0.05),
-      0 0 20px -6px var(--glow-2);
+  :root[data-theme="light"] .liquid-glass-nav {
+    --lg-glass: #bbbbbc;
+    --lg-light: #fff;
+    --lg-dark: #000;
+    --lg-reflex-dark: 0.6;
+    --lg-reflex-light: 1.2;
+    --lg-saturation: 150%;
   }
 
-  /* ── Active nav indicator glow ── */
-  .nav-indicator {
-    position: relative;
+  /* ── Sliding pill indicator inside liquid-glass-nav ── */
+  .liquid-glass-nav-pill {
+    background-color: color-mix(in srgb, var(--lg-glass, #bbbbbc) 36%, transparent);
+    box-shadow:
+      inset 0 0 0 1px
+        color-mix(in srgb, var(--lg-light, #fff) calc(var(--lg-reflex-light, 1) * 10%), transparent),
+      inset 2px 1px 0px -1px
+        color-mix(in srgb, var(--lg-light, #fff) calc(var(--lg-reflex-light, 1) * 90%), transparent),
+      inset -1.5px -1px 0px -1px
+        color-mix(in srgb, var(--lg-light, #fff) calc(var(--lg-reflex-light, 1) * 80%), transparent),
+      inset -2px -6px 1px -5px
+        color-mix(in srgb, var(--lg-light, #fff) calc(var(--lg-reflex-light, 1) * 60%), transparent),
+      inset -1px 2px 3px -1px
+        color-mix(in srgb, var(--lg-dark, #000) calc(var(--lg-reflex-dark, 1) * 20%), transparent),
+      inset 0px -4px 1px -2px
+        color-mix(in srgb, var(--lg-dark, #000) calc(var(--lg-reflex-dark, 1) * 10%), transparent),
+      0px 3px 6px 0px
+        color-mix(in srgb, var(--lg-dark, #000) calc(var(--lg-reflex-dark, 1) * 8%), transparent);
+    transition: background-color 400ms cubic-bezier(1, 0, 0.4, 1),
+      box-shadow 400ms cubic-bezier(1, 0, 0.4, 1);
   }
-  .nav-indicator::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    box-shadow: 0 0 8px 2px var(--glow-4);
-    transition: opacity 0.3s ease;
-  }
+
+  /* nav-indicator class is no longer used; the sliding pill replaces it */
 
   /* ── Track card image shimmer on load ── */
   .card-shimmer {
@@ -563,6 +587,14 @@ textarea,
 @keyframes card-shimmer-sweep {
   0%, 100% { transform: translateX(-120%); }
   50% { transform: translateX(120%); }
+}
+
+/* Squish animation for liquid-glass nav pill when switching tabs */
+@keyframes nav-pill-squish {
+  0%   { scale: 1 1; }
+  40%  { scale: 1.15 0.92; }
+  70%  { scale: 0.95 1.04; }
+  100% { scale: 1 1; }
 }
 
 .animate-spin-slow {

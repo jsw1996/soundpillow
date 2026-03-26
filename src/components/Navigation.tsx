@@ -66,7 +66,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
         layout
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
         onClick={() => handleNavClick(item)}
-        className={`relative flex flex-col items-center justify-center gap-0.5 px-7 py-1.5 rounded-3xl transition-colors duration-300 z-[1] ${
+        className={`relative flex flex-col items-center justify-center gap-0.5 ${hasCollapsed ? 'px-4' : 'px-7'} py-1.5 rounded-3xl transition-colors duration-300 z-[1] ${
           active ? 'text-primary' : 'text-gray-500'
         }`}
       >
@@ -76,7 +76,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
             <motion.div
               ref={pillRef}
               layoutId="nav-active-pill"
-              className="liquid-glass-nav-pill absolute inset-0 rounded-3xl"
+              className={`liquid-glass-nav-pill absolute rounded-3xl ${hasCollapsed ? '-inset-x-2 inset-y-0' : 'inset-0'}`}
               style={{ zIndex: -1 }}
               initial={false}
               transition={{
@@ -121,7 +121,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
               animate={{ scale: 1, width: 48, opacity: 1 }}
               exit={{ scale: 0, width: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-              className="flex items-center justify-center"
+              className="flex items-center justify-center mx-3"
             >
               <button
                 onClick={collapsedPlayer.onExpand}

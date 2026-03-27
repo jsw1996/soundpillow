@@ -175,6 +175,7 @@ const en = {
   canvasDemoEntry: 'Walked for ten minutes after dinner. Heartbeat slowed down while listening to rain.',
   canvasDemoCaption: 'Morning Light',
   canvasNoEntries: 'No entries this month',
+  canvasWriteToday: 'Write Today',
 };
 
 export default en;

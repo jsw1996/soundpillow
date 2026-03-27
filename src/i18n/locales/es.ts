@@ -174,6 +174,7 @@ const es: Record<string, string> = {
   canvasDemoEntry: 'Caminé diez minutos después de cenar. El corazón se calmó escuchando la lluvia.',
   canvasDemoCaption: 'Luz Matutina',
   canvasNoEntries: 'No hay entradas este mes',
+  canvasWriteToday: 'Escribir Hoy',
 };
 
 export default es;

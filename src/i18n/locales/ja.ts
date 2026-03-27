@@ -174,6 +174,7 @@ const ja: Record<string, string> = {
   canvasDemoEntry: '夕食後10分散歩した。雨の音を聴いていたら心拍がゆっくりになった。',
   canvasDemoCaption: '朝の光',
   canvasNoEntries: '今月のエントリーはありません',
+  canvasWriteToday: '今日を書く',
 };
 
 export default ja;

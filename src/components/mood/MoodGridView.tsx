@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { loadMoodHistory } from '../../utils/mood';
 import { loadCanvasItems } from './canvasStorage';
@@ -8,6 +8,7 @@ import { useTranslation } from '../../i18n';
 import type { MoodEntry } from '../../types';
 import type { MoodCanvasItem } from './canvasTypes';
 import type { CanvasPalette } from './canvasTheme';
+import { getDateString } from '../../utils/date';
 
 interface MoodGridViewProps {
   palette: CanvasPalette;
@@ -49,7 +50,7 @@ function formatDateLabel(dateStr: string, locale: string): { label: string; week
 // Locale-aware handwriting font stacks
 function handwritingFont(locale: string): string {
   switch (locale) {
-    case 'zh': return 'sans-serif';
+    case 'zh': return '"Yozai", "PingFang SC", sans-serif';
     case 'ja': return '"Zen Kurenaido", "Noto Serif JP", cursive';
     default:   return '"Caveat", "Segoe Script", cursive';
   }
@@ -324,6 +325,26 @@ export function MoodGridView({ palette, isDark, onSelectDate }: MoodGridViewProp
 
         <div className="h-28" />
       </div>
+
+      {/* ── Write Today FAB ── */}
+      <button
+        type="button"
+        onClick={() => onSelectDate(getDateString())}
+        className="absolute right-4 z-30 flex items-center gap-1.5 px-4 py-2.5 rounded-full shadow-lg active:scale-95 transition-transform"
+        style={{
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6.5rem)',
+          backgroundColor: palette.accent,
+          color: '#fff',
+        }}
+      >
+        <Plus size={16} strokeWidth={2.5} />
+        <span
+          className="text-xs font-semibold tracking-wide"
+          style={{ fontFamily: displayFont(locale) }}
+        >
+          {t('canvasWriteToday' as any)}
+        </span>
+      </button>
     </div>
   );
 }

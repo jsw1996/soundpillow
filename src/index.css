@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=Cormorant+Garamond:wght@500;600;700&family=Ma+Shan+Zheng&family=Manrope:wght@300;400;500;600;700;800&family=Noto+Serif+JP:wght@500;600;700&family=Noto+Serif+SC:wght@500;600;700&family=Zen+Kurenaido&display=swap');
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Yozai';
+  src: url('/font/Yozai-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Cormorant Garamond", "Noto Serif SC", "Noto Serif JP", serif;

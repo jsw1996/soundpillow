@@ -2,15 +2,14 @@ import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { loadMoodHistory } from '../../utils/mood';
-import { loadCanvasItems } from './canvasStorage';
-import { MOODS } from '../../data/moodMessages';
+import { initCanvasItems } from './canvasStorage';
 import { useTranslation } from '../../i18n';
 import type { MoodEntry } from '../../types';
 import type { MoodCanvasItem } from './canvasTypes';
 import type { CanvasPalette } from './canvasTheme';
 import { getDateString } from '../../utils/date';
 
-interface MoodGridViewProps {
+interface MoodJournalFeedProps {
   palette: CanvasPalette;
   isDark: boolean;
   onSelectDate: (date: string) => void;
@@ -82,14 +81,14 @@ const CARD_VARIANTS = {
   }),
 };
 
-export function MoodGridView({ palette, isDark, onSelectDate }: MoodGridViewProps) {
+export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFeedProps) {
   const { t, locale } = useTranslation();
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
 
   const moodHistory: MoodEntry[] = useMemo(() => loadMoodHistory(), []);
-  const canvasItems: MoodCanvasItem[] = useMemo(() => loadCanvasItems() ?? [], []);
+  const canvasItems: MoodCanvasItem[] = useMemo(() => initCanvasItems(t), [t]);
 
   const moodByDate = useMemo(() => {
     const map = new Map<string, MoodEntry>();
@@ -108,6 +107,16 @@ export function MoodGridView({ palette, isDark, onSelectDate }: MoodGridViewProp
     return map;
   }, [canvasItems]);
 
+  const canvasPhotoByDate = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of canvasItems) {
+      if (item.type !== 'photo' || !item.imageUrl) continue;
+      const d = item.date ?? item.title;
+      if (d && !map.has(d)) map.set(d, item.imageUrl);
+    }
+    return map;
+  }, [canvasItems]);
+
   // Build entries for this month (only days with content, reverse chronological)
   const entries: DayEntry[] = useMemo(() => {
     const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
@@ -119,11 +128,11 @@ export function MoodGridView({ palette, isDark, onSelectDate }: MoodGridViewProp
       const mood = moodByDate.get(dateStr);
       const canvasText = canvasTextByDate.get(dateStr);
       if (!mood && !canvasText) continue;
-      const moodConfig = mood ? MOODS.find(m => m.level === mood.mood) : undefined;
-      result.push({ dateStr, mood, canvasText, moodImageUrl: moodConfig?.imageUrl });
+      const canvasPhoto = canvasPhotoByDate.get(dateStr);
+      result.push({ dateStr, mood, canvasText, moodImageUrl: canvasPhoto });
     }
     return result;
-  }, [viewYear, viewMonth, moodByDate, canvasTextByDate, now]);
+  }, [viewYear, viewMonth, moodByDate, canvasTextByDate, canvasPhotoByDate, now]);
 
   const goBack = () => {
     if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
@@ -137,12 +146,13 @@ export function MoodGridView({ palette, isDark, onSelectDate }: MoodGridViewProp
   const monthKey = `${viewYear}-${viewMonth}`;
   const { monthName, yearStr } = formatMonthYear(viewYear, viewMonth, locale);
 
-  // Card colors
-  const cardBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
-  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+  // Page gets a deeper tone; cards float lighter on top
+  const pageBg = isDark ? '#0e1219' : 'rgb(230, 228, 222)';
+  const cardBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgb(240, 239, 235)';
+  const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
 
   return (
-    <div className="flex flex-col h-full" style={{ backgroundColor: palette.pageBg }}>
+    <div className="flex flex-col h-full" style={{ backgroundColor: pageBg }}>
       {/* ── Month header ── */}
       <div
         className="flex items-center justify-between px-5 pb-4 shrink-0"
@@ -241,13 +251,12 @@ export function MoodGridView({ palette, isDark, onSelectDate }: MoodGridViewProp
                 >
                   {/* Date header */}
                   <div
-                    className="flex items-center justify-between px-4 pt-3.5 pb-1.5"
+                    className="flex items-center justify-between px-4 pt-3.5 pb-1.5 text-[12px]"
                   >
                     <span
                       style={{
-                        color: palette.bodyText,
+                        color: palette.softText,
                         fontFamily: displayFont(locale),
-                        fontSize: 15,
                         fontWeight: locale === 'zh' || locale === 'ja' ? 400 : 600,
                       }}
                     >
@@ -258,7 +267,6 @@ export function MoodGridView({ palette, isDark, onSelectDate }: MoodGridViewProp
                       style={{
                         color: palette.softText,
                         fontFamily: displayFont(locale),
-                        fontSize: 14,
                         fontWeight: 400,
                       }}
                     >
@@ -332,7 +340,7 @@ export function MoodGridView({ palette, isDark, onSelectDate }: MoodGridViewProp
         onClick={() => onSelectDate(getDateString())}
         className="absolute right-4 z-30 flex items-center gap-1.5 px-4 py-2.5 rounded-full shadow-lg active:scale-95 transition-transform"
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6.5rem)',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 4.5rem)',
           backgroundColor: palette.accent,
           color: '#fff',
         }}

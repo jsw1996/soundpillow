@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { screenTransition } from '../utils/animations';
 import { MoodCanvas } from './mood/MoodCanvas';
-import { MoodGridView } from './mood/MoodGridView';
+import { MoodJournalFeed } from './mood/MoodJournalFeed';
 import { useAppContext } from '../context/AppContext';
 import { LIGHT_PALETTE, DARK_PALETTE } from './mood/canvasTheme';
 
@@ -39,7 +39,7 @@ export function MoodCanvasScreen() {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
           >
-            <MoodGridView
+            <MoodJournalFeed
               palette={palette}
               isDark={isDark}
               onSelectDate={handleSelectDate}

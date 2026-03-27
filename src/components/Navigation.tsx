@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { Screen, Track } from '../types';
 import { useTranslation } from '../i18n';
 import type { TranslationKeys } from '../i18n/locales/en';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 
 const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationKeys }[] = [
   { screen: 'home', icon: HomeIcon, labelKey: 'navHome' },
@@ -12,6 +12,9 @@ const NAV_ITEMS: { screen: Screen; icon: typeof HomeIcon; labelKey: TranslationK
   { screen: 'canvas', icon: StickyNote, labelKey: 'navCanvas' },
   { screen: 'profile', icon: User, labelKey: 'navProfile' },
 ];
+
+const LEFT_ITEMS = NAV_ITEMS.slice(0, 2);
+const RIGHT_ITEMS = NAV_ITEMS.slice(2);
 
 export interface CollapsedPlayerInfo {
   track: Track;
@@ -30,6 +33,42 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
   const { currentScreen, setCurrentScreen } = useAppContext();
   const { t } = useTranslation();
   const pillRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const btnRefs = useRef<Record<string, HTMLElement | null>>({});
+  const [pillPos, setPillPos] = useState<{ left: number; width: number } | null>(null);
+
+  // Measure the active button's position within the nav container.
+  // Uses offsetLeft/offsetWidth which reflect CSS layout (ignoring transforms),
+  // so measurements stay correct even while Framer Motion layout-animates.
+  const measurePill = useCallback(() => {
+    const nav = navRef.current;
+    const btn = btnRefs.current[currentScreen];
+    if (!nav || !btn) return;
+
+    const navW = nav.offsetWidth;
+    let left = btn.offsetLeft;
+    let width = btn.offsetWidth;
+
+    // Clamp so the pill never exceeds the nav bar bounds
+    left = Math.max(0, left);
+    width = Math.min(width, navW - left);
+
+    setPillPos({ left, width });
+  }, [currentScreen]);
+
+  useEffect(() => {
+    // Double-rAF so the DOM layout has settled after React commit
+    let raf1: number, raf2: number;
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(measurePill);
+    });
+    window.addEventListener('resize', measurePill);
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      window.removeEventListener('resize', measurePill);
+    };
+  }, [measurePill]);
 
   const handleNavClick = useCallback((item: typeof NAV_ITEMS[number]) => {
     if (item.screen === 'sleepcast' && onSleepcastNav) {
@@ -46,49 +85,23 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
     }
   }, [onSleepcastNav, setCurrentScreen]);
 
-  const isActive = (item: typeof NAV_ITEMS[number]) => {
-    return currentScreen === item.screen;
-  };
-
   // Hide bottom nav on player screen and during active sleepcast
   if (currentScreen === 'player' || sleepcastActive) return null;
 
-  const leftItems = NAV_ITEMS.slice(0, 2);
-  const rightItems = NAV_ITEMS.slice(2);
-  const hasCollapsed = !!collapsedPlayer;
-
   const renderNavButton = (item: typeof NAV_ITEMS[number]) => {
     const Icon = item.icon;
-    const active = isActive(item);
+    const active = currentScreen === item.screen;
     return (
       <motion.button
         key={item.labelKey}
+        ref={(el: HTMLButtonElement | null) => { btnRefs.current[item.screen] = el; }}
         layout
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
         onClick={() => handleNavClick(item)}
-        className={`relative flex flex-col items-center justify-center gap-0.5 ${hasCollapsed ? 'px-4' : 'px-7'} py-1.5 rounded-3xl transition-colors duration-300 z-[1] ${
+        className={`relative flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-3xl transition-colors duration-300 z-[1] ${
           active ? 'text-primary' : 'text-gray-500'
         }`}
       >
-        {/* Shared layout sliding pill indicator */}
-        <AnimatePresence>
-          {active && (
-            <motion.div
-              ref={pillRef}
-              layoutId="nav-active-pill"
-              className={`liquid-glass-nav-pill absolute rounded-3xl ${hasCollapsed ? '-inset-x-2 inset-y-0' : 'inset-0'}`}
-              style={{ zIndex: -1 }}
-              initial={false}
-              transition={{
-                type: 'spring',
-                stiffness: 400,
-                damping: 32,
-                mass: 0.8,
-              }}
-            />
-          )}
-        </AnimatePresence>
-
         <Icon
           size={20}
           fill={active ? 'currentColor' : 'none'}
@@ -105,15 +118,33 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
       style={{ bottom: 'calc(0.5rem + env(safe-area-inset-bottom) * 0.4)' }}
     >
       <motion.div
+        ref={navRef}
         layout="position"
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-        className="liquid-glass-nav mx-auto flex max-w-[32rem] items-center justify-around rounded-[99em] px-1 py-1"
+        className="liquid-glass-nav mx-auto relative flex max-w-[32rem] items-center rounded-[99em] px-1 py-1"
       >
-        {leftItems.map(renderNavButton)}
+        {/* Pill clip layer — overflow-hidden keeps the indicator inside the bar */}
+        <div className="absolute inset-0 rounded-[99em] overflow-hidden pointer-events-none z-0">
+          {pillPos && (
+            <motion.div
+              ref={pillRef}
+              className="liquid-glass-nav-pill absolute top-1 bottom-1 rounded-3xl"
+              animate={{ left: pillPos.left, width: pillPos.width }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 30,
+                mass: 0.8,
+              }}
+            />
+          )}
+        </div>
+
+        {LEFT_ITEMS.map(renderNavButton)}
 
         {/* Collapsed mini-player orb in center */}
         <AnimatePresence mode="popLayout">
-          {hasCollapsed && collapsedPlayer && (
+          {collapsedPlayer && (
             <motion.div
               key="nav-collapsed-player"
               layout
@@ -121,7 +152,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
               animate={{ scale: 1, width: 48, opacity: 1 }}
               exit={{ scale: 0, width: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-              className="flex items-center justify-center mx-3"
+              className="flex-none flex items-center justify-center mx-1"
             >
               <button
                 onClick={collapsedPlayer.onExpand}
@@ -148,7 +179,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
           )}
         </AnimatePresence>
 
-        {rightItems.map(renderNavButton)}
+        {RIGHT_ITEMS.map(renderNavButton)}
       </motion.div>
     </nav>
   );

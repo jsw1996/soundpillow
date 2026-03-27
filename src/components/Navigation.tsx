@@ -40,6 +40,9 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
   // Measure the active button's position within the nav container.
   // Uses offsetLeft/offsetWidth which reflect CSS layout (ignoring transforms),
   // so measurements stay correct even while Framer Motion layout-animates.
+  // Track collapsed player presence so pill re-measures on expand/collapse
+  const hasCollapsedPlayer = !!collapsedPlayer;
+
   const measurePill = useCallback(() => {
     const nav = navRef.current;
     const btn = btnRefs.current[currentScreen];
@@ -54,7 +57,7 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
     width = Math.min(width, navW - left);
 
     setPillPos({ left, width });
-  }, [currentScreen]);
+  }, [currentScreen, hasCollapsedPlayer]);
 
   useEffect(() => {
     // Double-rAF so the DOM layout has settled after React commit
@@ -63,12 +66,21 @@ export function BottomNav({ sleepcastActive = false, onSleepcastNav, collapsedPl
       raf2 = requestAnimationFrame(measurePill);
     });
     window.addEventListener('resize', measurePill);
+
+    // When the collapsed player animates in/out with layout spring (350/30),
+    // the buttons shift over ~200-300ms. Re-measure after the spring settles.
+    let settleTimer: ReturnType<typeof setTimeout> | undefined;
+    if (hasCollapsedPlayer !== undefined) {
+      settleTimer = setTimeout(measurePill, 350);
+    }
+
     return () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
+      clearTimeout(settleTimer);
       window.removeEventListener('resize', measurePill);
     };
-  }, [measurePill]);
+  }, [measurePill, hasCollapsedPlayer]);
 
   const handleNavClick = useCallback((item: typeof NAV_ITEMS[number]) => {
     if (item.screen === 'sleepcast' && onSleepcastNav) {

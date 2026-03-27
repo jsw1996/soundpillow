@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { loadMoodHistory, MOOD_HISTORY_UPDATED_EVENT } from '../../utils/mood';
 import { STICKER_CATALOG, type StickerDefinition } from '../../data/stickerCatalog';
 import { getDateString } from '../../utils/date';
@@ -22,7 +23,12 @@ import {
 import { StickerDrawer } from './StickerDrawer';
 import { CanvasItemView } from './CanvasItemView';
 
-export function MoodCanvas() {
+interface MoodCanvasProps {
+  focusDate?: string;
+  onBack?: () => void;
+}
+
+export function MoodCanvas({ focusDate, onBack }: MoodCanvasProps = {}) {
   const { t } = useTranslation();
   const { settings } = useAppContext();
   const isDark = settings.theme === 'dark';
@@ -148,8 +154,8 @@ export function MoodCanvas() {
     const id = `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const center = getBoardCenter();
     const base = type === 'note'
-      ? { w: 176, h: 146, color: cardColors[0], text: '' }
-      : { w: 196, h: 178, color: cardColors[1], title: getDateString(), text: '' };
+      ? { w: 176, h: 146, color: cardColors[0], text: '', date: focusDate }
+      : { w: 196, h: 178, color: cardColors[1], title: focusDate ?? getDateString(), text: '', date: focusDate };
 
     setItems((prev) => {
       const maxZ = prev.reduce((max, item) => Math.max(max, item.z), 0);
@@ -162,6 +168,7 @@ export function MoodCanvas() {
         color: base.color,
         title: 'title' in base ? base.title : undefined,
         text: base.text,
+        date: base.date ?? undefined,
       }];
     });
     setSelectedId(id);
@@ -195,6 +202,29 @@ export function MoodCanvas() {
     setSelectedId(null);
   }, []);
 
+  // ── Center viewport on focusDate items ──
+
+  useEffect(() => {
+    if (!focusDate || !boardRef.current) return;
+    const dateItems = items.filter((item) => {
+      if (item.type === 'photo') return item.date === focusDate;
+      return item.date === focusDate || (item.type === 'entry' && item.title === focusDate);
+    });
+    if (dateItems.length === 0) return;
+    const rect = boardRef.current.getBoundingClientRect();
+    const minX = Math.min(...dateItems.map((i) => i.x));
+    const minY = Math.min(...dateItems.map((i) => i.y));
+    const maxX = Math.max(...dateItems.map((i) => i.x + i.w));
+    const maxY = Math.max(...dateItems.map((i) => i.y + i.h));
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    const scale = 1;
+    setViewportScale(scale);
+    setViewportOffset({ x: rect.width / 2 - cx * scale, y: rect.height / 2 - cy * scale });
+  // Run once when entering day view (items come from initCanvasItems so stable on mount)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusDate]);
+
   // ── Sync mood cards from history ──
 
   const syncMoodCards = useCallback(() => {
@@ -217,9 +247,17 @@ export function MoodCanvas() {
   }, [syncMoodCards]);
 
   const visibleItems = useMemo(() => {
+    if (focusDate) {
+      return items.filter((item) => {
+        if (item.type === 'photo') return item.date === focusDate;
+        if (item.type === 'sticker') return item.date === focusDate;
+        // notes and entries: match by item.date or (for entries) item.title
+        return item.date === focusDate || (item.type === 'entry' && item.title === focusDate);
+      });
+    }
     const now = new Date();
     return items.filter((item) => item.type !== 'photo' || isDateInFilter(item.date, filter, now));
-  }, [filter, items]);
+  }, [filter, focusDate, items]);
 
   // ── Pointer / gesture helpers ──
 
@@ -430,32 +468,45 @@ export function MoodCanvas() {
           ))}
         </div>
 
-        {/* ── Filter chips ── */}
+        {/* ── Header: back button (day view) or filter chips (full canvas) ── */}
         <div
           className="absolute left-3 right-3 z-40 flex items-start gap-3"
           style={{ top: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
         >
-          <div className="flex flex-wrap gap-2">
-            {MOOD_CANVAS_FILTER_KEYS.map((option) => {
-              const isActive = option.value === filter;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onPointerDown={(event) => event.stopPropagation()}
-                  onClick={() => setFilter(option.value)}
-                  className="px-2.5 py-1 text-[10px] uppercase tracking-widest border transition-colors"
-                  style={{
-                    borderColor: isActive ? palette.activeChipBorder : palette.chromeBorder,
-                    backgroundColor: isActive ? palette.activeChipBg : palette.chromeBg,
-                    color: isActive ? palette.accent : palette.chromeText,
-                  }}
-                >
-                  {t(option.key as any)}
-                </button>
-              );
-            })}
-          </div>
+          {focusDate && onBack ? (
+            <button
+              type="button"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={onBack}
+              className="flex items-center gap-1.5 px-2.5 py-1 border text-[10px] uppercase tracking-widest"
+              style={{ borderColor: palette.chromeBorder, color: palette.chromeText, backgroundColor: palette.chromeBg }}
+            >
+              <ArrowLeft size={11} />
+              {focusDate}
+            </button>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {MOOD_CANVAS_FILTER_KEYS.map((option) => {
+                const isActive = option.value === filter;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={() => setFilter(option.value)}
+                    className="px-2.5 py-1 text-[10px] uppercase tracking-widest border transition-colors"
+                    style={{
+                      borderColor: isActive ? palette.activeChipBorder : palette.chromeBorder,
+                      backgroundColor: isActive ? palette.activeChipBg : palette.chromeBg,
+                      color: isActive ? palette.accent : palette.chromeText,
+                    }}
+                  >
+                    {t(option.key as any)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── Action buttons ── */}

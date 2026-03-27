@@ -173,6 +173,7 @@ const ja: Record<string, string> = {
   canvasDemoNote: '今日の気分は薄い雲のよう、ゆっくり晴れていく。自分にもう少し優しくしよう。',
   canvasDemoEntry: '夕食後10分散歩した。雨の音を聴いていたら心拍がゆっくりになった。',
   canvasDemoCaption: '朝の光',
+  canvasNoEntries: '今月のエントリーはありません',
 };
 
 export default ja;

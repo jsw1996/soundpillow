@@ -174,6 +174,7 @@ const en = {
   canvasDemoNote: 'Today my mood is like thin clouds, slowly clearing. Give yourself a little patience.',
   canvasDemoEntry: 'Walked for ten minutes after dinner. Heartbeat slowed down while listening to rain.',
   canvasDemoCaption: 'Morning Light',
+  canvasNoEntries: 'No entries this month',
 };
 
 export default en;

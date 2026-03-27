@@ -174,6 +174,7 @@ const zh: Record<string, string> = {
   canvasDemoNote: '今天的心情像薄云，慢慢散开。给自己一点耐心。',
   canvasDemoEntry: '晚饭后散步十分钟，听雨声时心跳慢下来了。',
   canvasDemoCaption: '晨光',
+  canvasNoEntries: '这个月还没有记录',
 };
 
 export default zh;

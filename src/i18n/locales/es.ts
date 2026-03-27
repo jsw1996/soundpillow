@@ -173,6 +173,7 @@ const es: Record<string, string> = {
   canvasDemoNote: 'Hoy mi ánimo es como nubes finas, despejándose poco a poco. Ten un poco de paciencia contigo.',
   canvasDemoEntry: 'Caminé diez minutos después de cenar. El corazón se calmó escuchando la lluvia.',
   canvasDemoCaption: 'Luz Matutina',
+  canvasNoEntries: 'No hay entradas este mes',
 };
 
 export default es;

@@ -155,19 +155,19 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
     <div className="flex flex-col h-full" style={{ backgroundColor: pageBg }}>
       {/* ── Month header ── */}
       <div
-        className="flex items-center justify-between px-5 pb-4 shrink-0"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1.25rem)' }}
+        className="flex items-center justify-between px-5 pb-2 shrink-0"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
       >
         <button
           type="button"
           onClick={goBack}
-          className="w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90"
+          className="w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-90"
           style={{
             color: palette.accent,
             backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
           }}
         >
-          <ChevronLeft size={18} strokeWidth={2} />
+          <ChevronLeft size={16} strokeWidth={2} />
         </button>
 
         <div className="text-center select-none">
@@ -182,7 +182,7 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                 color: palette.bodyText,
                 fontFamily: displayFont(locale),
                 fontWeight: locale === 'zh' || locale === 'ja' ? 400 : 600,
-                fontSize: 22,
+                fontSize: 18,
                 letterSpacing: locale === 'zh' || locale === 'ja' ? '0.05em' : '-0.01em',
                 lineHeight: 1,
               }}
@@ -191,7 +191,7 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
             </motion.p>
           </AnimatePresence>
           <p
-            className="text-[10px] tracking-[0.25em] uppercase mt-1.5"
+            className="text-[10px] tracking-[0.25em] uppercase mt-0.5"
             style={{ color: palette.softText }}
           >
             {yearStr}
@@ -201,13 +201,13 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
         <button
           type="button"
           onClick={goForward}
-          className="w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90"
+          className="w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-90"
           style={{
             color: palette.accent,
             backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
           }}
         >
-          <ChevronRight size={18} strokeWidth={2} />
+          <ChevronRight size={16} strokeWidth={2} />
         </button>
       </div>
 
@@ -303,7 +303,7 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                       <div
                         className="relative overflow-hidden rounded-lg"
                         style={{
-                          width: '60%',
+                          width: '44%',
                           aspectRatio: '4 / 3',
                           transform: 'rotate(-2deg)',
                           boxShadow: isDark

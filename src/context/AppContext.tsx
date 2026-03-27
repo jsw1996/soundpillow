@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { fetchAudios, fetchStoryCatalog, fetchMixes } from '../services/api';
 import { Screen, UserSettings, ListeningStats, MixPreset, SleepEntry, StreakStats, Track } from '../types';
 import { getDateString, getYesterday } from '../utils/date';
@@ -74,6 +74,10 @@ function saveFavorites(favs: Set<string>) {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
+function prefetchAsset(url: string) {
+  fetch(url, { priority: 'low' } as RequestInit).catch(() => {});
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { locale } = useTranslation();
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
@@ -104,6 +108,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [streakStats, setStreakStats] = useState<StreakStats>(() =>
     loadFromStorage(STREAK_KEY, DEFAULT_STREAK, (v) => ({ ...DEFAULT_STREAK, ...v })),
   );
+  const prefetchedAssetUrlsRef = useRef(new Set<string>());
+  const pendingPrefetchTracksRef = useRef<Track[]>([]);
+  const prefetchUnlockedRef = useRef(false);
 
   useEffect(() => {
     saveFavorites(favorites);
@@ -120,6 +127,62 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dataset.theme = settings.theme;
   }, [settings.theme]);
 
+  const flushDeferredPrefetch = useCallback(() => {
+    const pendingTracks = pendingPrefetchTracksRef.current;
+    pendingPrefetchTracksRef.current = [];
+
+    for (const track of pendingTracks) {
+      for (const url of [track.audioUrl, track.imageUrl]) {
+        if (!url || prefetchedAssetUrlsRef.current.has(url)) continue;
+        prefetchedAssetUrlsRef.current.add(url);
+        prefetchAsset(url);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    let idleId: number | undefined;
+    let fallbackId: ReturnType<typeof globalThis.setTimeout> | undefined;
+    const requestIdle = window.requestIdleCallback?.bind(window);
+    const cancelIdle = window.cancelIdleCallback?.bind(window);
+
+    const scheduleFlush = () => {
+      if (requestIdle) {
+        idleId = requestIdle(() => flushDeferredPrefetch(), { timeout: 1500 });
+      } else {
+        fallbackId = globalThis.setTimeout(flushDeferredPrefetch, 350);
+      }
+    };
+
+    const unlockPrefetch = () => {
+      if (prefetchUnlockedRef.current) return;
+      prefetchUnlockedRef.current = true;
+      scheduleFlush();
+      window.removeEventListener('pointerdown', unlockPrefetch);
+      window.removeEventListener('keydown', unlockPrefetch);
+      window.removeEventListener('touchstart', unlockPrefetch);
+    };
+
+    window.addEventListener('pointerdown', unlockPrefetch, { passive: true });
+    window.addEventListener('keydown', unlockPrefetch, { passive: true });
+    window.addEventListener('touchstart', unlockPrefetch, { passive: true });
+
+    // Fallback so assets still warm in the background if the user does not interact.
+    fallbackId = globalThis.setTimeout(unlockPrefetch, 2500);
+
+    return () => {
+      if (idleId !== undefined && cancelIdle) {
+        cancelIdle(idleId);
+      }
+      if (fallbackId !== undefined) {
+        globalThis.clearTimeout(fallbackId);
+      }
+      window.removeEventListener('pointerdown', unlockPrefetch);
+      window.removeEventListener('keydown', unlockPrefetch);
+      window.removeEventListener('touchstart', unlockPrefetch);
+    };
+  }, [flushDeferredPrefetch]);
+
   const loadTracks = useCallback(async (locale: string) => {
     setTracksLoading(true);
     try {
@@ -127,10 +190,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setTracks(nextTracks);
       setTracksError(null);
 
-      // Prefetch audio + cover assets in the background so the SW caches them.
-      for (const track of nextTracks) {
-        fetch(track.audioUrl, { priority: 'low' } as RequestInit).catch(() => {});
-        fetch(track.imageUrl, { priority: 'low' } as RequestInit).catch(() => {});
+      pendingPrefetchTracksRef.current = nextTracks;
+      if (prefetchUnlockedRef.current) {
+        flushDeferredPrefetch();
       }
     } catch (error) {
       setTracks([]);

@@ -232,27 +232,13 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
   const streakLabel = t('canvasStreakDays' as any, { count: streakStats.currentStreak });
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden" style={{ backgroundColor: pageBg }}>
+    <div className="relative flex h-full flex-col overflow-hidden" style={{ backgroundColor: palette.pageBg }}>
       <div
         className="shrink-0 px-5 pb-2.5"
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
       >
         <div className="flex flex-col items-center">
-          <div className="min-w-0 text-center">
-            <h1
-              className="truncate text-[28px] leading-none"
-              style={{
-                color: palette.bodyTextStrong,
-                fontFamily: displayFont(locale),
-                fontWeight: locale === 'zh' || locale === 'ja' ? 500 : 700,
-                letterSpacing: 0,
-              }}
-            >
-              {t('canvasMoodJournal' as any)}
-            </h1>
-          </div>
-
-          <div className="mt-4 grid w-full grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-3">
+          <div className="mt-0 grid w-full grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-3">
             <button
               type="button"
               aria-label={t('canvasPreviousMonth' as any)}
@@ -350,7 +336,7 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
               <div
                 aria-hidden
                 className="absolute bottom-0 top-1 w-px"
-                style={{ left: 36, backgroundColor: timelineLine }}
+                style={{ left: 28, backgroundColor: timelineLine }}
               />
             )}
 
@@ -391,7 +377,7 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                   variants={CARD_VARIANTS}
                   whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
                   onClick={() => onSelectDate(entry.dateStr)}
-                  className="relative grid w-full grid-cols-[4.25rem_minmax(0,1fr)] gap-1.5 text-left"
+                  className="relative grid w-full grid-cols-[3.25rem_minmax(0,1fr)] gap-1.5 text-left"
                 >
                   <div
                     className="relative z-10 flex flex-col items-center pt-1"
@@ -415,15 +401,66 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                   </div>
 
                   <div
-                    className="overflow-hidden rounded-lg p-3"
+                    className="relative overflow-hidden rounded-lg p-3"
                     style={{
                       backgroundColor: raisedBg,
-                      border: `1px solid ${cardBorder}`,
-                      boxShadow: isDark ? '0 14px 28px rgba(0,0,0,0.24)' : '0 10px 24px rgba(66, 80, 74, 0.08)',
+                      border: 'none',
+                      boxShadow: 'none',
                     }}
                   >
-                    <div className="flex items-start justify-between gap-2.5">
-                      <div className="min-w-0">
+                    {entry.moodImageUrl && (
+                      <div
+                        className="absolute inset-y-0 right-0 w-28 overflow-hidden"
+                        style={{ backgroundColor: palette.photoFrameBg }}
+                      >
+                        <img
+                          src={entry.moodImageUrl}
+                          alt=""
+                          aria-hidden
+                          referrerPolicy="no-referrer"
+                          className="absolute inset-0 h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+
+                    {entry.moodImageUrl && (
+                      <div
+                        aria-hidden
+                        className="absolute inset-y-0 z-20"
+                        style={{ right: '7rem', width: 1 }}
+                      >
+                        <div
+                          className="absolute inset-y-3 left-0"
+                          style={{
+                            borderLeft: '2px dashed rgb(173 172 172 / 67%)',
+                          }}
+                        />
+                        <span
+                          className="absolute -top-2 -translate-x-1/2 rounded-full"
+                          style={{
+                            left: 0,
+                            width: 16,
+                            height: 16,
+                            backgroundColor: palette.pageBg,
+                            border: `1px solid ${cardBorder}`,
+                          }}
+                        />
+                        <span
+                          className="absolute -bottom-2 -translate-x-1/2 rounded-full"
+                          style={{
+                            left: 0,
+                            width: 16,
+                            height: 16,
+                            backgroundColor: palette.pageBg,
+                            border: `1px solid ${cardBorder}`,
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    <div className="relative z-10 flex items-start gap-2.5">
+                      <div className={`min-w-0 ${entry.moodImageUrl ? 'pr-28' : ''}`}>
                         <div className="flex flex-wrap items-center gap-2">
                           {mood && (
                             <>
@@ -452,27 +489,11 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                           )}
                         </div>
                       </div>
-
-                      {entry.moodImageUrl && (
-                        <div
-                          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md"
-                          style={{ backgroundColor: palette.photoFrameBg, boxShadow: palette.photoShadow }}
-                        >
-                          <img
-                            src={entry.moodImageUrl}
-                            alt=""
-                            aria-hidden
-                            referrerPolicy="no-referrer"
-                            className="absolute inset-0 h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        </div>
-                      )}
                     </div>
 
                     {text && (
                       <p
-                        className="mt-3 line-clamp-3"
+                        className={`relative z-10 mt-3 line-clamp-3 ${entry.moodImageUrl ? 'pr-28' : ''}`}
                         style={{
                           color: palette.bodyTextStrong,
                           fontFamily: handwritingFont(locale),
@@ -485,7 +506,7 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                       </p>
                     )}
 
-                    <div className="mt-3 flex items-center gap-3">
+                    <div className={`relative z-10 mt-3 flex items-center gap-3 ${entry.moodImageUrl ? 'pr-28' : ''}`}>
                       <p
                         className="truncate text-[11px] font-semibold"
                         style={{ color: palette.softText }}

@@ -39,7 +39,7 @@ export interface CanvasPalette {
 }
 
 export const LIGHT_PALETTE: CanvasPalette = {
-  pageBg: '#F9F8F4',
+  pageBg: 'rgb(244 249 249)',
   text: '#2D2D2D',
   accent: '#4a9e8e',
   line: 'rgba(0,0,0,0.03)',

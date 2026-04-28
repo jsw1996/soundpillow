@@ -99,11 +99,11 @@ const DARK_MOOD_COLORS: Record<MoodLevel, { bg: string; text: string; dot: strin
 };
 
 const MOOD_ICON_SRC: Record<MoodLevel, string> = {
-  tired: '/mood-icons/mood-tired.png',
-  meh: '/mood-icons/mood-meh.png',
-  okay: '/mood-icons/mood-okay.png',
-  good: '/mood-icons/mood-good.png',
-  amazing: '/mood-icons/mood-amazing.png',
+  tired: `${import.meta.env.BASE_URL}mood-icons/mood-tired.png`,
+  meh: `${import.meta.env.BASE_URL}mood-icons/mood-meh.png`,
+  okay: `${import.meta.env.BASE_URL}mood-icons/mood-okay.png`,
+  good: `${import.meta.env.BASE_URL}mood-icons/mood-good.png`,
+  amazing: `${import.meta.env.BASE_URL}mood-icons/mood-amazing.png`,
 };
 
 function addDays(date: Date, days: number): Date {

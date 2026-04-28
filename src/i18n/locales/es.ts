@@ -175,6 +175,15 @@ const es: Record<string, string> = {
   canvasDemoCaption: 'Luz Matutina',
   canvasNoEntries: 'No hay entradas este mes',
   canvasWriteToday: 'Escribir Hoy',
+  canvasMoodJournal: 'Diario de Ánimo',
+  canvasEntriesCount: '{{count}} entradas',
+  canvasStreakDays: '{{count}} días seguidos',
+  canvasPreviousMonth: 'Mes anterior',
+  canvasNextMonth: 'Mes siguiente',
+  canvasWindDownMix: 'Mezcla para descansar',
+  canvasJournalEntry: 'Entrada de diario',
+  canvasMinutesShort: '{{count}} min',
+  canvasOpenEntry: 'Abrir',
 };
 
 export default es;

@@ -176,6 +176,15 @@ const zh: Record<string, string> = {
   canvasDemoCaption: '晨光',
   canvasNoEntries: '这个月还没有记录',
   canvasWriteToday: '写今天',
+  canvasMoodJournal: '心情日志',
+  canvasEntriesCount: '{{count}} 条记录',
+  canvasStreakDays: '连续 {{count}} 天',
+  canvasPreviousMonth: '上个月',
+  canvasNextMonth: '下个月',
+  canvasWindDownMix: '睡前混音',
+  canvasJournalEntry: '日志记录',
+  canvasMinutesShort: '{{count}} 分钟',
+  canvasOpenEntry: '打开',
 };
 
 export default zh;

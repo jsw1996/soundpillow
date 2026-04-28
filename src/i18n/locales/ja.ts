@@ -175,6 +175,15 @@ const ja: Record<string, string> = {
   canvasDemoCaption: '朝の光',
   canvasNoEntries: '今月のエントリーはありません',
   canvasWriteToday: '今日を書く',
+  canvasMoodJournal: 'ムード日記',
+  canvasEntriesCount: '{{count}} 件',
+  canvasStreakDays: '{{count}}日連続',
+  canvasPreviousMonth: '前の月',
+  canvasNextMonth: '次の月',
+  canvasWindDownMix: 'おやすみミックス',
+  canvasJournalEntry: '日記エントリー',
+  canvasMinutesShort: '{{count}}分',
+  canvasOpenEntry: '開く',
 };
 
 export default ja;

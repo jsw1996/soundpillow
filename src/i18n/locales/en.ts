@@ -176,6 +176,15 @@ const en = {
   canvasDemoCaption: 'Morning Light',
   canvasNoEntries: 'No entries this month',
   canvasWriteToday: 'Write Today',
+  canvasMoodJournal: 'Mood Journal',
+  canvasEntriesCount: '{{count}} entries',
+  canvasStreakDays: '{{count}} day streak',
+  canvasPreviousMonth: 'Previous month',
+  canvasNextMonth: 'Next month',
+  canvasWindDownMix: 'Wind down mix',
+  canvasJournalEntry: 'Journal entry',
+  canvasMinutesShort: '{{count}} min',
+  canvasOpenEntry: 'Open',
 };
 
 export default en;

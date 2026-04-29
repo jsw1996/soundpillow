@@ -14,6 +14,7 @@ const es: Record<string, string> = {
   navProfile: 'Perfil',
 
   // Categories
+  catAll: 'Todo',
   catFavorites: 'Favoritos',
   catNature: 'Naturaleza',
   catAnimals: 'Animales',

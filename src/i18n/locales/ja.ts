@@ -14,6 +14,7 @@ const ja: Record<string, string> = {
   navProfile: 'プロフィール',
 
   // Categories
+  catAll: 'すべて',
   catFavorites: 'お気に入り',
   catNature: '自然',
   catAnimals: '動物',

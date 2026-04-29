@@ -17,11 +17,12 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ onTrackSelect, onMixSelect, onMixStop, playingMixId, isMixPlaying, onOpenMixer }: HomeScreenProps) {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>('all');
   const { isFavorite, tracks } = useAppContext();
   const pageScrollRef = useRef<HTMLDivElement>(null);
 
   const filteredTracks = tracks.filter((track) => {
+    if (activeCategory === 'all' || !activeCategory) return true;
     if (activeCategory === 'favorites') return isFavorite(track.id);
     if (activeCategory && track.category.toLowerCase() !== activeCategory) return false;
     return true;

@@ -1,14 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Heart, Trees, PawPrint, Wind, Sparkles } from 'lucide-react';
+import { LayoutGrid, Heart, Trees, PawPrint, Sparkles } from 'lucide-react';
 import { CATEGORIES } from '../../constants';
 import { useCategoryName } from '../../i18n';
 import { PillRow } from '../shared/PillRow';
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  LayoutGrid: <LayoutGrid size={18} />,
   Heart: <Heart size={18} />,
   Trees: <Trees size={18} />,
   PawPrint: <PawPrint size={18} />,
-  Wind: <Wind size={18} />,
   Sparkles: <Sparkles size={18} />,
 };
 
@@ -64,12 +64,11 @@ export function CategoryPills({ activeCategory, onCategoryChange, scrollRootRef 
         <PillRow
           items={CATEGORIES}
           activeId={activeCategory}
-          onItemSelect={(category, isActive) => {
-            onCategoryChange(isActive ? null : category.id);
+          onItemSelect={(category) => {
+            onCategoryChange(category.id);
           }}
           getLabel={(category) => getCategoryName(category.id)}
           getLeading={(category) => CATEGORY_ICONS[category.icon]}
-          shouldCenterOnPress={(_, isActive) => !isActive}
         />
       </div>
     </>

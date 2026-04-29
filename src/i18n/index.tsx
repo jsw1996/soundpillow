@@ -81,6 +81,7 @@ export function useTranslation() {
  * Helper to translate category names via category ID.
  */
 const CATEGORY_MAP: Record<string, TranslationKeys> = {
+  all: 'catAll',
   favorites: 'catFavorites',
   nature: 'catNature',
   animals: 'catAnimals',

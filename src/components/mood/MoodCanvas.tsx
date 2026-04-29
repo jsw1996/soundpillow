@@ -57,6 +57,7 @@ export function MoodCanvas({ focusDate, onBack }: MoodCanvasProps = {}) {
   const focusRelayRef = useRef<HTMLTextAreaElement | null>(null);
   const editingRef = useRef<string | null>(null);
   const editStartedAtRef = useRef(0);
+  const centeredFocusDateRef = useRef<string | null>(null);
   const BLUR_GUARD_MS = 400;
 
   // ── Persistence ──
@@ -172,7 +173,7 @@ export function MoodCanvas({ focusDate, onBack }: MoodCanvasProps = {}) {
       }];
     });
     setSelectedId(id);
-  }, [cardColors, getBoardCenter]);
+  }, [cardColors, focusDate, getBoardCenter]);
 
   const addStickerItem = useCallback((sticker: StickerDefinition, categoryId: string) => {
     const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -187,11 +188,12 @@ export function MoodCanvas({ focusDate, onBack }: MoodCanvasProps = {}) {
         title: sticker.label,
         imageUrl: sticker.src,
         stickerCategory: categoryId,
+        date: focusDate ?? undefined,
       }];
     });
     setSelectedId(id);
     setIsStickerDrawerOpen(false);
-  }, [getBoardCenter]);
+  }, [focusDate, getBoardCenter]);
 
   const deletedIdsRef = useRef(loadDeletedIds());
 
@@ -205,9 +207,14 @@ export function MoodCanvas({ focusDate, onBack }: MoodCanvasProps = {}) {
   // ── Center viewport on focusDate items ──
 
   useEffect(() => {
-    if (!focusDate || !boardRef.current) return;
+    if (!focusDate) {
+      centeredFocusDateRef.current = null;
+      return;
+    }
+    if (centeredFocusDateRef.current === focusDate || !boardRef.current) return;
     const dateItems = items.filter((item) => {
       if (item.type === 'photo') return item.date === focusDate;
+      if (item.type === 'sticker') return item.date === focusDate;
       return item.date === focusDate || (item.type === 'entry' && item.title === focusDate);
     });
     if (dateItems.length === 0) return;
@@ -221,9 +228,8 @@ export function MoodCanvas({ focusDate, onBack }: MoodCanvasProps = {}) {
     const scale = 1;
     setViewportScale(scale);
     setViewportOffset({ x: rect.width / 2 - cx * scale, y: rect.height / 2 - cy * scale });
-  // Run once when entering day view (items come from initCanvasItems so stable on mount)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusDate]);
+    centeredFocusDateRef.current = focusDate;
+  }, [focusDate, items]);
 
   // ── Sync mood cards from history ──
 

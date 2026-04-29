@@ -5,6 +5,13 @@ import { MOOD_POLAROID_PREFIX, buildInitialItems, buildItemsFromMoodHistory, mer
 const CANVAS_STORAGE_KEY = 'sleepyhub-mood-canvas';
 const VIEWPORT_STORAGE_KEY = 'sleepyhub-mood-canvas-viewport';
 const DELETED_IDS_STORAGE_KEY = 'sleepyhub-mood-canvas-deleted';
+export const CANVAS_ITEMS_UPDATED_EVENT = 'sleepyhub:mood-canvas-items-updated';
+
+function notifyCanvasItemsUpdated(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(CANVAS_ITEMS_UPDATED_EVENT));
+  }
+}
 
 export function saveCanvasItems(items: MoodCanvasItem[]): void {
   try {
@@ -17,6 +24,7 @@ export function saveCanvasItems(items: MoodCanvasItem[]): void {
       return item;
     });
     localStorage.setItem(CANVAS_STORAGE_KEY, JSON.stringify(toSave));
+    notifyCanvasItemsUpdated();
   } catch { /* quota exceeded — ignore */ }
 }
 
@@ -43,6 +51,7 @@ export function loadDeletedIds(): Set<string> {
 export function saveDeletedIds(ids: Set<string>): void {
   try {
     localStorage.setItem(DELETED_IDS_STORAGE_KEY, JSON.stringify([...ids]));
+    notifyCanvasItemsUpdated();
   } catch { /* ignore */ }
 }
 

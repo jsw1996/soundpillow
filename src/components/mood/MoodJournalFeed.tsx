@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, PencilLine } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { loadMoodHistory } from '../../utils/mood';
-import { initCanvasItems } from './canvasStorage';
+import { loadMoodHistory, MOOD_HISTORY_UPDATED_EVENT } from '../../utils/mood';
+import { CANVAS_ITEMS_UPDATED_EVENT, initCanvasItems } from './canvasStorage';
 import { useTranslation } from '../../i18n';
 import { useAppContext } from '../../context/AppContext';
 import type { MoodEntry, MoodLevel, SleepEntry } from '../../types';
@@ -128,15 +128,44 @@ function getSevenDayStrip(anchor: Date): Date[] {
   return Array.from({ length: 7 }, (_, index) => addDays(anchor, index - 6));
 }
 
+function isDateString(value: string | undefined): value is string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value ?? '');
+}
+
+function getCanvasItemDate(item: MoodCanvasItem): string | undefined {
+  if (isDateString(item.date)) return item.date;
+  if (item.type === 'entry' && isDateString(item.title)) return item.title;
+  return undefined;
+}
+
 export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFeedProps) {
   const { t, locale } = useTranslation();
-  const { journal, streakStats, tracks } = useAppContext();
+  const { journal, streakStats } = useAppContext();
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
 
-  const moodHistory: MoodEntry[] = useMemo(() => loadMoodHistory(), []);
-  const canvasItems: MoodCanvasItem[] = useMemo(() => initCanvasItems(t), [t]);
+  const [moodHistory, setMoodHistory] = useState<MoodEntry[]>(() => loadMoodHistory());
+  const [canvasItems, setCanvasItems] = useState<MoodCanvasItem[]>(() => initCanvasItems(t));
+
+  const refreshFeedData = useCallback(() => {
+    setMoodHistory(loadMoodHistory());
+    setCanvasItems(initCanvasItems(t));
+  }, [t]);
+
+  useEffect(() => {
+    refreshFeedData();
+    window.addEventListener(MOOD_HISTORY_UPDATED_EVENT, refreshFeedData as EventListener);
+    window.addEventListener(CANVAS_ITEMS_UPDATED_EVENT, refreshFeedData);
+    window.addEventListener('focus', refreshFeedData);
+    window.addEventListener('storage', refreshFeedData as EventListener);
+    return () => {
+      window.removeEventListener(MOOD_HISTORY_UPDATED_EVENT, refreshFeedData as EventListener);
+      window.removeEventListener(CANVAS_ITEMS_UPDATED_EVENT, refreshFeedData);
+      window.removeEventListener('focus', refreshFeedData);
+      window.removeEventListener('storage', refreshFeedData as EventListener);
+    };
+  }, [refreshFeedData]);
 
   const moodByDate = useMemo(() => {
     const map = new Map<string, MoodEntry>();
@@ -146,23 +175,43 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
 
   const canvasTextByDate = useMemo(() => {
     const map = new Map<string, string>();
+    const zByDate = new Map<string, number>();
     for (const item of canvasItems) {
       if (item.type !== 'note' && item.type !== 'entry') continue;
-      const d = item.date ?? (item.type === 'entry' ? item.title : undefined);
-      if (!d || map.has(d)) continue;
-      if (item.text) map.set(d, item.text);
+      const d = getCanvasItemDate(item);
+      if (!d || !item.text) continue;
+      const existingZ = zByDate.get(d) ?? Number.NEGATIVE_INFINITY;
+      if (item.z >= existingZ) {
+        map.set(d, item.text);
+        zByDate.set(d, item.z);
+      }
     }
     return map;
   }, [canvasItems]);
 
   const canvasPhotoByDate = useMemo(() => {
     const map = new Map<string, string>();
+    const zByDate = new Map<string, number>();
     for (const item of canvasItems) {
       if (item.type !== 'photo' || !item.imageUrl) continue;
-      const d = item.date ?? item.title;
-      if (d && !map.has(d)) map.set(d, item.imageUrl);
+      const d = getCanvasItemDate(item);
+      if (!d) continue;
+      const existingZ = zByDate.get(d) ?? Number.NEGATIVE_INFINITY;
+      if (item.z >= existingZ) {
+        map.set(d, item.imageUrl);
+        zByDate.set(d, item.z);
+      }
     }
     return map;
+  }, [canvasItems]);
+
+  const canvasDatesWithContent = useMemo(() => {
+    const dates = new Set<string>();
+    for (const item of canvasItems) {
+      const date = getCanvasItemDate(item);
+      if (date) dates.add(date);
+    }
+    return dates;
   }, [canvasItems]);
 
   const sleepByDate = useMemo(() => {
@@ -180,9 +229,10 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
     for (let day = count; day >= 1; day--) {
       const dateStr = toDateStr(viewYear, viewMonth, day);
       if (dateStr > todayStr) continue;
+      const hasCanvasContent = canvasDatesWithContent.has(dateStr);
       const mood = moodByDate.get(dateStr);
       const canvasText = canvasTextByDate.get(dateStr);
-      if (!mood && !canvasText) continue;
+      if (!hasCanvasContent && !canvasText) continue;
       const canvasPhoto = canvasPhotoByDate.get(dateStr);
       result.push({
         dateStr,
@@ -193,14 +243,17 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
       });
     }
     return result;
-  }, [viewYear, viewMonth, moodByDate, canvasTextByDate, canvasPhotoByDate, sleepByDate, todayStr]);
+  }, [viewYear, viewMonth, canvasDatesWithContent, moodByDate, canvasTextByDate, canvasPhotoByDate, sleepByDate, todayStr]);
 
   const visibleDatesWithContent = useMemo(() => {
     const dates = new Set<string>();
-    for (const entry of moodHistory) dates.add(entry.date);
+    for (const entry of moodHistory) {
+      if (canvasDatesWithContent.has(entry.date)) dates.add(entry.date);
+    }
     for (const date of canvasTextByDate.keys()) dates.add(date);
+    for (const date of canvasPhotoByDate.keys()) dates.add(date);
     return dates;
-  }, [moodHistory, canvasTextByDate]);
+  }, [moodHistory, canvasDatesWithContent, canvasTextByDate, canvasPhotoByDate]);
 
   const weekAnchor = useMemo(() => {
     const lastDay = new Date(viewYear, viewMonth, daysInMonth(viewYear, viewMonth));
@@ -228,6 +281,10 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
   const cardBorder = isDark ? 'rgba(255,255,255,0.09)' : 'rgba(45,45,45,0.075)';
   const softBorder = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(74,158,142,0.14)';
   const timelineLine = isDark ? 'rgba(127,209,195,0.18)' : 'rgba(74,158,142,0.22)';
+  const cardLeftShadow = isDark
+    ? '-12px 0 24px -18px rgba(0,0,0,0.68)'
+    : '-12px 0 22px -17px rgba(45,45,45,0.28)';
+  const ticketStubEdge = 'radial-gradient(circle at 5px 7px, rgb(244, 249, 249) 0px, rgb(244, 249, 249) 4.8px, transparent 5.2px)';
   const monthEntriesLabel = t('canvasEntriesCount' as any, { count: entries.length });
   const streakLabel = t('canvasStreakDays' as any, { count: streakStats.currentStreak });
 
@@ -360,15 +417,6 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
               const mood = entry.mood?.mood;
               const moodColors = mood ? (isDark ? DARK_MOOD_COLORS : MOOD_COLORS)[mood] : null;
               const moodIconSrc = mood ? MOOD_ICON_SRC[mood] : null;
-              const firstTrack = entry.sleepEntry?.tracksUsed[0]
-                ? tracks.find((track) => track.id === entry.sleepEntry?.tracksUsed[0])
-                : null;
-              const minutes = entry.sleepEntry?.listenedMinutes ?? 0;
-              const metadataParts = [
-                firstTrack?.title ?? (entry.sleepEntry ? t('canvasWindDownMix' as any) : t('canvasJournalEntry' as any)),
-                minutes > 0 ? t('canvasMinutesShort' as any, { count: minutes }) : null,
-              ].filter(Boolean);
-
               return (
                 <motion.button
                   key={entry.dateStr}
@@ -405,9 +453,20 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                     style={{
                       backgroundColor: raisedBg,
                       border: 'none',
-                      boxShadow: 'none',
+                      boxShadow: cardLeftShadow,
                     }}
                   >
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-y-0 z-30 w-2.5"
+                      style={{
+                        right: -5,
+                        backgroundImage: ticketStubEdge,
+                        backgroundRepeat: 'repeat-y',
+                        backgroundSize: '10px 14px',
+                      }}
+                    />
+
                     {entry.moodImageUrl && (
                       <div
                         className="absolute inset-y-0 right-0 w-28 overflow-hidden"
@@ -444,6 +503,7 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                             height: 16,
                             backgroundColor: palette.pageBg,
                             border: `1px solid ${cardBorder}`,
+                            boxShadow: 'rgb(0 0 0 / 25%) -2px 0px 3px inset',
                           }}
                         />
                         <span
@@ -454,6 +514,7 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                             height: 16,
                             backgroundColor: palette.pageBg,
                             border: `1px solid ${cardBorder}`,
+                            boxShadow: 'rgb(0 0 0 / 25%) -2px 0px 3px inset',
                           }}
                         />
                       </div>
@@ -461,11 +522,11 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
 
                     <div className="relative z-10 flex items-start gap-2.5">
                       <div className={`min-w-0 ${entry.moodImageUrl ? 'pr-28' : ''}`}>
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-1">
                           {mood && (
                             <>
                               <span
-                                className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                                className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full"
                                 style={{ backgroundColor: moodColors?.bg }}
                                 aria-hidden
                               >
@@ -479,10 +540,10 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                                 )}
                               </span>
                               <span
-                                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold"
+                                className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold"
                                 style={{ backgroundColor: moodColors?.bg, color: moodColors?.text }}
                               >
-                                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: moodColors?.dot }} />
+                                <span className="h-0.5 w-0.5 rounded-full" style={{ backgroundColor: moodColors?.dot }} />
                                 {t(`mood_${mood}` as any)}
                               </span>
                             </>
@@ -493,11 +554,11 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
 
                     {text && (
                       <p
-                        className={`relative z-10 mt-3 line-clamp-3 ${entry.moodImageUrl ? 'pr-28' : ''}`}
+                        className={`relative z-10 mt-2 line-clamp-3 ${entry.moodImageUrl ? 'pr-28' : ''}`}
                         style={{
                           color: palette.bodyTextStrong,
                           fontFamily: handwritingFont(locale),
-                          fontSize: locale === 'zh' || locale === 'ja' ? 14.5 : 17,
+                          fontSize: locale === 'zh' || locale === 'ja' ? 11.5 : 17,
                           lineHeight: 1.45,
                           fontWeight: 400,
                         }}
@@ -505,15 +566,6 @@ export function MoodJournalFeed({ palette, isDark, onSelectDate }: MoodJournalFe
                         {text}
                       </p>
                     )}
-
-                    <div className={`relative z-10 mt-3 flex items-center gap-3 ${entry.moodImageUrl ? 'pr-28' : ''}`}>
-                      <p
-                        className="truncate text-[11px] font-semibold"
-                        style={{ color: palette.softText }}
-                      >
-                        {metadataParts.join(' · ')}
-                      </p>
-                    </div>
                   </div>
                 </motion.button>
               );

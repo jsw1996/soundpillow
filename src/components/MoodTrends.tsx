@@ -3,11 +3,16 @@ import { Activity, Calendar as CalendarIcon, TrendingUp, ChevronLeft, ChevronRig
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from '../i18n';
 import { loadMoodHistory } from '../utils/mood';
-import { MOODS } from '../data/moodMessages';
 import { getDateString } from '../utils/date';
 import type { MoodLevel } from '../types';
 
-const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((mood) => [mood.level, mood.emoji]));
+const MOOD_ICON_SRC: Record<MoodLevel, string> = {
+  tired: `${import.meta.env.BASE_URL}mood-icons/mood-tired.png`,
+  meh: `${import.meta.env.BASE_URL}mood-icons/mood-meh.png`,
+  okay: `${import.meta.env.BASE_URL}mood-icons/mood-okay.png`,
+  good: `${import.meta.env.BASE_URL}mood-icons/mood-good.png`,
+  amazing: `${import.meta.env.BASE_URL}mood-icons/mood-amazing.png`,
+};
 const MOOD_VALUES: Record<MoodLevel, number> = { amazing: 4, good: 3, okay: 2, meh: 1, tired: 0 };
 const Y_AXIS_LABELS = ['tired', 'meh', 'okay', 'good', 'amazing'] as const;
 
@@ -95,13 +100,20 @@ function LineChart({ chartDays }: { chartDays: ChartDay[] }) {
           );
         })}
 
-        {/* Y-axis emoji labels */}
+        {/* Y-axis mood icons */}
         {Y_AXIS_LABELS.map((level, i) => {
           const y = PAD.top + PLOT_H - (i / 4) * PLOT_H;
           return (
-            <text key={level} x={PAD.left - 6} y={y + 4} textAnchor="end" fontSize="10" opacity={0.5}>
-              {MOOD_EMOJI_BY_LEVEL[level]}
-            </text>
+            <image
+              key={level}
+              href={MOOD_ICON_SRC[level]}
+              x={PAD.left - 20}
+              y={y - 7}
+              width="14"
+              height="14"
+              opacity={0.62}
+              preserveAspectRatio="xMidYMid meet"
+            />
           );
         })}
 
@@ -134,21 +146,21 @@ function LineChart({ chartDays }: { chartDays: ChartDay[] }) {
           />
         )}
 
-        {/* Emoji markers on data points */}
+        {/* Mood icon markers on data points */}
         {svgPoints.map(([x, y], i) => (
-          <motion.text
+          <motion.image
             key={dataPoints[i].idx}
-            x={x}
-            y={y + 5}
-            textAnchor="middle"
-            fontSize="14"
+            href={MOOD_ICON_SRC[dataPoints[i].mood]}
+            x={x - 8}
+            y={y - 8}
+            width="16"
+            height="16"
             className="drop-shadow-md"
+            preserveAspectRatio="xMidYMid meet"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3 + i * 0.04, type: 'spring', bounce: 0.5 }}
-          >
-            {MOOD_EMOJI_BY_LEVEL[dataPoints[i].mood]}
-          </motion.text>
+          />
         ))}
       </svg>
     </div>
@@ -319,7 +331,13 @@ export function MoodTrends() {
                     >
                       {day ? (
                         day.entry ? (
-                          <span className="text-base leading-none drop-shadow-sm">{MOOD_EMOJI_BY_LEVEL[day.entry.mood]}</span>
+                          <img
+                            src={MOOD_ICON_SRC[day.entry.mood]}
+                            alt=""
+                            aria-hidden
+                            className="h-5 w-5 object-contain drop-shadow-sm"
+                            loading="lazy"
+                          />
                         ) : (
                           <span>{day.dayNum}</span>
                         )

@@ -1,10 +1,15 @@
 import { BedDouble, Moon } from 'lucide-react';
 import { useTranslation } from '../../i18n';
-import { MOODS } from '../../data/moodMessages';
 import { loadMoodHistory } from '../../utils/mood';
-import type { SleepEntry } from '../../types';
+import type { MoodLevel, SleepEntry } from '../../types';
 
-const MOOD_EMOJI_BY_LEVEL = Object.fromEntries(MOODS.map((mood) => [mood.level, mood.emoji]));
+const MOOD_ICON_SRC: Record<MoodLevel, string> = {
+  tired: `${import.meta.env.BASE_URL}mood-icons/mood-tired.png`,
+  meh: `${import.meta.env.BASE_URL}mood-icons/mood-meh.png`,
+  okay: `${import.meta.env.BASE_URL}mood-icons/mood-okay.png`,
+  good: `${import.meta.env.BASE_URL}mood-icons/mood-good.png`,
+  amazing: `${import.meta.env.BASE_URL}mood-icons/mood-amazing.png`,
+};
 
 export function WeeklyActivityCard({ weekEntries }: { weekEntries: (SleepEntry | null)[] }) {
   const { t } = useTranslation();
@@ -40,9 +45,13 @@ export function WeeklyActivityCard({ weekEntries }: { weekEntries: (SleepEntry |
                 >
                   {entry ? (
                     mood ? (
-                      <span className="text-base leading-none">
-                        {MOOD_EMOJI_BY_LEVEL[mood.mood]}
-                      </span>
+                      <img
+                        src={MOOD_ICON_SRC[mood.mood]}
+                        alt=""
+                        aria-hidden
+                        className="h-5 w-5 object-contain"
+                        loading="lazy"
+                      />
                     ) : (
                       <Moon size={14} fill="currentColor" />
                     )
